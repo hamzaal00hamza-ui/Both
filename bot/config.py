@@ -220,6 +220,33 @@ PRICE_EDIT_CATEGORIES = [
     ("smm_fbf",     "FACEBOOK_FOLLOWERS",      "👍 رشق متابعين فيسبوك"),
     ("smm_tgv",     "TELEGRAM_VIEWS",          "📊 رشق مشاهدات تلغرام"),
     ("smm_tgr",     "TELEGRAM_REACTIONS",      "💯 رشق تفاعل تلغرام"),
+    # ألعاب جديدة
+    ("pubg_s2",     "PUBG_S2_UC_OFFERS",       "🎮 ببجي - سيرفر 2"),
+    ("ff_s2",       "FREEFIRE_S2_OFFERS",      "🔥 فري فاير - سيرفر 2"),
+    ("ff_eu",       "FREEFIRE_EU_OFFERS",      "🔥 فري فاير - أوروبا"),
+    ("rblx_us",     "ROBLOX_USA_OFFERS",       "🎮 Roblox USA"),
+    ("rblx_ksa",    "ROBLOX_KSA_OFFERS",       "🎮 Roblox KSA"),
+    ("rblx_ae",     "ROBLOX_UAE_OFFERS",       "🎮 Roblox UAE"),
+    ("valo_gl",     "VALORANT_GLOBAL_OFFERS",  "🔫 Valorant عالمي"),
+    ("valo_tr",     "VALORANT_TR_OFFERS",      "🔫 Valorant تركي"),
+    ("bsk",         "BLOOD_STRIKE_OFFERS",     "💀 Blood Strike"),
+    ("stmb",        "STUMBLE_GUYS_OFFERS",     "🎮 Stumble Guys"),
+    ("ssus",        "SUPER_SUS_OFFERS",        "🛸 Super Sus"),
+    # اشتراكات جديدة
+    ("spfy",        "SPOTIFY_OFFERS",          "🎵 Spotify"),
+    ("nova",        "NOVA_TV_OFFERS",          "📺 Nova TV"),
+    ("pvpn",        "PROTONVPN_OFFERS",        "🛡️ Proton VPN"),
+    ("svpn",        "SURFSHARK_OFFERS",        "🦈 SurfShark VPN"),
+    # بطاقات PSN جديدة
+    ("psn_bh",      "PSN_BH_OFFERS",           "🎮 PSN (Bahrain)"),
+    ("psn_qa",      "PSN_QA_OFFERS",           "🎮 PSN (Qatar)"),
+    ("psn_om",      "PSN_OM_OFFERS",           "🎮 PSN (Oman)"),
+    ("psn_uk",      "PSN_UK_OFFERS",           "🎮 PSN (UK)"),
+    ("psn_de",      "PSN_DE_OFFERS",           "🎮 PSN (Germany)"),
+    # بطاقات Steam جديدة
+    ("steam_ae",    "STEAM_AE_OFFERS",         "🟦 Steam (Emirates)"),
+    ("steam_kw",    "STEAM_KW_OFFERS",         "🟦 Steam (Kuwait)"),
+    ("steam_om",    "STEAM_OM_OFFERS",         "🟦 Steam (Oman)"),
 ]
 
 
@@ -364,6 +391,15 @@ PUBG_UC_OFFERS = [
     {"id": "uc_1800", "label": "1800 شدة", "uc": 1800, "price": 365500, "product_id": 2835, "cost_usd": 22.1686, "manual_price": True},
 ]
 
+# ببجي سيرفر 2 — شحن تلقائي
+PUBG_S2_UC_OFFERS = [
+    {"id": "pubg_s2_60",   "label": "60 شدة (سيرفر 2)",   "price": 13000,  "product_id": 6949, "cost_usd": 0.789,  "enabled": True},
+    {"id": "pubg_s2_325",  "label": "325 شدة (سيرفر 2)",  "price": 65000,  "product_id": 6950, "cost_usd": 4.316,  "enabled": True},
+    {"id": "pubg_s2_660",  "label": "660 شدة (سيرفر 2)",  "price": 130000, "product_id": 6951, "cost_usd": 8.567,  "enabled": True},
+    {"id": "pubg_s2_1800", "label": "1800 شدة (سيرفر 2)", "price": 325000, "product_id": 6952, "cost_usd": 22.019, "enabled": True},
+    {"id": "pubg_s2_3850", "label": "3850 شدة (سيرفر 2)", "price": 634500, "product_id": 6953, "cost_usd": 43.021, "enabled": True},
+]
+
 # عروض جواهر فري فاير — شحن تلقائي عبر Fastcard (سيرفر اوتو 1)
 FREEFIRE_DIAMOND_OFFERS = [
     {"id": "ff_110",  "label": "100 + 10 جوهرة",   "diamonds": 110,  "price": 15500,  "product_id": 7709, "cost_usd": 0.94127, "manual_price": True},
@@ -371,6 +407,31 @@ FREEFIRE_DIAMOND_OFFERS = [
     {"id": "ff_583",  "label": "530 + 53 جوهرة",   "diamonds": 583,  "price": 77500,  "product_id": 7711, "cost_usd": 4.706351, "manual_price": True},
     {"id": "ff_1188", "label": "1080 + 108 جوهرة", "diamonds": 1188, "price": 155000, "product_id": 7712, "cost_usd": 9.412701, "manual_price": True},
     {"id": "ff_2420", "label": "2200 + 220 جوهرة", "diamonds": 2420, "price": 310000, "product_id": 7713, "cost_usd": 18.825401, "manual_price": True},
+]
+
+# فري فاير سيرفر 2 — شحن تلقائي
+FREEFIRE_S2_OFFERS = [
+    {"id": "ff_s2_110",  "label": "100 + 10 جوهرة (سيرفر 2)",   "price": 14000,  "product_id": 7642, "cost_usd": 0.95,   "enabled": True},
+    {"id": "ff_s2_231",  "label": "210 + 21 جوهرة (سيرفر 2)",   "price": 28000,  "product_id": 7643, "cost_usd": 1.899,  "enabled": True},
+    {"id": "ff_s2_583",  "label": "530 + 53 جوهرة (سيرفر 2)",   "price": 70000,  "product_id": 7644, "cost_usd": 4.75,   "enabled": True},
+    {"id": "ff_s2_1188", "label": "1080 + 108 جوهرة (سيرفر 2)", "price": 140000, "product_id": 7645, "cost_usd": 9.5,    "enabled": True},
+    {"id": "ff_s2_2420", "label": "2200 + 220 جوهرة (سيرفر 2)", "price": 280000, "product_id": 7646, "cost_usd": 18.981, "enabled": True},
+]
+
+# فري فاير أوروبا — شحن تلقائي
+FREEFIRE_EU_OFFERS = [
+    {"id": "ff_eu_100",   "label": "100 جوهرة (أوروبا)",            "price": 14500,   "product_id": 7793, "cost_usd": 0.968,   "enabled": True},
+    {"id": "ff_eu_310",   "label": "310 جوهرة (أوروبا)",            "price": 43500,   "product_id": 7794, "cost_usd": 2.925,   "enabled": True},
+    {"id": "ff_eu_520",   "label": "520 جوهرة (أوروبا)",            "price": 66500,   "product_id": 7795, "cost_usd": 4.5,     "enabled": True},
+    {"id": "ff_eu_1060",  "label": "1060 جوهرة (أوروبا)",           "price": 133000,  "product_id": 7796, "cost_usd": 9.0,     "enabled": True},
+    {"id": "ff_eu_2180",  "label": "2180 جوهرة (أوروبا)",           "price": 270500,  "product_id": 7797, "cost_usd": 18.337,  "enabled": True},
+    {"id": "ff_eu_5600",  "label": "5600 جوهرة (أوروبا)",           "price": 647500,  "product_id": 7798, "cost_usd": 43.874,  "enabled": True},
+    {"id": "ff_eu_wk",    "label": "عضوية أسبوعية (أوروبا)",        "price": 5000,    "product_id": 7800, "cost_usd": 0.315,   "enabled": True},
+    {"id": "ff_eu_wkmem", "label": "عضوية أسبوعية VIP (أوروبا)",   "price": 29000,   "product_id": 7801, "cost_usd": 1.913,   "enabled": True},
+    {"id": "ff_eu_mo",    "label": "عضوية شهرية (أوروبا)",          "price": 133000,  "product_id": 7802, "cost_usd": 8.978,   "enabled": True},
+    {"id": "ff_eu_ev3",   "label": "Evo Access 3D (أوروبا)",        "price": 9500,    "product_id": 7803, "cost_usd": 0.63,    "enabled": True},
+    {"id": "ff_eu_ev7",   "label": "Evo Access 7D (أوروبا)",        "price": 14000,   "product_id": 7804, "cost_usd": 0.945,   "enabled": True},
+    {"id": "ff_eu_ev30",  "label": "Evo Access 30D (أوروبا)",       "price": 37000,   "product_id": 7805, "cost_usd": 2.475,   "enabled": True},
 ]
 
 # ===== أقسام تلقائية إضافية (Fastcard) =====
@@ -558,9 +619,86 @@ LUDO_YALLA_OFFERS = [
     {"id": "yl_55800", "label": "💎 55,800 الماس", "price": 1563500, "product_id": 3113, "cost_usd": 94.935935, "manual_price": True, "enabled": True},
 ]
 
+# ===== ألعاب جديدة =====
+
+# Roblox — بطاقات هدايا (أكواد جاهزة)
+ROBLOX_USA_OFFERS = [
+    {"id": "rblx_us_10",  "label": "🎮 Roblox USA 10$",  "price": 143000,  "product_id": 3763, "cost_usd": 9.69,    "enabled": True},
+    {"id": "rblx_us_15",  "label": "🎮 Roblox USA 15$",  "price": 214500,  "product_id": 3764, "cost_usd": 14.535,  "enabled": True},
+    {"id": "rblx_us_20",  "label": "🎮 Roblox USA 20$",  "price": 286000,  "product_id": 3765, "cost_usd": 19.38,   "enabled": True},
+    {"id": "rblx_us_25",  "label": "🎮 Roblox USA 25$",  "price": 357500,  "product_id": 3766, "cost_usd": 24.225,  "enabled": True},
+    {"id": "rblx_us_50",  "label": "🎮 Roblox USA 50$",  "price": 715000,  "product_id": 3767, "cost_usd": 48.449,  "enabled": True},
+    {"id": "rblx_us_100", "label": "🎮 Roblox USA 100$", "price": 1430000, "product_id": 3768, "cost_usd": 96.897,  "enabled": True},
+]
+
+ROBLOX_KSA_OFFERS = [
+    {"id": "rblx_ksa_20",  "label": "🎮 Roblox KSA 20 SAR",  "price": 79500,   "product_id": 3769, "cost_usd": 5.385,   "enabled": True},
+    {"id": "rblx_ksa_50",  "label": "🎮 Roblox KSA 50 SAR",  "price": 199000,  "product_id": 3770, "cost_usd": 13.472,  "enabled": True},
+    {"id": "rblx_ksa_100", "label": "🎮 Roblox KSA 100 SAR", "price": 398000,  "product_id": 3771, "cost_usd": 26.964,  "enabled": True},
+    {"id": "rblx_ksa_200", "label": "🎮 Roblox KSA 200 SAR", "price": 796000,  "product_id": 3772, "cost_usd": 53.906,  "enabled": True},
+]
+
+ROBLOX_UAE_OFFERS = [
+    {"id": "rblx_ae_20",  "label": "🎮 Roblox UAE 20 AED",  "price": 81000,   "product_id": 3774, "cost_usd": 5.49,    "enabled": True},
+    {"id": "rblx_ae_50",  "label": "🎮 Roblox UAE 50 AED",  "price": 202500,  "product_id": 3775, "cost_usd": 13.734,  "enabled": True},
+    {"id": "rblx_ae_100", "label": "🎮 Roblox UAE 100 AED", "price": 405500,  "product_id": 3776, "cost_usd": 27.467,  "enabled": True},
+    {"id": "rblx_ae_200", "label": "🎮 Roblox UAE 200 AED", "price": 811000,  "product_id": 3777, "cost_usd": 54.944,  "enabled": True},
+]
+
+# Valorant — بطاقات VP (أكواد جاهزة)
+VALORANT_GLOBAL_OFFERS = [
+    {"id": "valo_gl_475",  "label": "🔫 Valorant 475 VP — 5$",   "price": 69500,   "product_id": 4195, "cost_usd": 4.714,  "enabled": True},
+    {"id": "valo_gl_1000", "label": "🔫 Valorant 1000 VP — 10$", "price": 139000,  "product_id": 4196, "cost_usd": 9.428,  "enabled": True},
+    {"id": "valo_gl_2050", "label": "🔫 Valorant 2050 VP — 20$", "price": 278500,  "product_id": 4197, "cost_usd": 18.856, "enabled": True},
+    {"id": "valo_gl_2600", "label": "🔫 Valorant 2600 VP — 25$", "price": 348000,  "product_id": 4198, "cost_usd": 23.57,  "enabled": True},
+    {"id": "valo_gl_5350", "label": "🔫 Valorant 5350 VP — 50$", "price": 696000,  "product_id": 4199, "cost_usd": 47.139, "enabled": True},
+    {"id": "valo_gl_8650", "label": "🔫 Valorant 8650 VP — 80$", "price": 1138000, "product_id": 4200, "cost_usd": 77.038, "enabled": True},
+]
+
+VALORANT_TR_OFFERS = [
+    {"id": "valo_tr_115",  "label": "🔫 Valorant 115 VP (تركي)",  "price": 13500,  "product_id": 7807, "cost_usd": 0.916,  "enabled": True},
+    {"id": "valo_tr_375",  "label": "🔫 Valorant 375 VP (تركي)",  "price": 39500,  "product_id": 7808, "cost_usd": 2.678,  "enabled": True},
+    {"id": "valo_tr_825",  "label": "🔫 Valorant 825 VP (تركي)",  "price": 82500,  "product_id": 7809, "cost_usd": 5.594,  "enabled": True},
+    {"id": "valo_tr_1700", "label": "🔫 Valorant 1700 VP (تركي)", "price": 169000, "product_id": 7810, "cost_usd": 11.462, "enabled": True},
+    {"id": "valo_tr_2925", "label": "🔫 Valorant 2925 VP (تركي)", "price": 281000, "product_id": 7811, "cost_usd": 19.038, "enabled": True},
+]
+
+# Blood Strike — شحن مباشر بالايدي
+BLOOD_STRIKE_OFFERS = [
+    {"id": "bsk_320",  "label": "💀 320 Gold",    "price": 46000,   "product_id": 3201, "cost_usd": 3.096,  "enabled": True},
+    {"id": "bsk_540",  "label": "💀 540 Gold",    "price": 76500,   "product_id": 3202, "cost_usd": 5.16,   "enabled": True},
+    {"id": "bsk_1100", "label": "💀 1100 Gold",   "price": 152500,  "product_id": 3203, "cost_usd": 10.32,  "enabled": True},
+    {"id": "bsk_2260", "label": "💀 2260 Gold",   "price": 305000,  "product_id": 3204, "cost_usd": 20.64,  "enabled": True},
+    {"id": "bsk_5800", "label": "💀 5800 Gold",   "price": 762500,  "product_id": 3205, "cost_usd": 51.6,   "enabled": True},
+    {"id": "bsk_ep",   "label": "🎟️ Elite Pass",  "price": 61000,   "product_id": 3206, "cost_usd": 4.128,  "enabled": True},
+    {"id": "bsk_pp",   "label": "🎟️ Premium Pass", "price": 137500, "product_id": 3207, "cost_usd": 9.288,  "enabled": True},
+]
+
+# Stumble Guys — شحن مباشر بالايدي
+STUMBLE_GUYS_OFFERS = [
+    {"id": "stmb_800",   "label": "🎮 800 Gams",          "price": 31500,  "product_id": 7073, "cost_usd": 2.1156,   "enabled": True},
+    {"id": "stmb_1600",  "label": "🎮 1600 + 75 Tokens",  "price": 52500,  "product_id": 7074, "cost_usd": 3.53976,  "enabled": True},
+    {"id": "stmb_5000",  "label": "🎮 5000 + 275 Tokens", "price": 130000, "product_id": 7075, "cost_usd": 8.76168,  "enabled": True},
+    {"id": "stmb_120t",  "label": "🎟️ 120 Tokens",        "price": 38500,  "product_id": 7076, "cost_usd": 2.59032,  "enabled": True},
+    {"id": "stmb_1300t", "label": "🎟️ 1300 Tokens",       "price": 315500, "product_id": 7077, "cost_usd": 21.34176, "enabled": True},
+]
+
+# Super Sus — شحن مباشر بالايدي
+SUPER_SUS_OFFERS = [
+    {"id": "ssus_100",  "label": "🛸 GoldStar رمز 100",  "price": 41000,  "product_id": 7052, "cost_usd": 2.76576,  "enabled": True},
+    {"id": "ssus_520",  "label": "🛸 GoldStar 520",      "price": 68000,  "product_id": 7053, "cost_usd": 4.61304,  "enabled": True},
+    {"id": "ssus_1060", "label": "🛸 GoldStar 1060",     "price": 136500, "product_id": 7054, "cost_usd": 9.24672,  "enabled": True},
+    {"id": "ssus_2180", "label": "🛸 GoldStar 2180",     "price": 273000, "product_id": 7055, "cost_usd": 18.4728,  "enabled": True},
+    {"id": "ssus_5600", "label": "🛸 GoldStar 5600",     "price": 681500, "product_id": 7056, "cost_usd": 46.09944, "enabled": True},
+]
+
 
 # ===== اشتراكات تطبيقات (Apps Subscriptions) =====
-SPOTIFY_OFFERS: list = []  # placeholder (لم يتوفر بـ Fastcard حالياً)
+SPOTIFY_OFFERS = [
+    {"id": "spfy_7266", "label": "🎵 سبوتيفاي — شهر",     "price": 65500,  "product_id": 7266, "cost_usd": 4.415,  "enabled": True},
+    {"id": "spfy_7267", "label": "🎵 سبوتيفاي — شهران",   "price": 153000, "product_id": 7267, "cost_usd": 10.343, "enabled": True},
+    {"id": "spfy_7268", "label": "🎵 سبوتيفاي — 6 أشهر",  "price": 284000, "product_id": 7268, "cost_usd": 19.206, "enabled": True},
+]
 
 SHAHID_OFFERS = [
     {"id": "sh_3298", "label": "📺 شاهد VIP — شهر / جهاز واحد",      "price": 66000,  "product_id": 3298, "cost_usd": 4.0,    "manual_price": True, "enabled": True},
@@ -568,6 +706,7 @@ SHAHID_OFFERS = [
     {"id": "sh_3300", "label": "📺 شاهد VIP — شهر / 5 أجهزة",        "price": 105000,  "product_id": 3300, "cost_usd": 6.355,  "manual_price": True, "enabled": True},
     {"id": "sh_3301", "label": "📺 شاهد VIP — 3 أشهر / 5 أجهزة",      "price": 182000, "product_id": 3301, "cost_usd": 11.025, "manual_price": True, "enabled": True},
     {"id": "sh_3302", "label": "📺 شاهد VIP الكامل — 3 أشهر",         "price": 590000, "product_id": 3302, "cost_usd": 35.83,  "manual_price": True, "enabled": True},
+    {"id": "sh_3303", "label": "📺 شاهد VIP 12 شهر — على إيميلك",    "price": 224000, "product_id": 3303, "cost_usd": 15.177, "manual_price": True, "enabled": True},
 ]
 
 YOUTUBE_OFFERS = [
@@ -635,6 +774,23 @@ TGBOOST_OFFERS = [
     {"id": "tg_7729", "label": "📢 تعزيز قناة تلغرام بريميوم — 7 أيام", "price": 2000, "product_id": 7729, "cost_usd": 0.110, "manual_price": True, "enabled": True},
     {"id": "tg_7730", "label": "📢 تعزيز قناة تلغرام بريميوم — 15 يوم", "price": 3500, "product_id": 7730, "cost_usd": 0.199, "manual_price": True, "enabled": True},
     {"id": "tg_7731", "label": "📢 تعزيز قناة تلغرام بريميوم — 30 يوم", "price": 6000, "product_id": 7731, "cost_usd": 0.342, "manual_price": True, "enabled": True},
+]
+
+# Nova TV — اشتراك بث تلفزيوني
+NOVA_TV_OFFERS = [
+    {"id": "nova_3mo",  "label": "📺 Nova TV — 3 أشهر",    "price": 32500,  "product_id": 7263, "cost_usd": 2.189, "enabled": True},
+    {"id": "nova_6mo",  "label": "📺 Nova TV — 6 أشهر",    "price": 65000,  "product_id": 7264, "cost_usd": 4.378, "enabled": True},
+    {"id": "nova_12mo", "label": "📺 Nova TV — سنة كاملة", "price": 130000, "product_id": 7265, "cost_usd": 8.756, "enabled": True},
+]
+
+# Proton VPN
+PROTONVPN_OFFERS = [
+    {"id": "pvpn_mo", "label": "🛡️ Proton VPN — شهر", "price": 29000, "product_id": 4208, "cost_usd": 1.9608, "enabled": True},
+]
+
+# SurfShark VPN
+SURFSHARK_OFFERS = [
+    {"id": "svpn_mo", "label": "🦈 SurfShark VPN — شهر", "price": 38500, "product_id": 4209, "cost_usd": 2.611, "enabled": True},
 ]
 
 
@@ -736,6 +892,46 @@ PSN_AE_OFFERS = [
     {"id": "ps_ae_4114", "label": "100$ PSN UAE", "price": 1613500, "product_id": 4114, "cost_usd": 97.97566, "manual_price": True, "enabled": True},
 ]
 
+# === PSN Bahrain ===
+PSN_BH_OFFERS = [
+    {"id": "ps_bh_10",  "label": "بلاي ستيشن بحريني 10$",  "price": 141000,  "product_id": 3708, "cost_usd": 9.533,  "enabled": True},
+    {"id": "ps_bh_20",  "label": "بلاي ستيشن بحريني 20$",  "price": 282000,  "product_id": 3709, "cost_usd": 19.066, "enabled": True},
+    {"id": "ps_bh_50",  "label": "بلاي ستيشن بحريني 50$",  "price": 704000,  "product_id": 3713, "cost_usd": 47.663, "enabled": True},
+    {"id": "ps_bh_100", "label": "بلاي ستيشن بحريني 100$", "price": 1408500, "product_id": 3716, "cost_usd": 95.326, "enabled": True},
+]
+
+# === PSN Qatar ===
+PSN_QA_OFFERS = [
+    {"id": "ps_qa_10",  "label": "بلاي ستيشن قطري 10$",  "price": 145500,  "product_id": 4093, "cost_usd": 9.847,  "enabled": True},
+    {"id": "ps_qa_20",  "label": "بلاي ستيشن قطري 20$",  "price": 291000,  "product_id": 3684, "cost_usd": 19.694, "enabled": True},
+    {"id": "ps_qa_100", "label": "بلاي ستيشن قطري 100$", "price": 1455000, "product_id": 3689, "cost_usd": 98.468, "enabled": True},
+]
+
+# === PSN Oman ===
+PSN_OM_OFFERS = [
+    {"id": "ps_om_10",  "label": "بلاي ستيشن عماني 10$",  "price": 145500,  "product_id": 3690, "cost_usd": 9.847,  "enabled": True},
+    {"id": "ps_om_20",  "label": "بلاي ستيشن عماني 20$",  "price": 291000,  "product_id": 3691, "cost_usd": 19.694, "enabled": True},
+    {"id": "ps_om_50",  "label": "بلاي ستيشن عماني 50$",  "price": 727500,  "product_id": 3694, "cost_usd": 49.234, "enabled": True},
+    {"id": "ps_om_100", "label": "بلاي ستيشن عماني 100$", "price": 1455000, "product_id": 3697, "cost_usd": 98.468, "enabled": True},
+]
+
+# === PSN UK ===
+PSN_UK_OFFERS = [
+    {"id": "ps_uk_10",  "label": "بلاي ستيشن بريطاني 10£",  "price": 202000,  "product_id": 3699, "cost_usd": 13.654,  "enabled": True},
+    {"id": "ps_uk_20",  "label": "بلاي ستيشن بريطاني 20£",  "price": 403000,  "product_id": 3701, "cost_usd": 27.309,  "enabled": True},
+    {"id": "ps_uk_50",  "label": "بلاي ستيشن بريطاني 50£",  "price": 1008500, "product_id": 3706, "cost_usd": 68.27,   "enabled": True},
+    {"id": "ps_uk_100", "label": "بلاي ستيشن بريطاني 100£", "price": 2017000, "product_id": 3707, "cost_usd": 136.541, "enabled": True},
+]
+
+# === PSN Germany ===
+PSN_DE_OFFERS = [
+    {"id": "ps_de_5",   "label": "بلاي ستيشن ألماني 5€",   "price": 93000,   "product_id": 3736, "cost_usd": 6.286,   "enabled": True},
+    {"id": "ps_de_10",  "label": "بلاي ستيشن ألماني 10€",  "price": 186000,  "product_id": 3737, "cost_usd": 12.571,  "enabled": True},
+    {"id": "ps_de_25",  "label": "بلاي ستيشن ألماني 25€",  "price": 347000,  "product_id": 3740, "cost_usd": 23.504,  "enabled": True},
+    {"id": "ps_de_50",  "label": "بلاي ستيشن ألماني 50€",  "price": 882500,  "product_id": 3744, "cost_usd": 59.71,   "enabled": True},
+    {"id": "ps_de_100", "label": "بلاي ستيشن ألماني 100€", "price": 1733000, "product_id": 3747, "cost_usd": 117.324, "enabled": True},
+]
+
 # === Steam USA ===
 STEAM_US_OFFERS = [
     {"id": "st_us_3387", "label": "بطاقة ستيم اميركي 5$", "price": 93000, "product_id": 3387, "cost_usd": 5.64762, "manual_price": True, "enabled": True},
@@ -758,6 +954,36 @@ STEAM_SA_OFFERS = [
 STEAM_TR_OFFERS = [
     {"id": "st_tr_3385", "label": "بطاقة ستيم تركي 50TL", "price": 56000, "product_id": 3385, "cost_usd": 3.395935, "manual_price": True, "enabled": True},
     {"id": "st_tr_3386", "label": "بطاقة ستيم تركي 100TL", "price": 112500, "product_id": 3386, "cost_usd": 6.81177, "manual_price": True, "enabled": True},
+]
+
+# === Steam Emirates ===
+STEAM_AE_OFFERS = [
+    {"id": "st_ae_20",  "label": "ستيم إماراتي 20 AED",  "price": 86500,   "product_id": 4045, "cost_usd": 5.852,   "enabled": True},
+    {"id": "st_ae_40",  "label": "ستيم إماراتي 40 AED",  "price": 173000,  "product_id": 4046, "cost_usd": 11.713,  "enabled": True},
+    {"id": "st_ae_50",  "label": "ستيم إماراتي 50 AED",  "price": 216000,  "product_id": 4047, "cost_usd": 14.634,  "enabled": True},
+    {"id": "st_ae_75",  "label": "ستيم إماراتي 75 AED",  "price": 324000,  "product_id": 4048, "cost_usd": 21.955,  "enabled": True},
+    {"id": "st_ae_100", "label": "ستيم إماراتي 100 AED", "price": 432500,  "product_id": 4049, "cost_usd": 29.277,  "enabled": True},
+    {"id": "st_ae_200", "label": "ستيم إماراتي 200 AED", "price": 865000,  "product_id": 4050, "cost_usd": 58.554,  "enabled": True},
+    {"id": "st_ae_400", "label": "ستيم إماراتي 400 AED", "price": 1730000, "product_id": 4051, "cost_usd": 117.118, "enabled": True},
+]
+
+# === Steam Kuwait ===
+STEAM_KW_OFFERS = [
+    {"id": "st_kw_5",  "label": "ستيم كويتي 5 دينار",  "price": 252500,  "product_id": 4052, "cost_usd": 17.081, "enabled": True},
+    {"id": "st_kw_10", "label": "ستيم كويتي 10 دينار", "price": 505000,  "product_id": 4053, "cost_usd": 34.162, "enabled": True},
+    {"id": "st_kw_15", "label": "ستيم كويتي 15 دينار", "price": 759000,  "product_id": 4054, "cost_usd": 51.372, "enabled": True},
+    {"id": "st_kw_20", "label": "ستيم كويتي 20 دينار", "price": 1005500, "product_id": 4055, "cost_usd": 68.066, "enabled": True},
+    {"id": "st_kw_30", "label": "ستيم كويتي 30 دينار", "price": 1509000, "product_id": 4056, "cost_usd": 102.12, "enabled": True},
+]
+
+# === Steam Oman ===
+STEAM_OM_OFFERS = [
+    {"id": "st_om_5",   "label": "ستيم عماني 5$",   "price": 78000,   "product_id": 4057, "cost_usd": 5.272,   "enabled": True},
+    {"id": "st_om_10",  "label": "ستيم عماني 10$",  "price": 156000,  "product_id": 4058, "cost_usd": 10.554,  "enabled": True},
+    {"id": "st_om_20",  "label": "ستيم عماني 20$",  "price": 308000,  "product_id": 4059, "cost_usd": 20.828,  "enabled": True},
+    {"id": "st_om_50",  "label": "ستيم عماني 50$",  "price": 771500,  "product_id": 4060, "cost_usd": 52.209,  "enabled": True},
+    {"id": "st_om_75",  "label": "ستيم عماني 75$",  "price": 1156000, "product_id": 4061, "cost_usd": 78.254,  "enabled": True},
+    {"id": "st_om_100", "label": "ستيم عماني 100$", "price": 1541000, "product_id": 4062, "cost_usd": 104.332, "enabled": True},
 ]
 
 # === iTunes USA ===
@@ -1286,15 +1512,78 @@ FASTCARD_CATEGORIES = {
         "back_callback": "store:ludo",
         "offers_attr": "LUDO_YALLA_OFFERS",
     },
+    # ===== ألعاب جديدة =====
+    "pubg_s2": {
+        "title": "🎮 ببجي موبايل — سيرفر 2 (شحن تلقائي)",
+        "game": "PUBG_S2",
+        "input_fields": [{"key": "playerId", "label": "Player ID (الرقم داخل اللعبة)", "type": "id"}],
+        "back_callback": "store:pubg",
+        "offers_attr": "PUBG_S2_UC_OFFERS",
+    },
+    "ff_s2": {
+        "title": "🔥 فري فاير — سيرفر 2 (شحن تلقائي)",
+        "game": "FREEFIRE_S2",
+        "input_fields": [{"key": "playerId", "label": "🆔 الايدي تبعك بفري فاير", "type": "id"}],
+        "back_callback": "store:freefire",
+        "offers_attr": "FREEFIRE_S2_OFFERS",
+    },
+    "ff_eu": {
+        "title": "🔥 فري فاير — أوروبا (شحن تلقائي)",
+        "game": "FREEFIRE_EU",
+        "input_fields": [{"key": "playerId", "label": "🆔 الايدي تبعك بفري فاير (حساب أوروبي)", "type": "id"}],
+        "back_callback": "store:freefire",
+        "offers_attr": "FREEFIRE_EU_OFFERS",
+    },
+    "bsk": {
+        "title": "💀 Blood Strike — شحن مباشر",
+        "game": "BLOOD_STRIKE",
+        "input_fields": [{"key": "playerId", "label": "🆔 الايدي تبعك ببلود سترايك", "type": "id"}],
+        "back_callback": "store:games",
+        "offers_attr": "BLOOD_STRIKE_OFFERS",
+    },
+    "stmb": {
+        "title": "🎮 Stumble Guys — شحن مباشر",
+        "game": "STUMBLE_GUYS",
+        "input_fields": [{"key": "playerId", "label": "🆔 الايدي تبعك بـ Stumble Guys", "type": "id"}],
+        "back_callback": "store:games",
+        "offers_attr": "STUMBLE_GUYS_OFFERS",
+    },
+    "ssus": {
+        "title": "🛸 Super Sus — شحن مباشر",
+        "game": "SUPER_SUS",
+        "input_fields": [{"key": "playerId", "label": "🆔 الايدي تبعك بـ Super Sus", "type": "id"}],
+        "back_callback": "store:games",
+        "offers_attr": "SUPER_SUS_OFFERS",
+    },
+    # ===== Roblox — بطاقات هدايا =====
+    "rblx_us":  {"title": "🎮 Roblox USA",      "game": "ROBLOX_US",  "input_fields": [], "back_callback": "cards:roblox", "offers_attr": "ROBLOX_USA_OFFERS"},
+    "rblx_ksa": {"title": "🎮 Roblox KSA",      "game": "ROBLOX_KSA", "input_fields": [], "back_callback": "cards:roblox", "offers_attr": "ROBLOX_KSA_OFFERS"},
+    "rblx_ae":  {"title": "🎮 Roblox UAE",      "game": "ROBLOX_AE",  "input_fields": [], "back_callback": "cards:roblox", "offers_attr": "ROBLOX_UAE_OFFERS"},
+    # ===== Valorant — بطاقات VP =====
+    "valo_gl":  {"title": "🔫 Valorant عالمي",  "game": "VALORANT_GL","input_fields": [], "back_callback": "cards:valorant", "offers_attr": "VALORANT_GLOBAL_OFFERS"},
+    "valo_tr":  {"title": "🔫 Valorant تركي",   "game": "VALORANT_TR","input_fields": [], "back_callback": "cards:valorant", "offers_attr": "VALORANT_TR_OFFERS"},
+    # ===== اشتراكات جديدة =====
+    "spfy": {"title": "🎵 سبوتيفاي",     "game": "SPOTIFY",   "input_fields": [], "back_callback": "menu:subs", "offers_attr": "SPOTIFY_OFFERS"},
+    "nova": {"title": "📺 Nova TV",       "game": "NOVA_TV",   "input_fields": [], "back_callback": "menu:subs", "offers_attr": "NOVA_TV_OFFERS"},
+    "pvpn": {"title": "🛡️ Proton VPN",   "game": "PROTONVPN", "input_fields": [], "back_callback": "menu:subs", "offers_attr": "PROTONVPN_OFFERS"},
+    "svpn": {"title": "🦈 SurfShark VPN","game": "SURFSHARK",  "input_fields": [], "back_callback": "menu:subs", "offers_attr": "SURFSHARK_OFFERS"},
     # ===== Cards: PlayStation =====
-    "ps_us": {"title": "🎮 PlayStation USA", "game": "PSN_US", "input_fields": [], "back_callback": "cards:psn", "offers_attr": "PSN_US_OFFERS"},
-    "ps_sa": {"title": "🎮 PlayStation السعودية", "game": "PSN_SA", "input_fields": [], "back_callback": "cards:psn", "offers_attr": "PSN_SA_OFFERS"},
-    "ps_lb": {"title": "🎮 PlayStation لبنان", "game": "PSN_LB", "input_fields": [], "back_callback": "cards:psn", "offers_attr": "PSN_LB_OFFERS"},
+    "ps_us": {"title": "🎮 PlayStation USA",       "game": "PSN_US", "input_fields": [], "back_callback": "cards:psn", "offers_attr": "PSN_US_OFFERS"},
+    "ps_sa": {"title": "🎮 PlayStation السعودية",  "game": "PSN_SA", "input_fields": [], "back_callback": "cards:psn", "offers_attr": "PSN_SA_OFFERS"},
+    "ps_lb": {"title": "🎮 PlayStation لبنان",     "game": "PSN_LB", "input_fields": [], "back_callback": "cards:psn", "offers_attr": "PSN_LB_OFFERS"},
     "ps_ae": {"title": "🎮 PlayStation الإمارات", "game": "PSN_AE", "input_fields": [], "back_callback": "cards:psn", "offers_attr": "PSN_AE_OFFERS"},
+    "ps_bh": {"title": "🎮 PlayStation البحرين",  "game": "PSN_BH", "input_fields": [], "back_callback": "cards:psn", "offers_attr": "PSN_BH_OFFERS"},
+    "ps_qa": {"title": "🎮 PlayStation قطر",      "game": "PSN_QA", "input_fields": [], "back_callback": "cards:psn", "offers_attr": "PSN_QA_OFFERS"},
+    "ps_om": {"title": "🎮 PlayStation عُمان",    "game": "PSN_OM", "input_fields": [], "back_callback": "cards:psn", "offers_attr": "PSN_OM_OFFERS"},
+    "ps_uk": {"title": "🎮 PlayStation UK",        "game": "PSN_UK", "input_fields": [], "back_callback": "cards:psn", "offers_attr": "PSN_UK_OFFERS"},
+    "ps_de": {"title": "🎮 PlayStation ألمانيا",  "game": "PSN_DE", "input_fields": [], "back_callback": "cards:psn", "offers_attr": "PSN_DE_OFFERS"},
     # ===== Cards: Steam =====
-    "st_us": {"title": "🚂 Steam USA", "game": "STEAM_US", "input_fields": [], "back_callback": "cards:steam", "offers_attr": "STEAM_US_OFFERS"},
+    "st_us": {"title": "🚂 Steam USA",       "game": "STEAM_US", "input_fields": [], "back_callback": "cards:steam", "offers_attr": "STEAM_US_OFFERS"},
     "st_sa": {"title": "🚂 Steam السعودية", "game": "STEAM_SA", "input_fields": [], "back_callback": "cards:steam", "offers_attr": "STEAM_SA_OFFERS"},
-    "st_tr": {"title": "🚂 Steam تركيا", "game": "STEAM_TR", "input_fields": [], "back_callback": "cards:steam", "offers_attr": "STEAM_TR_OFFERS"},
+    "st_tr": {"title": "🚂 Steam تركيا",    "game": "STEAM_TR", "input_fields": [], "back_callback": "cards:steam", "offers_attr": "STEAM_TR_OFFERS"},
+    "st_ae": {"title": "🚂 Steam الإمارات","game": "STEAM_AE", "input_fields": [], "back_callback": "cards:steam", "offers_attr": "STEAM_AE_OFFERS"},
+    "st_kw": {"title": "🚂 Steam الكويت",  "game": "STEAM_KW", "input_fields": [], "back_callback": "cards:steam", "offers_attr": "STEAM_KW_OFFERS"},
+    "st_om": {"title": "🚂 Steam عُمان",   "game": "STEAM_OM", "input_fields": [], "back_callback": "cards:steam", "offers_attr": "STEAM_OM_OFFERS"},
     # ===== Cards: iTunes =====
     "it_us": {"title": "🍎 iTunes USA", "game": "ITUNES_US", "input_fields": [], "back_callback": "cards:itunes", "offers_attr": "ITUNES_US_OFFERS"},
     "it_sa": {"title": "🍎 iTunes السعودية", "game": "ITUNES_SA", "input_fields": [], "back_callback": "cards:itunes", "offers_attr": "ITUNES_SA_OFFERS"},
