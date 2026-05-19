@@ -931,12 +931,14 @@ async def cb_cards_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     titles = {
-        "psn":    ("🎮 *PlayStation (PSN)*", "اختر الدولة 👇"),
-        "steam":  ("🚂 *Steam*", "اختر الدولة 👇"),
-        "itunes": ("🍎 *iTunes*", "اختر الدولة 👇"),
-        "gplay":  ("📱 *Google Play*", "اختر الدولة 👇"),
-        "xbox":   ("🎮 *Xbox*", "اختر الدولة 👇"),
-        "razer":  ("🟢 *Razer Gold*", "اختر المنطقة 👇"),
+        "psn":      ("🎮 *PlayStation (PSN)*", "اختر الدولة 👇"),
+        "steam":    ("🚂 *Steam*", "اختر الدولة 👇"),
+        "itunes":   ("🍎 *iTunes*", "اختر الدولة 👇"),
+        "gplay":    ("📱 *Google Play*", "اختر الدولة 👇"),
+        "xbox":     ("🎮 *Xbox*", "اختر الدولة 👇"),
+        "razer":    ("🟢 *Razer Gold*", "اختر المنطقة 👇"),
+        "roblox":   ("🎮 *Roblox*", "اختر المنطقة 👇"),
+        "valorant": ("🔫 *Valorant*", "اختر المنطقة 👇"),
     }
     if sub not in titles:
         return
