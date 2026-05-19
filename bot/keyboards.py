@@ -143,12 +143,15 @@ def games_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("⛏️ ماين كرافت", callback_data="store:minecraft")],
         [InlineKeyboardButton("🎮 فورتنايت", callback_data="store:fortnite")],
         [InlineKeyboardButton("🎲 ألعاب لودو", callback_data="store:ludo")],
+        [InlineKeyboardButton("💀 Blood Strike", callback_data="fclist:bsk")],
+        [InlineKeyboardButton("🎮 Stumble Guys", callback_data="fclist:stmb")],
+        [InlineKeyboardButton("🛸 Super Sus", callback_data="fclist:ssus")],
         [InlineKeyboardButton("⬅️ المتجر", callback_data="menu:store")],
     ])
 
 
 def cards_menu() -> InlineKeyboardMarkup:
-    """قائمة البطاقات الرئيسية (8 منصات)."""
+    """قائمة البطاقات الرئيسية."""
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🎮 PlayStation (PSN)", callback_data="cards:psn")],
         [InlineKeyboardButton("🚂 Steam", callback_data="cards:steam")],
@@ -159,19 +162,30 @@ def cards_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("🎮 Nintendo", callback_data="fclist:nt_us")],
         [InlineKeyboardButton("📺 Netflix (اشتراكات)", callback_data="fclist:nflx")],
         [InlineKeyboardButton("💳 بطاقات VISA", callback_data="fclist:vs")],
+        [InlineKeyboardButton("🎮 Roblox", callback_data="cards:roblox")],
+        [InlineKeyboardButton("🔫 Valorant", callback_data="cards:valorant")],
         [InlineKeyboardButton("⬅️ المتجر", callback_data="menu:store")],
     ])
 
 
 def cards_platform_menu(platform: str) -> InlineKeyboardMarkup:
-    """قائمة دول/مناطق منصة بطاقات معينة (PSN/Steam/iTunes/...)."""
+    """قائمة دول/مناطق منصة بطاقات معينة (PSN/Steam/Roblox/Valorant/...)."""
     options = {
-        "psn":    [("🇺🇸 أمريكي", "ps_us"), ("🇸🇦 سعودي", "ps_sa"), ("🇱🇧 لبناني", "ps_lb"), ("🇦🇪 إماراتي", "ps_ae")],
-        "steam":  [("🇺🇸 أمريكي", "st_us"), ("🇸🇦 سعودي", "st_sa"), ("🇹🇷 تركي", "st_tr")],
-        "itunes": [("🇺🇸 أمريكي", "it_us"), ("🇸🇦 سعودي", "it_sa"), ("🇬🇧 بريطاني", "it_uk")],
-        "gplay":  [("🇺🇸 أمريكي", "gp_us"), ("🇸🇦 سعودي", "gp_sa"), ("🇹🇷 تركي", "gp_tr")],
-        "xbox":   [("🇺🇸 أمريكي", "xb_us"), ("🇸🇦 سعودي", "xb_sa")],
-        "razer":  [("🌐 عالمي", "rz_gl"), ("🇺🇸 أمريكي", "rz_us"), ("🇹🇷 تركي", "rz_tr")],
+        "psn": [
+            ("🇺🇸 أمريكي", "ps_us"), ("🇸🇦 سعودي", "ps_sa"), ("🇱🇧 لبناني", "ps_lb"),
+            ("🇦🇪 إماراتي", "ps_ae"), ("🇧🇭 بحريني", "ps_bh"), ("🇶🇦 قطري", "ps_qa"),
+            ("🇴🇲 عُماني", "ps_om"), ("🇬🇧 بريطاني", "ps_uk"), ("🇩🇪 ألماني", "ps_de"),
+        ],
+        "steam": [
+            ("🇺🇸 أمريكي", "st_us"), ("🇸🇦 سعودي", "st_sa"), ("🇹🇷 تركي", "st_tr"),
+            ("🇦🇪 إماراتي", "st_ae"), ("🇰🇼 كويتي", "st_kw"), ("🇴🇲 عُماني", "st_om"),
+        ],
+        "itunes":   [("🇺🇸 أمريكي", "it_us"), ("🇸🇦 سعودي", "it_sa"), ("🇬🇧 بريطاني", "it_uk")],
+        "gplay":    [("🇺🇸 أمريكي", "gp_us"), ("🇸🇦 سعودي", "gp_sa"), ("🇹🇷 تركي", "gp_tr")],
+        "xbox":     [("🇺🇸 أمريكي", "xb_us"), ("🇸🇦 سعودي", "xb_sa")],
+        "razer":    [("🌐 عالمي", "rz_gl"), ("🇺🇸 أمريكي", "rz_us"), ("🇹🇷 تركي", "rz_tr")],
+        "roblox":   [("🇺🇸 أمريكي", "rblx_us"), ("🇸🇦 سعودي", "rblx_ksa"), ("🇦🇪 إماراتي", "rblx_ae")],
+        "valorant": [("🌐 عالمي", "valo_gl"), ("🇹🇷 تركي", "valo_tr")],
     }
     rows = [[InlineKeyboardButton(label, callback_data=f"fclist:{prefix}")]
             for label, prefix in options.get(platform, [])]
@@ -187,11 +201,15 @@ def subs_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("📺 Netflix", callback_data="fclist:nflx")],
         [InlineKeyboardButton("🎵 Anghami Plus", callback_data="fclist:an")],
         [InlineKeyboardButton("🍿 OSN+", callback_data="fclist:osn")],
+        [InlineKeyboardButton("🎵 Spotify", callback_data="fclist:spfy")],
+        [InlineKeyboardButton("📺 Nova TV", callback_data="fclist:nova")],
         [InlineKeyboardButton("🤖 ChatGPT Plus", callback_data="fclist:gpt")],
         [InlineKeyboardButton("🎨 Canva Pro", callback_data="fclist:cv")],
         [InlineKeyboardButton("👻 Snapchat+", callback_data="fclist:snap")],
         [InlineKeyboardButton("🛡️ Nord VPN", callback_data="fclist:nv")],
         [InlineKeyboardButton("🟦 Express VPN", callback_data="fclist:ev")],
+        [InlineKeyboardButton("🛡️ Proton VPN", callback_data="fclist:pvpn")],
+        [InlineKeyboardButton("🦈 SurfShark VPN", callback_data="fclist:svpn")],
         [InlineKeyboardButton("⚡ LagoFast VPN", callback_data="fclist:lv")],
         [InlineKeyboardButton("🚀 GearUP Booster", callback_data="fclist:gu")],
         [InlineKeyboardButton("📢 تعزيز قنوات تلغرام", callback_data="fclist:tg")],
@@ -241,7 +259,8 @@ def ludo_sections() -> InlineKeyboardMarkup:
 
 def pubg_sections() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("💎 شدات", callback_data="pubg:uc")],
+        [InlineKeyboardButton("💎 شدات — سيرفر 1", callback_data="pubg:uc")],
+        [InlineKeyboardButton("💎 شدات — سيرفر 2", callback_data="fclist:pubg_s2")],
         [InlineKeyboardButton("👑 عضويات ببجي", callback_data="pubg:membership")],
         [InlineKeyboardButton("🎟️ أكواد شدات", callback_data="pubg:codes")],
         [InlineKeyboardButton("⬅️ المتجر", callback_data="menu:store")],
@@ -268,7 +287,9 @@ def pubg_uc_confirm(offer_id: str, price: float) -> InlineKeyboardMarkup:
 
 def freefire_sections() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("💎 جواهر (تلقائي)", callback_data="ff:diamonds")],
+        [InlineKeyboardButton("💎 جواهر — سيرفر 1 (تلقائي)", callback_data="ff:diamonds")],
+        [InlineKeyboardButton("💎 جواهر — سيرفر 2 (تلقائي)", callback_data="fclist:ff_s2")],
+        [InlineKeyboardButton("💎 جواهر + عضويات — أوروبا", callback_data="fclist:ff_eu")],
         [InlineKeyboardButton("👑 عضويات فري فاير", callback_data="ff:membership")],
         [InlineKeyboardButton("🎟️ أكواد جواهر", callback_data="ff:codes")],
         [InlineKeyboardButton("⬅️ المتجر", callback_data="menu:store")],
