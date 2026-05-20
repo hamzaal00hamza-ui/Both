@@ -13,6 +13,21 @@ def admin_reply_keyboard() -> ReplyKeyboardMarkup:
     )
 
 
+def user_reply_keyboard() -> ReplyKeyboardMarkup:
+    """لوحة مفاتيح الرد الدائمة — تظهر دائماً في أسفل شاشة المستخدم."""
+    return ReplyKeyboardMarkup(
+        [
+            ["🎮 قسم الألعاب", "📱 قسم التطبيقات"],
+            ["🃏 قسم البطاقات والأكواد"],
+            ["📈 قسم الرشق", "📲 قسم الأرقام"],
+            ["💰 شحن رصيد الحساب", "👤 معلومات حسابي"],
+            ["📞 التواصل مع الأدمن"],
+        ],
+        resize_keyboard=True,
+        input_field_placeholder="اختر قسماً...",
+    )
+
+
 def main_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("👤 حسابي", callback_data="menu:account")],
@@ -321,13 +336,19 @@ def fastcard_offers_list(prefix: str) -> InlineKeyboardMarkup:
         return back_to_main()
     import sys
     offers = getattr(sys.modules["bot.config"], cat["offers_attr"], [])
+
+    # استخرج الإيموجي من عنوان القسم لإضافته لكل زر
+    title_words = cat.get("title", "").split()
+    btn_emoji = title_words[0] if title_words and len(title_words[0]) <= 4 else "🎯"
+
     rows = []
     for offer in offers:
         if not offer.get("enabled", True):
             label = f"🔴 {offer['label']} — نفد المخزون"
             rows.append([InlineKeyboardButton(label, callback_data=f"fcsold:{prefix}")])
         else:
-            label = f"{offer['label']} — {config.get_offer_price(offer):,} ل.س".replace(",", "،")
+            price_fmt = f"{config.get_offer_price(offer):,}".replace(",", "،")
+            label = f"{btn_emoji} {offer['label']} — {price_fmt} ل.س"
             rows.append([InlineKeyboardButton(label, callback_data=f"fcbuy:{prefix}:{offer['id']}")])
     rows.append([InlineKeyboardButton("⬅️ رجوع", callback_data=cat["back_callback"])])
     return InlineKeyboardMarkup(rows)
