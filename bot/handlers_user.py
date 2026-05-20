@@ -111,11 +111,24 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     except Exception:
                         pass
 
-    await update.message.reply_text(
-        WELCOME + bonus_msg,
-        reply_markup=kb.user_reply_keyboard(),
-        parse_mode=ParseMode.MARKDOWN,
+    welcome_caption = (
+        "🔲 *GOOD DAY* 🌹 🔲\n\n"
+        "🔲 *أختر احد الأوامر في الاسفل* 🔲"
+        + bonus_msg
     )
+    try:
+        await update.message.reply_photo(
+            photo=config.START_BANNER_URL,
+            caption=welcome_caption,
+            reply_markup=kb.user_reply_keyboard(),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+    except Exception:
+        await update.message.reply_text(
+            welcome_caption,
+            reply_markup=kb.user_reply_keyboard(),
+            parse_mode=ParseMode.MARKDOWN,
+        )
 
 
 async def notify_level_up(bot, user_id: int, recharge_state: Optional[Dict[str, Any]]) -> None:
