@@ -1882,3 +1882,33 @@ def get_level_for_amount(total_recharged: float) -> str:
         if low <= total_recharged <= high:
             return name
     return "برونزي"
+
+
+# ===== صور الأقسام =====
+# يمكن تحديث هذه الروابط أو استبدالها بـ file_id بعد رفع الصور على تلغرام
+SECTION_PHOTOS: dict[str, str] = {
+    # ── ببجي ──
+    "pubg":        "https://upload.wikimedia.org/wikipedia/en/4/41/PUBG_Mobile_cover_art.jpg",
+    "pubg_uc":     "https://i.imgur.com/uR8RbDl.png",
+    "pubg_mem":    "https://upload.wikimedia.org/wikipedia/en/4/41/PUBG_Mobile_cover_art.jpg",
+    # ── فري فاير ──
+    "freefire":    "https://upload.wikimedia.org/wikipedia/en/9/94/Garena_Free_Fire.jpg",
+    "ff_dia":      "https://i.imgur.com/K3r7GJf.png",
+    "ff_mem":      "https://upload.wikimedia.org/wikipedia/en/9/94/Garena_Free_Fire.jpg",
+    # ── Supercell ──
+    "supercell":   "https://upload.wikimedia.org/wikipedia/commons/b/b5/Supercell-logo.png",
+    "bs":          "https://upload.wikimedia.org/wikipedia/en/0/03/Brawl_Stars_icon.png",
+    "coc":         "https://upload.wikimedia.org/wikipedia/en/6/6e/Clash_of_Clans_November_2012.png",
+    "cr":          "https://upload.wikimedia.org/wikipedia/en/2/2c/Clash_Royale_key_art.jpg",
+    "hd":          "https://upload.wikimedia.org/wikipedia/en/3/3b/Hay_Day_app_icon.png",
+    # ── COD ──
+    "cod":         "https://upload.wikimedia.org/wikipedia/en/5/5b/Call_of_Duty_Mobile_cover_art.jpg",
+    # ── ألعاب أخرى ──
+    "minecraft":   "https://upload.wikimedia.org/wikipedia/en/5/57/Minecraft_cover.png",
+    "fortnite":    "https://upload.wikimedia.org/wikipedia/commons/0/0f/Fortnite_F_lettermark_logo.png",
+    "ludo":        "https://upload.wikimedia.org/wikipedia/en/d/d0/Ludo_King_logo.png",
+    "delta":       "https://upload.wikimedia.org/wikipedia/en/c/c8/Delta_Force_video_game_2024_cover.jpg",
+    "bsk":         "https://i.imgur.com/m5XjHl5.jpg",
+    "stmb":        "https://upload.wikimedia.org/wikipedia/en/a/aa/Stumble_Guys_icon.png",
+    "ssus":        "https://upload.wikimedia.org/wikipedia/en/1/1d/Super_Sus_game_icon.png",
+}
