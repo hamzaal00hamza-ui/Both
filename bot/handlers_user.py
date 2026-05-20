@@ -113,7 +113,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
         WELCOME + bonus_msg,
-        reply_markup=kb.main_menu(),
+        reply_markup=kb.user_reply_keyboard(),
         parse_mode=ParseMode.MARKDOWN,
     )
 
@@ -567,6 +567,74 @@ async def _build_referral_screen(user_id: int, bot) -> tuple:
     return text, kb.referral_menu(link, share_text)
 
 
+async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يعالج أزرار لوحة المفاتيح الثابتة في الأسفل (Reply Keyboard)."""
+    if await is_banned(update):
+        return
+    text = (update.message.text or "").strip()
+
+    async def send(msg, markup):
+        await update.message.reply_text(msg, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
+
+    if text == "🎮 قسم الألعاب":
+        await send("🎮 *قسم الألعاب*\n\nاختر اللعبة اللي بدّك تشحنها 👇", kb.games_menu())
+
+    elif text == "📱 قسم التطبيقات":
+        await send(
+            "📱 *اشتراكات التطبيقات*\n\nاختر التطبيق اللي تبي تفعّل اشتراكه 👇",
+            kb.subs_menu(),
+        )
+
+    elif text == "🃏 قسم البطاقات والأكواد":
+        await send("🃏 *البطاقات والأكواد*\n\nاختر المنصة 👇", kb.cards_menu())
+
+    elif text == "📈 قسم الرشق":
+        await send(
+            "📈 *خدمات الرشق*\n\nمتابعين · لايكات · مشاهدات 👇",
+            kb.smm_menu(),
+        )
+
+    elif text == "📲 قسم الأرقام":
+        await send("📲 *شحن الأرقام والأرصدة*\n\nاختر الخدمة 👇", kb.balance_menu())
+
+    elif text == "💰 شحن رصيد الحساب":
+        await send(
+            "💰 *شحن رصيد الحساب*\n\nاختر طريقة الدفع 👇\n\n⚡ التحقق التلقائي يضيف الرصيد فوراً",
+            kb.recharge_methods(),
+        )
+
+    elif text == "👤 معلومات حسابي":
+        user = db.get_user(update.effective_user.id)
+        orders_count = db.count_user_orders(update.effective_user.id)
+        loyalty_pts = int(user.get("loyalty_points") or 0)
+        username = user.get("username") or user.get("first_name") or "—"
+        await update.message.reply_text(
+            "👤 *الملف الشخصي*\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            f"🪪 الاسم: `{username}`\n"
+            f"🆔 المعرّف: `{user['user_id']}`\n\n"
+            f"💰 الرصيد الحالي: *{user['balance']:,.0f} ل.س*\n".replace(",", "،") +
+            f"💎 نقاط الولاء: *{loyalty_pts:,}* نقطة\n".replace(",", "،") +
+            f"🏅 المستوى: *{user['level']}*\n\n"
+            f"📊 إجمالي الشحن: *{user['total_recharged']:,.0f} ل.س*\n".replace(",", "،") +
+            f"📦 عدد الطلبات: *{orders_count}*\n"
+            "━━━━━━━━━━━━━━━━━",
+            reply_markup=kb.back_to_main(),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+
+    elif text == "📞 التواصل مع الأدمن":
+        await update.message.reply_text(
+            "📞 *التواصل مع الدعم*\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "💬 فريقنا جاهز لمساعدتك على مدار الساعة.\n\n"
+            f"📩 راسلنا الآن عبر: {config.SUPPORT_USERNAME}\n\n"
+            "⏱️ متوسط الرد: أقل من 10 دقائق",
+            reply_markup=kb.back_to_main(),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+
+
 async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
@@ -829,12 +897,13 @@ async def _send_fastcard_list(q, prefix: str):
     if not fields:
         intro = (
             f"{cat['title']}\n\n"
-            "هذي عبارة عن أكواد جاهزة من المخزون — اختر العرض، تأكيد، ويوصلك الكود فوراً 🎟️"
+            "🔶 *اختر حزمة:* 👇\n\n"
+            "_هذي أكواد جاهزة — بعد التأكيد يوصلك الكود فوراً 🎟️_"
         )
     elif has_password:
         intro = (
             f"{cat['title']}\n\n"
-            "اختر العرض المناسب 👇\n\n"
+            "🔶 *اختر حزمة:* 👇\n\n"
             "📌 *كيف الشحن؟*\n"
             "1️⃣ تختار العرض\n"
             "2️⃣ تدخل إيميل وكلمة مرور حساب Supercell ID\n"
@@ -844,14 +913,14 @@ async def _send_fastcard_list(q, prefix: str):
     elif len(fields) == 1 and fields[0].get("type") == "id":
         intro = (
             f"{cat['title']}\n\n"
-            "اختر العرض، ثم ادخل Player ID وسيتم تنفيذ الطلب على حسابك مباشرة خلال ثوانٍ ✨"
+            "🔶 *اختر حزمة:* 👇\n\n"
+            "_(اختر العرض، ادخل Player ID، وسيتم التنفيذ مباشرة خلال ثوانٍ ✨)_"
         )
     else:
-        # 2-3 حقول بدون باسورد (مثلاً COD: ID + إيميل + واتساب)
         field_labels = " + ".join(f.get("label", f["key"]).split("(")[0].strip() for f in fields)
         intro = (
             f"{cat['title']}\n\n"
-            "اختر العرض المناسب 👇\n\n"
+            "🔶 *اختر حزمة:* 👇\n\n"
             f"📌 *البيانات اللي بنحتاجها:* {field_labels}"
         )
 
@@ -1697,12 +1766,14 @@ async def cb_fastcard_buy_select(update: Update, context: ContextTypes.DEFAULT_T
 
     # لا توجد حقول → روح مباشرة لشاشة التأكيد
     if not fields:
+        price_fmt = f"{config.get_offer_price(offer):,}".replace(",", "،")
+        bal_fmt   = f"{user['balance']:,.0f}".replace(",", "،")
         await q.edit_message_text(
             f"{cat['title']}\n\n"
-            f"🎟️ *{offer['label']}*\n"
-            f"💰 السعر: {config.get_offer_price(offer):,} ل.س\n".replace(",", "،") +
-            f"💼 رصيدك: {user['balance']:,.0f} ل.س\n\n".replace(",", "،") +
-            "بعد التأكيد ينزل الكود مباشرة عندك. ⚠️ ما فينا نسترجع الكود بعد الشراء.",
+            f"🔷 *الحزمة:* {offer['label']}\n"
+            f"🔷 *السعر:* {price_fmt} ل.س\n"
+            f"🔷 *رصيدك:* {bal_fmt} ل.س\n\n"
+            "⚠️ بعد التأكيد ينزل الكود مباشرة. ما فينا نسترجع الكود بعد الشراء.",
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=kb.fastcard_confirm(prefix, offer_id, config.get_offer_price(offer)),
         )
@@ -1754,25 +1825,26 @@ async def _ask_field(q_or_msg, context, offer, cat, fields, idx, user_balance, f
 async def _show_confirm(message, context, offer, cat, fields, user):
     """يعرض شاشة التأكيد بكل القيم المُجمَّعة (مع إخفاء الحساس)."""
     fc_fields = context.user_data.get("fc_fields", {})
-    lines = [f"{cat['title']}", "", f"*{offer['label']}*", ""]
+    lines = [f"{cat['title']}", "", f"🔷 *الحزمة:* {offer['label']}"]
     for f in fields:
         v = fc_fields.get(f["key"], "")
         masked = config.mask_field_value(f, v)
         # نعرض القيم بصيغة آمنة
         if f.get("type") == "password":
-            lines.append(f"🔑 {f['label']}: `{masked}`")
+            lines.append(f"🔷 {f['label']}: `{masked}`")
         elif f.get("type") == "email":
-            lines.append(f"📧 {f['label']}: `{v}`")
+            lines.append(f"🔷 {f['label']}: `{v}`")
         elif f.get("type") == "phone":
-            lines.append(f"📱 {f['label']}: `{v}`")
+            lines.append(f"🔷 {f['label']}: `{v}`")
         elif f.get("type") == "id":
-            lines.append(f"🎮 {f['label']}: `{v}`")
+            lines.append(f"🔷 {f['label']}: `{v}`")
         else:
-            lines.append(f"• {f['label']}: `{v}`")
+            lines.append(f"🔷 {f['label']}: `{v}`")
+    price_fmt = f"{config.get_offer_price(offer):,}".replace(",", "،")
+    bal_fmt   = f"{user['balance']:,.0f}".replace(",", "،")
     lines += [
-        "",
-        f"💰 السعر: {config.get_offer_price(offer):,} ل.س".replace(",", "،"),
-        f"💼 رصيدك: {user['balance']:,.0f} ل.س".replace(",", "،"),
+        f"🔷 *السعر:* {price_fmt} ل.س",
+        f"🔷 *رصيدك:* {bal_fmt} ل.س",
         "",
         "⚠️ تأكد من البيانات كويس قبل التأكيد. بعد التأكيد ما فينا نسترجع الطلب.",
     ]
@@ -3176,6 +3248,19 @@ def register_user_handlers(app):
         allow_reentry=True,
     )
     app.add_handler(coupon_conv)
+
+    # Reply Keyboard nav — group=-1 يضمن الأولوية على ConversationHandlers
+    _REPLY_KB_TEXTS = {
+        "🎮 قسم الألعاب", "📱 قسم التطبيقات", "🃏 قسم البطاقات والأكواد",
+        "📈 قسم الرشق", "📲 قسم الأرقام",
+        "💰 شحن رصيد الحساب", "👤 معلومات حسابي", "📞 التواصل مع الأدمن",
+    }
+    app.add_handler(
+        MessageHandler(filters.TEXT & filters.Regex(
+            "^(" + "|".join(map(lambda s: s.replace("+", r"\+"), _REPLY_KB_TEXTS)) + ")$"
+        ), cmd_reply_nav),
+        group=-1,
+    )
 
     app.add_handler(CallbackQueryHandler(cb_main_menu, pattern=r"^menu:"))
     app.add_handler(CallbackQueryHandler(cb_store, pattern=r"^store:"))
