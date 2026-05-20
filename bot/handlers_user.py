@@ -576,8 +576,14 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
     async def send(msg, markup):
         await update.message.reply_text(msg, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
 
+    P = config.SECTION_PHOTOS
+
     if text == "🎮 قسم الألعاب":
-        await send("🎮 *قسم الألعاب*\n\nاختر اللعبة اللي بدّك تشحنها 👇", kb.games_menu())
+        await update.message.reply_text(
+            "🎮 *قسم الألعاب*\n\nاختر اللعبة اللي بدّك تشحنها 👇",
+            reply_markup=kb.games_menu(),
+            parse_mode=ParseMode.MARKDOWN,
+        )
 
     elif text == "📱 قسم التطبيقات":
         await send(
@@ -723,12 +729,49 @@ async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ============= Store callbacks =============
+async def _show_with_photo(q, photo: str, caption: str, markup):
+    """إرسال رسالة مع صورة — يحاول edit_message_media أولاً، وإلا يحذف ويعيد الإرسال، ويرجع لنص عند الفشل."""
+    from telegram import InputMediaPhoto
+    # حاول تعديل الميديا إذا كانت الرسالة صورة بالفعل
+    try:
+        await q.edit_message_media(
+            media=InputMediaPhoto(media=photo, caption=caption, parse_mode=ParseMode.MARKDOWN),
+            reply_markup=markup,
+        )
+        return
+    except Exception:
+        pass
+    # الرسالة نص — احذف وابعث صورة جديدة
+    deleted = False
+    try:
+        await q.message.delete()
+        deleted = True
+    except Exception:
+        pass
+    try:
+        await q.message.chat.send_photo(
+            photo=photo, caption=caption,
+            reply_markup=markup, parse_mode=ParseMode.MARKDOWN,
+        )
+    except Exception:
+        # الصورة فشلت — ارجع لنص
+        if deleted:
+            await q.message.chat.send_message(caption, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
+        else:
+            try:
+                await q.edit_message_text(caption, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
+            except Exception:
+                pass
+
+
 async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
     if await is_banned(update):
         return
     data = q.data
+
+    P = config.SECTION_PHOTOS
 
     if data == "store:games":
         await q.edit_message_text(
@@ -781,51 +824,49 @@ async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode=ParseMode.MARKDOWN,
         )
     elif data == "store:pubg":
-        await q.edit_message_text(
-            "🎮 *ببجي موبايل (PUBG Mobile)*\n"
-            "━━━━━━━━━━━━━━━━━\n\n"
+        await _show_with_photo(
+            q, P["pubg"],
+            "🎮 *ببجي موبايل — PUBG Mobile*\n\n"
             "اختر القسم 👇",
-            reply_markup=kb.pubg_sections(),
-            parse_mode=ParseMode.MARKDOWN,
+            kb.pubg_sections(),
         )
     elif data == "store:freefire":
-        await q.edit_message_text(
-            "🔥 *فري فاير (Free Fire)*\n"
-            "━━━━━━━━━━━━━━━━━\n\n"
+        await _show_with_photo(
+            q, P["freefire"],
+            "🔥 *فري فاير — Free Fire*\n\n"
             "اختر القسم 👇",
-            reply_markup=kb.freefire_sections(),
-            parse_mode=ParseMode.MARKDOWN,
+            kb.freefire_sections(),
         )
     elif data == "store:supercell":
-        await q.edit_message_text(
+        await _show_with_photo(
+            q, P["supercell"],
             "🏰 *ألعاب Supercell*\n\n"
             "اختر اللعبة 👇\n\n"
-            "📌 الشحن مباشر على حسابك بإيميل وكلمة مرور Supercell ID — يوصلك خلال دقائق.",
-            reply_markup=kb.supercell_sections(),
-            parse_mode=ParseMode.MARKDOWN,
+            "📌 الشحن مباشر بإيميل وكلمة مرور Supercell ID",
+            kb.supercell_sections(),
         )
     elif data == "store:cod":
-        await q.edit_message_text(
+        await _show_with_photo(
+            q, P["cod"],
             "🪖 *كول أوف ديوتي موبايل*\n\n"
             "اختر القسم 👇\n\n"
-            "💎 *شدات (نقاط COD):* شحن مباشر — بنحتاج Player ID + إيميل + رقم واتساب\n"
-            "🎫 *Battle Pass:* بنحتاج Player ID فقط",
-            reply_markup=kb.cod_sections(),
-            parse_mode=ParseMode.MARKDOWN,
+            "💎 *شدات:* Player ID + إيميل + واتساب\n"
+            "🎫 *Battle Pass:* Player ID فقط",
+            kb.cod_sections(),
         )
     elif data == "store:delta":
-        await _send_fastcard_list(q, "df")
+        await _send_fastcard_list(q, "df", photo=P.get("delta"))
     elif data == "store:minecraft":
-        await _send_fastcard_list(q, "mc")
+        await _send_fastcard_list(q, "mc", photo=P.get("minecraft"))
     elif data == "store:fortnite":
-        await _send_fastcard_list(q, "fn")
+        await _send_fastcard_list(q, "fn", photo=P.get("fortnite"))
     elif data == "store:ludo":
-        await q.edit_message_text(
+        await _show_with_photo(
+            q, P["ludo"],
             "🎲 *ألعاب لودو*\n\n"
             "اختر اللعبة 👇\n\n"
-            "📌 الشحن مباشر بإدخال الايدي تبع حسابك — يوصلك خلال دقائق.",
-            reply_markup=kb.ludo_sections(),
-            parse_mode=ParseMode.MARKDOWN,
+            "📌 الشحن مباشر بإدخال Player ID",
+            kb.ludo_sections(),
         )
 
 
@@ -836,20 +877,21 @@ async def cb_pubg_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     data = q.data
 
+    P = config.SECTION_PHOTOS
     if data == "pubg:uc":
-        await q.edit_message_text(
+        await _show_with_photo(
+            q, P["pubg_uc"],
             "🪙 *شدات ببجي — شحن تلقائي مباشر*\n\n"
             "اختر الباقة، ثم ادخل Player ID وستصلك الشدات على حسابك خلال ثوانٍ:",
-            reply_markup=kb.pubg_uc_offers(),
-            parse_mode=ParseMode.MARKDOWN,
+            kb.pubg_uc_offers(),
         )
     elif data == "pubg:membership":
-        await _send_fastcard_list(q, "pm")
+        await _send_fastcard_list(q, "pm", photo=P.get("pubg_mem"))
     elif data == "pubg:codes":
-        await _send_fastcard_list(q, "pc")
+        await _send_fastcard_list(q, "pc", photo=P.get("pubg"))
 
 
-async def _send_fastcard_list(q, prefix: str):
+async def _send_fastcard_list(q, prefix: str, photo: str = None):
     cat = config.FASTCARD_CATEGORIES.get(prefix)
     if not cat:
         return
@@ -924,11 +966,11 @@ async def _send_fastcard_list(q, prefix: str):
             f"📌 *البيانات اللي بنحتاجها:* {field_labels}"
         )
 
-    await q.edit_message_text(
-        intro,
-        reply_markup=kb.fastcard_offers_list(prefix),
-        parse_mode=ParseMode.MARKDOWN,
-    )
+    markup = kb.fastcard_offers_list(prefix)
+    if photo:
+        await _show_with_photo(q, photo, intro, markup)
+    else:
+        await q.edit_message_text(intro, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
 
 
 async def cb_supercell_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -943,7 +985,7 @@ async def cb_supercell_section(update: Update, context: ContextTypes.DEFAULT_TYP
     prefix = parts[1]
     if prefix not in ("bs", "coc", "cr", "hd"):
         return
-    await _send_fastcard_list(q, prefix)
+    await _send_fastcard_list(q, prefix, photo=config.SECTION_PHOTOS.get(prefix))
 
 
 async def cb_cod_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -975,7 +1017,7 @@ async def cb_ludo_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prefix = parts[1]
     if prefix not in ("lw", "lc", "yl"):
         return
-    await _send_fastcard_list(q, prefix)
+    await _send_fastcard_list(q, prefix, photo=config.SECTION_PHOTOS.get("ludo"))
 
 
 async def cb_cards_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1289,17 +1331,18 @@ async def cb_freefire_section(update: Update, context: ContextTypes.DEFAULT_TYPE
         return
     data = q.data
 
+    P = config.SECTION_PHOTOS
     if data == "ff:diamonds":
-        await q.edit_message_text(
+        await _show_with_photo(
+            q, P["ff_dia"],
             "💎 *جواهر فري فاير — شحن تلقائي مباشر*\n\n"
             "اختر الباقة، ثم ادخل Player ID وستصلك الجواهر على حسابك خلال ثوانٍ:",
-            reply_markup=kb.freefire_diamond_offers(),
-            parse_mode=ParseMode.MARKDOWN,
+            kb.freefire_diamond_offers(),
         )
     elif data == "ff:membership":
-        await _send_fastcard_list(q, "fm")
+        await _send_fastcard_list(q, "fm", photo=P.get("ff_mem"))
     elif data == "ff:codes":
-        await _send_fastcard_list(q, "fc")
+        await _send_fastcard_list(q, "fc", photo=P.get("freefire"))
 
 
 # ============= Free Fire diamonds purchase (auto via Fastcard API) =============
