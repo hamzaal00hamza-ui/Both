@@ -642,6 +642,44 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode=ParseMode.MARKDOWN,
         )
 
+    elif text == "💎 نقاط الولاء":
+        user_id = update.effective_user.id
+        pts = await asyncio.to_thread(db.get_loyalty_points, user_id)
+        min_redeem = config.LOYALTY_MIN_REDEEM
+        rate = config.LOYALTY_REDEEM_RATE
+        earn_pct = config.LOYALTY_EARN_PERCENT
+        can_redeem = pts >= min_redeem
+        syp_value = pts * rate
+        loyalty_text = (
+            "💎 *نقاط الولاء*\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            f"🎯 رصيد نقاطك: *{pts:,}* نقطة\n"
+            f"💰 قيمتها: *{syp_value:,.0f} ل.س*\n\n".replace(",", "،") +
+            "📋 *كيف تكسب النقاط؟*\n"
+            f"• كل طلب ناجح يكسبك *{earn_pct:.0f}%* من قيمته نقاط\n"
+            f"• كل نقطة = *{rate}* ل.س\n"
+            f"• الحد الأدنى للاستبدال: *{min_redeem:,}* نقطة\n\n".replace(",", "،") +
+            "💡 _ما عليك إلا الشراء — والنقاط تنحسب لك تلقائياً!_"
+        )
+        if not can_redeem:
+            remaining = max(0, min_redeem - pts)
+            if remaining > 0:
+                loyalty_text += f"\n\n⏳ تحتاج *{remaining:,}* نقطة إضافية للاستبدال.".replace(",", "،")
+        await update.message.reply_text(
+            loyalty_text,
+            reply_markup=kb.loyalty_menu(can_redeem=can_redeem, suggested_redeem=pts if can_redeem else 0),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+
+    elif text == "🎟 كود الخصم":
+        await update.message.reply_text(
+            "🎟 *كود الخصم*\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "لديك كود خصم؟ اضغط الزر أدناه لإدخاله 👇",
+            reply_markup=kb.coupon_entry_button(),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+
     elif text == "📞 التواصل مع الأدمن":
         await update.message.reply_text(
             "📞 *التواصل مع الدعم*\n"
