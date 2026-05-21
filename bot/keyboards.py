@@ -20,6 +20,7 @@ def user_reply_keyboard() -> ReplyKeyboardMarkup:
             ["🎮 قسم الألعاب", "📱 قسم التطبيقات"],
             ["🃏 قسم البطاقات والأكواد"],
             ["📈 قسم الرشق", "📲 قسم الأرقام"],
+            ["💎 نقاط الولاء", "🎟 كود الخصم"],
             ["💰 شحن رصيد الحساب", "👤 معلومات حسابي"],
             ["📞 التواصل مع الأدمن"],
         ],
@@ -43,6 +44,13 @@ def main_menu() -> InlineKeyboardMarkup:
 def coupon_cancel() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("❌ إلغاء", callback_data="menu:main")],
+    ])
+
+
+def coupon_entry_button() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🎟 أدخل كود الخصم", callback_data="menu:coupon")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="menu:main")],
     ])
 
 
