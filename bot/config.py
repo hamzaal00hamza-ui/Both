@@ -28,7 +28,7 @@ SUPPORT_USERNAME = "@Hamzaalshomari"
 # صورة البانر التي تظهر عند /start (يمكن تغييرها من متغير البيئة START_BANNER_URL)
 START_BANNER_URL = os.environ.get(
     "START_BANNER_URL",
-    "https://upload.wikimedia.org/wikipedia/en/4/41/PUBG_Mobile_cover_art.jpg",
+    "https://raw.githubusercontent.com/hamzaal00hamza-ui/Both/main/assets/banner.jpg",
 )
 
 REFERRAL_SIGNUP_BONUS = 2000
