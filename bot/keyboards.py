@@ -286,7 +286,7 @@ def pubg_sections() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("💎 شدات — سيرفر 2", callback_data="fclist:pubg_s2")],
         [InlineKeyboardButton("👑 عضويات ببجي", callback_data="pubg:membership")],
         [InlineKeyboardButton("🎟️ أكواد شدات", callback_data="pubg:codes")],
-        [InlineKeyboardButton("⬅️ رجوع", callback_data="menu:store")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="store:games")],
     ])
 
 
@@ -463,6 +463,7 @@ def admin_panel() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("⭐ تقييمات الزبائن", callback_data="admin:ratings")],
         [InlineKeyboardButton("🎟 الكوبونات", callback_data="admin:coupons")],
         [InlineKeyboardButton("💱 سعر الصرف", callback_data="admin:rates")],
+        [InlineKeyboardButton("📊 هامش الربح", callback_data="admin:profit_margin")],
         [InlineKeyboardButton("💲 تعديل أسعار المنتجات", callback_data="admin:prices")],
         [InlineKeyboardButton("🔍 بحث عن مستخدم", callback_data="admin:search_user")],
         [InlineKeyboardButton("✏️ تعديل رصيد", callback_data="admin:edit_balance")],
