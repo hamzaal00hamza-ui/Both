@@ -151,7 +151,7 @@ def balance_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("📱 R-Cell", callback_data="fclist:bal_rcell"),
          InlineKeyboardButton("📱 Selam Telecom", callback_data="fclist:bal_selam")],
         [InlineKeyboardButton("💳 PAPRA", callback_data="fclist:bal_papra")],
-        [InlineKeyboardButton("⬅️ المتجر", callback_data="menu:store")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="menu:store")],
     ])
 
 
@@ -169,7 +169,7 @@ def games_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("💀 Blood Strike", callback_data="fclist:bsk")],
         [InlineKeyboardButton("🎮 Stumble Guys", callback_data="fclist:stmb")],
         [InlineKeyboardButton("🛸 Super Sus", callback_data="fclist:ssus")],
-        [InlineKeyboardButton("⬅️ المتجر", callback_data="menu:store")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="menu:store")],
     ])
 
 
@@ -187,7 +187,7 @@ def cards_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("💳 بطاقات VISA", callback_data="fclist:vs")],
         [InlineKeyboardButton("🎮 Roblox", callback_data="cards:roblox")],
         [InlineKeyboardButton("🔫 Valorant", callback_data="cards:valorant")],
-        [InlineKeyboardButton("⬅️ المتجر", callback_data="menu:store")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="menu:store")],
     ])
 
 
@@ -236,7 +236,7 @@ def subs_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("⚡ LagoFast VPN", callback_data="fclist:lv")],
         [InlineKeyboardButton("🚀 GearUP Booster", callback_data="fclist:gu")],
         [InlineKeyboardButton("📢 تعزيز قنوات تلغرام", callback_data="fclist:tg")],
-        [InlineKeyboardButton("⬅️ المتجر", callback_data="menu:store")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="menu:store")],
     ])
 
 
@@ -249,7 +249,7 @@ def smm_menu() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("👍 متابعين فيسبوك", callback_data="fclist:fbf")],
         [InlineKeyboardButton("📊 مشاهدات تلغرام", callback_data="fclist:tgv")],
         [InlineKeyboardButton("💯 تفاعل/لايك تلغرام", callback_data="fclist:tgr")],
-        [InlineKeyboardButton("⬅️ المتجر", callback_data="menu:store")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="menu:store")],
     ])
 
 
@@ -259,7 +259,7 @@ def supercell_sections() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("🏰 Clash of Clans", callback_data="sc:coc")],
         [InlineKeyboardButton("👑 Clash Royale", callback_data="sc:cr")],
         [InlineKeyboardButton("🌾 Hay Day", callback_data="sc:hd")],
-        [InlineKeyboardButton("⬅️ المتجر", callback_data="menu:store")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="menu:store")],
     ])
 
 
@@ -267,7 +267,7 @@ def cod_sections() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("💎 شدات (نقاط COD)", callback_data="cdnav:packs")],
         [InlineKeyboardButton("🎫 Battle Pass", callback_data="cdnav:bp")],
-        [InlineKeyboardButton("⬅️ المتجر", callback_data="menu:store")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="menu:store")],
     ])
 
 
@@ -276,7 +276,7 @@ def ludo_sections() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("🎲 Ludo World", callback_data="lunav:lw")],
         [InlineKeyboardButton("🎲 Ludo Club", callback_data="lunav:lc")],
         [InlineKeyboardButton("🎲 Yalla Ludo", callback_data="lunav:yl")],
-        [InlineKeyboardButton("⬅️ المتجر", callback_data="menu:store")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="menu:store")],
     ])
 
 
@@ -286,7 +286,7 @@ def pubg_sections() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("💎 شدات — سيرفر 2", callback_data="fclist:pubg_s2")],
         [InlineKeyboardButton("👑 عضويات ببجي", callback_data="pubg:membership")],
         [InlineKeyboardButton("🎟️ أكواد شدات", callback_data="pubg:codes")],
-        [InlineKeyboardButton("⬅️ المتجر", callback_data="menu:store")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="menu:store")],
     ])
 
 
@@ -315,7 +315,7 @@ def freefire_sections() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("💎 جواهر + عضويات — أوروبا", callback_data="fclist:ff_eu")],
         [InlineKeyboardButton("👑 عضويات فري فاير", callback_data="ff:membership")],
         [InlineKeyboardButton("🎟️ أكواد جواهر", callback_data="ff:codes")],
-        [InlineKeyboardButton("⬅️ المتجر", callback_data="menu:store")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="menu:store")],
     ])
 
 
