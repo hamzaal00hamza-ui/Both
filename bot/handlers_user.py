@@ -701,7 +701,10 @@ async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = q.data
 
     if data == "menu:main":
-        await q.edit_message_text(WELCOME, reply_markup=kb.main_menu(), parse_mode=ParseMode.MARKDOWN)
+        await q.edit_message_text(
+            "👇 اختر من القائمة أدناه:",
+            parse_mode=ParseMode.MARKDOWN,
+        )
 
     elif data == "menu:account":
         user = db.get_user(update.effective_user.id)
