@@ -814,9 +814,9 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "admin:shamcash_balance":
         from . import shamcash
-        if not shamcash._enabled():
+        if not config.SHAMCASH_TOKEN or config.SHAMCASH_TOKEN in ("", "ضع_التوكن_هنا"):
             await q.edit_message_text(
-                "⚠️ *شام كاش (التحقق التلقائي) غير مفعّل*\n\n"
+                "⚠️ *شام كاش غير مفعّل*\n\n"
                 "ضع `SHAMCASH_TOKEN` في الـ Secrets ثم أعد تشغيل البوت.",
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=kb.back_to_admin(),
@@ -831,15 +831,35 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
                 return ConversationHandler.END
             balances_data = await asyncio.to_thread(shamcash.get_balances, account_id)
-            # الـ API يرجع dict أو list حسب الإصدار
-            items = balances_data if isinstance(balances_data, list) else balances_data.get("balances", [balances_data])
             coin_names = {1: "USD 💵", 2: "SYP 🇸🇾", 3: "EUR 💶"}
-            lines = [f"💰 *رصيد محفظة شام كاش*\n", f"🆔 الحساب: `{account_id}`\n"]
+            lines = ["💰 *رصيد محفظة شام كاش*\n", f"🆔 الحساب: `{account_id}`\n"]
+            # الـ API قد يرجع list مباشرة، أو dict فيه "balances" list، أو dict فيه "data" list
+            if isinstance(balances_data, list):
+                items = balances_data
+            elif isinstance(balances_data, dict):
+                items = (
+                    balances_data.get("balances")
+                    or balances_data.get("data")
+                    or [balances_data]
+                )
+            else:
+                items = []
+            if not items:
+                lines.append("⚠️ لا توجد بيانات رصيد.")
             for item in items:
-                coin_id = item.get("coin_id") or item.get("coin", "")
-                amount  = item.get("amount") or item.get("balance") or 0
-                coin_label = coin_names.get(int(coin_id), str(coin_id)) if str(coin_id).isdigit() else str(coin_id)
-                lines.append(f"• {coin_label}: *{float(amount):,.2f}*")
+                if not isinstance(item, dict):
+                    continue
+                raw_coin = item.get("coin_id") or item.get("coinId") or item.get("coin") or ""
+                raw_amount = item.get("amount") or item.get("balance") or item.get("value") or 0
+                try:
+                    coin_label = coin_names.get(int(raw_coin), f"عملة {raw_coin}")
+                except (ValueError, TypeError):
+                    coin_label = str(raw_coin) or "—"
+                try:
+                    amt = float(raw_amount)
+                except (ValueError, TypeError):
+                    amt = 0.0
+                lines.append(f"• {coin_label}: *{amt:,.2f}*")
             await q.edit_message_text(
                 "\n".join(lines),
                 parse_mode=ParseMode.MARKDOWN,
