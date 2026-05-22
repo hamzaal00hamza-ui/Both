@@ -1534,7 +1534,7 @@ FASTCARD_CATEGORIES = {
     "pubg_s2": {
         "title": "🪙 ببجي موبايل — سيرفر 2 (شحن تلقائي)",
         "game": "PUBG_S2",
-        "input_fields": [{"key": "playerId", "label": "Player ID (الرقم داخل اللعبة)", "type": "id"}],
+        "input_fields": [{"key": "Player ID", "label": "Player ID (الرقم داخل اللعبة)", "type": "id"}],
         "back_callback": "store:pubg",
         "offers_attr": "PUBG_S2_UC_OFFERS",
     },
