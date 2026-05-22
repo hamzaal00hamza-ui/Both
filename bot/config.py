@@ -227,7 +227,7 @@ PRICE_EDIT_CATEGORIES = [
     ("smm_tgv",     "TELEGRAM_VIEWS",          "📊 رشق مشاهدات تلغرام"),
     ("smm_tgr",     "TELEGRAM_REACTIONS",      "💯 رشق تفاعل تلغرام"),
     # ألعاب جديدة
-    ("pubg_s2",     "PUBG_S2_UC_OFFERS",       "🎮 ببجي - سيرفر 2"),
+    ("pubg_s2",     "PUBG_S2_UC_OFFERS",       "🪙 ببجي - سيرفر 2"),
     ("ff_s2",       "FREEFIRE_S2_OFFERS",      "🔥 فري فاير - سيرفر 2"),
     ("ff_eu",       "FREEFIRE_EU_OFFERS",      "🔥 فري فاير - أوروبا"),
     ("rblx_us",     "ROBLOX_USA_OFFERS",       "🎮 Roblox USA"),
