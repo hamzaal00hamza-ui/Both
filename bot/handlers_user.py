@@ -112,8 +112,8 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         pass
 
     welcome_caption = (
-        "🔲 *GOOD DAY* 🌹 🔲\n\n"
-        "🔲 *أختر احد الأوامر في الاسفل* 🔲"
+        "💫 *GOOD DAY* 💫\n\n"
+        "🚀 *أختر احد الأوامر في الاسفل* 🚀"
         + bonus_msg
     )
     try:
