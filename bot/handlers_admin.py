@@ -44,7 +44,8 @@ logger = logging.getLogger(__name__)
     ADMIN_CHANNEL_INPUT,
     ADMIN_PRICE_INPUT,
     ADMIN_RATES_SET_USDT_WALLET,
-) = range(100, 115)
+    ADMIN_PROFIT_MARGIN_SET,
+) = range(100, 116)
 
 
 def is_admin(update: Update) -> bool:
@@ -324,6 +325,20 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 parse_mode=ParseMode.MARKDOWN,
             )
         return ConversationHandler.END
+
+    if data == "admin:profit_margin":
+        cur_margin = config.get_profit_margin()
+        await q.edit_message_text(
+            "📊 *إدارة هامش الربح*\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            f"الهامش الحالي: *{cur_margin * 100:.1f}%*\n\n"
+            "📝 أرسل النسبة الجديدة كرقم بين `0` و `100`\n"
+            "_(مثال: أرسل `10` لهامش ربح 10%)_\n\n"
+            "⚠️ سيطبَّق على كل العروض المسعَّرة بالدولار فوراً.",
+            reply_markup=kb.admin_rates_cancel(),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return ADMIN_PROFIT_MARGIN_SET
 
     if data == "admin:rates:set_offers":
         cur_rate = config.get_syp_per_usd()
@@ -1467,6 +1482,35 @@ async def msg_set_usdt_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE
     return ConversationHandler.END
 
 
+async def msg_set_profit_margin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update):
+        return ConversationHandler.END
+    raw = (update.message.text or "").strip().replace(",", "").replace("،", "").replace("%", "")
+    try:
+        pct = float(raw)
+        if not (0 <= pct <= 100):
+            raise ValueError
+    except ValueError:
+        await update.message.reply_text(
+            "⚠️ نسبة غير صالحة. أرسل رقم بين `0` و `100` (مثال: `12`):",
+            reply_markup=kb.admin_rates_cancel(),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return ADMIN_PROFIT_MARGIN_SET
+    old_margin = config.get_profit_margin()
+    db.set_setting("profit_margin", str(pct / 100))
+    await update.message.reply_text(
+        "✅ *تم تحديث هامش الربح*\n"
+        "━━━━━━━━━━━━━━━━━\n\n"
+        f"الهامش السابق: *{old_margin * 100:.1f}%*\n"
+        f"الهامش الجديد: *{pct:.1f}%*\n\n"
+        "🔄 جميع أسعار العروض المسعَّرة بالدولار تم تحديثها تلقائياً.",
+        reply_markup=kb.back_to_admin(),
+        parse_mode=ParseMode.MARKDOWN,
+    )
+    return ConversationHandler.END
+
+
 async def msg_admin_create_coupon(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update):
         return ConversationHandler.END
@@ -1628,6 +1672,10 @@ def register_admin_handlers(app):
                 CallbackQueryHandler(cb_admin_panel, pattern=r"^admin:rates$"),
                 back_handler,
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_set_usdt_wallet),
+            ],
+            ADMIN_PROFIT_MARGIN_SET: [
+                back_handler,
+                MessageHandler(filters.TEXT & ~filters.COMMAND, msg_set_profit_margin),
             ],
             ADMIN_COUPON_CODE: [
                 CallbackQueryHandler(cb_admin_panel, pattern=r"^admin:coupons$"),
