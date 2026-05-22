@@ -913,60 +913,61 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             balance_usd = float(profile.get("balance") or 0)
             email = profile.get("email") or "—"
 
-            # جمع كل product_ids من ببجي (سيرفر 1 + سيرفر 2)
+            # جلب بيانات المنتجات لببجي S1+S2
             all_pubg_ids = (
                 [o["product_id"] for o in config.PUBG_UC_OFFERS if o.get("product_id")]
                 + [o["product_id"] for o in config.PUBG_S2_UC_OFFERS if o.get("product_id")]
             )
-            # جلب بيانات المنتجات من Fastcard
             try:
                 products_raw = await asyncio.to_thread(fastcard.get_products, all_pubg_ids)
-                products_map = {int(p["id"]): p for p in products_raw if isinstance(p, dict) and p.get("id")}
+                products_map = {
+                    int(p["id"]): p
+                    for p in products_raw
+                    if isinstance(p, dict) and p.get("id")
+                }
             except Exception:
                 products_map = {}
 
-            def _status(pid: int) -> str:
+            def fmt_offer(o):
+                pid = o.get("product_id")
                 p = products_map.get(pid)
                 if not p:
-                    return "❓ غير موجود"
-                if not p.get("available", True):
-                    return "🔴 غير متاح"
-                return "🟢 متاح"
+                    icon = "❓"
+                    note = "غير موجود"
+                elif not p.get("available", True):
+                    icon = "🔴"
+                    note = "غير متاح"
+                else:
+                    icon = "🟢"
+                    raw_params = p.get("params") or []
+                    if isinstance(raw_params, list) and raw_params:
+                        keys = [str(x.get("key") or x.get("name") or x) for x in raw_params if x]
+                        note = "حقول: " + ", ".join(keys)
+                    else:
+                        note = "متاح"
+                label = o.get("label", "")
+                return f"{icon} {label} | ID={pid} | {note}"
 
-            def _params(pid: int) -> str:
-                """يعرض الحقول المطلوبة للمنتج حسب Fastcard."""
-                p = products_map.get(pid)
-                if not p:
-                    return ""
-                raw = p.get("params") or []
-                if isinstance(raw, list) and raw:
-                    keys = [str(x.get("key") or x.get("name") or x) for x in raw if x]
-                    sep = "`, `"
-                    return f" ← حقول: `{sep.join(keys)}`"
-                return ""
+            s1_lines = "\n".join(fmt_offer(o) for o in config.PUBG_UC_OFFERS if o.get("product_id"))
+            s2_lines = "\n".join(fmt_offer(o) for o in config.PUBG_S2_UC_OFFERS if o.get("product_id"))
 
-            s1_lines = "\n".join(
-                f"  • {o['label']} — ID `{o['product_id']}` {_status(o['product_id'])}"
-                for o in config.PUBG_UC_OFFERS if o.get("product_id")
+            msg = (
+                f"💼 حالة المتجر (Fastcard API)\n\n"
+                f"📧 الحساب: {email}\n"
+                f"💵 الرصيد: {balance_usd:.4f} $\n\n"
+                f"🪙 ببجي سيرفر 1:\n{s1_lines or '—'}\n\n"
+                f"🪙 ببجي سيرفر 2:\n{s2_lines or '—'}\n\n"
+                f"❓=غير موجود 🔴=موقوف"
             )
-            s2_lines = "\n".join(
-                f"  • {o['label']} — ID `{o['product_id']}` {_status(o['product_id'])}{_params(o['product_id'])}"
-                for o in config.PUBG_S2_UC_OFFERS if o.get("product_id")
-            )
-
-            await q.edit_message_text(
-                f"💼 *حالة المتجر (Fastcard API)*\n\n"
-                f"📧 الحساب: `{email}`\n"
-                f"💵 الرصيد: *{balance_usd:.4f} $*\n\n"
-                f"*🪙 ببجي سيرفر 1:*\n{s1_lines or '—'}\n\n"
-                f"*🪙 ببجي سيرفر 2:*\n{s2_lines or '—'}\n\n"
-                "_❓ = product\\_id غلط أو تغيّر — 🔴 = موقوف مؤقتاً_",
-                parse_mode=ParseMode.MARKDOWN,
-                reply_markup=kb.back_to_admin(),
-            )
+            await q.edit_message_text(msg, reply_markup=kb.back_to_admin())
         except fastcard.FastcardError as e:
             await q.edit_message_text(
-                f"❌ تعذّر الاتصال بالمتجر:\n{e.message}",
+                f"❌ خطأ Fastcard:\n{e.message}",
+                reply_markup=kb.back_to_admin(),
+            )
+        except Exception as e:
+            await q.edit_message_text(
+                f"❌ خطأ غير متوقع:\n{type(e).__name__}: {e}",
                 reply_markup=kb.back_to_admin(),
             )
         return ConversationHandler.END
