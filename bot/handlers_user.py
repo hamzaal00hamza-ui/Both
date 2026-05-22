@@ -787,7 +787,7 @@ async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ============= Store callbacks =============
 async def _show_with_photo(q, photo: str, caption: str, markup):
-    """إرسال رسالة مع صورة — يحاول edit_message_media أولاً، وإلا يحذف ويعيد الإرسال، ويرجع لنص عند الفشل."""
+    """إرسال رسالة مع صورة — يحاول edit_message_media إذا كانت الرسالة صورة، وإلا يعدّل النص مباشرة."""
     from telegram import InputMediaPhoto
     # حاول تعديل الميديا إذا كانت الرسالة صورة بالفعل
     try:
@@ -798,27 +798,11 @@ async def _show_with_photo(q, photo: str, caption: str, markup):
         return
     except Exception:
         pass
-    # الرسالة نص — احذف وابعث صورة جديدة
-    deleted = False
+    # الرسالة نص — عدّل النص مباشرة (يحافظ على نوع الرسالة ويضمن أن الأزرار تشتغل لاحقاً)
     try:
-        await q.message.delete()
-        deleted = True
+        await q.edit_message_text(caption, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
     except Exception:
         pass
-    try:
-        await q.message.chat.send_photo(
-            photo=photo, caption=caption,
-            reply_markup=markup, parse_mode=ParseMode.MARKDOWN,
-        )
-    except Exception:
-        # الصورة فشلت — ارجع لنص
-        if deleted:
-            await q.message.chat.send_message(caption, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
-        else:
-            try:
-                await q.edit_message_text(caption, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
-            except Exception:
-                pass
 
 
 async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
