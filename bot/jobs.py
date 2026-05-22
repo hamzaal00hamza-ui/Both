@@ -797,13 +797,8 @@ def schedule_jobs(app: Application) -> None:
             name="auto_coupon_check",
         )
 
-    # تحديث سعر الصرف تلقائياً من موقع الليرة اليوم كل ساعة
-    jq.run_repeating(
-        auto_exchange_rate_update,
-        interval=3600,   # كل ساعة
-        first=30,        # أول تحديث بعد 30 ثانية من الإقلاع
-        name="exchange_rate_update",
-    )
+    # تحديث سعر الصرف — معطّل، يتم يدوياً من لوحة الأدمن
+    # jq.run_repeating(auto_exchange_rate_update, interval=3600, first=30, name="exchange_rate_update")
 
     # فحص أسعار Fastcard اليومي — يقارن cost_usd مع API ويرسل تنبيه بالفروق
     if fastcard.is_enabled():
