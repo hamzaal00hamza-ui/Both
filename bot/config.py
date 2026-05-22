@@ -1894,9 +1894,9 @@ def get_level_for_amount(total_recharged: float) -> str:
 # يمكن تحديث هذه الروابط أو استبدالها بـ file_id بعد رفع الصور على تلغرام
 SECTION_PHOTOS: dict[str, str] = {
     # ── ببجي ──
-    "pubg":        "https://upload.wikimedia.org/wikipedia/en/4/41/PUBG_Mobile_cover_art.jpg",
-    "pubg_uc":     "https://i.imgur.com/uR8RbDl.png",
-    "pubg_mem":    "https://upload.wikimedia.org/wikipedia/en/4/41/PUBG_Mobile_cover_art.jpg",
+    "pubg":        "https://raw.githubusercontent.com/hamzaal00hamza-ui/Both/main/assets/pubg.jpg",
+    "pubg_uc":     "https://raw.githubusercontent.com/hamzaal00hamza-ui/Both/main/assets/pubg.jpg",
+    "pubg_mem":    "https://raw.githubusercontent.com/hamzaal00hamza-ui/Both/main/assets/pubg.jpg",
     # ── فري فاير ──
     "freefire":    "https://upload.wikimedia.org/wikipedia/en/9/94/Garena_Free_Fire.jpg",
     "ff_dia":      "https://i.imgur.com/K3r7GJf.png",
