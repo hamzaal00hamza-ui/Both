@@ -111,8 +111,20 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     except Exception:
                         pass
 
+    from datetime import datetime, timezone, timedelta
+    _syria = timezone(timedelta(hours=3))
+    _hour = datetime.now(_syria).hour
+    if 5 <= _hour < 12:
+        _greeting = "🌅 *صباح الخير* 🌅"
+    elif 12 <= _hour < 17:
+        _greeting = "☀️ *مساء الخير* ☀️"
+    elif 17 <= _hour < 21:
+        _greeting = "🌆 *مساء النور* 🌆"
+    else:
+        _greeting = "🌙 *طاب مساؤك* 🌙"
+
     welcome_caption = (
-        "💫 *GOOD DAY* 💫\n\n"
+        f"{_greeting}\n\n"
         "🚀 *أختر احد الأوامر في الاسفل* 🚀"
         + bonus_msg
     )
