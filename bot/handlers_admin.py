@@ -954,6 +954,13 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             s1_lines = "\n".join(fmt_offer(o) for o in config.PUBG_UC_OFFERS if o.get("product_id"))
             s2_lines = "\n".join(fmt_offer(o) for o in config.PUBG_S2_UC_OFFERS if o.get("product_id"))
 
+            # RAW DUMP لمنتج 6949 لمعرفة الـ params الفعلية
+            raw_dump = ""
+            p6949 = products_map.get(6949)
+            if p6949:
+                import json as _json
+                raw_dump = "\n\n🔬 RAW منتج 6949:\n" + _json.dumps(p6949, ensure_ascii=False, indent=1)[:1500]
+
             msg = (
                 f"💼 حالة المتجر (Fastcard API)\n\n"
                 f"📧 الحساب: {email}\n"
@@ -961,6 +968,7 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"🪙 ببجي سيرفر 1:\n{s1_lines or '—'}\n\n"
                 f"🪙 ببجي سيرفر 2:\n{s2_lines or '—'}\n\n"
                 f"❓=غير موجود 🔴=موقوف"
+                f"{raw_dump}"
             )
             await q.edit_message_text(msg, reply_markup=kb.back_to_admin())
         except fastcard.FastcardError as e:
