@@ -947,11 +947,7 @@ async def _send_fastcard_list(q, prefix: str):
             [InlineKeyboardButton("✍️ اكتب المبلغ يلي بدّك", callback_data=f"fcamt:{prefix}")],
             [InlineKeyboardButton("⬅️ رجوع", callback_data=cat.get("back_callback", "menu:main"))],
         ])
-        await q.edit_message_text(
-            intro,
-            reply_markup=kb_amt,
-            parse_mode=ParseMode.MARKDOWN,
-        )
+        await _safe_edit(q, intro, reply_markup=kb_amt)
         return
 
     import sys
@@ -1059,12 +1055,12 @@ async def cb_cards_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
     sub = parts[1]
 
     if sub == "menu":
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             "💳 *البطاقات*\n\n"
             "اختر نوع البطاقة 👇\n\n"
             "📌 كل البطاقات أكواد جاهزة من المخزون — يوصلك الكود فور التأكيد.",
             reply_markup=kb.cards_menu(),
-            parse_mode=ParseMode.MARKDOWN,
         )
         return
 
@@ -1081,10 +1077,10 @@ async def cb_cards_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if sub not in titles:
         return
     title, hint = titles[sub]
-    await q.edit_message_text(
+    await _safe_edit(
+        q,
         f"{title}\n\n{hint}",
         reply_markup=kb.cards_platform_menu(sub),
-        parse_mode=ParseMode.MARKDOWN,
     )
 
 
@@ -1169,26 +1165,17 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     player_id = context.user_data.get("pubg_player_id")
     if not player_id:
-        await q.edit_message_text(
-            "⚠️ انتهت الجلسة. اضغط /start وابدأ من جديد.",
-            reply_markup=kb.back_to_main(),
-        )
+        await _safe_edit(q, "⚠️ انتهت الجلسة. اضغط /start وابدأ من جديد.", reply_markup=kb.back_to_main())
         return
 
     user_id = update.effective_user.id
     user = db.get_user(user_id)
     if (user["balance"] or 0) < config.get_offer_price(offer):
-        await q.edit_message_text(
-            "❌ رصيدك غير كافٍ. اشحن أولاً.",
-            reply_markup=kb.insufficient_balance(),
-        )
+        await _safe_edit(q, "❌ رصيدك غير كافٍ. اشحن أولاً.", reply_markup=kb.insufficient_balance())
         return
 
     if not fastcard.is_enabled():
-        await q.edit_message_text(
-            "⚠️ التكامل مع المتجر غير مفعّل حالياً. تواصل مع الدعم.",
-            reply_markup=kb.back_to_main(),
-        )
+        await _safe_edit(q, "⚠️ التكامل مع المتجر غير مفعّل حالياً. تواصل مع الدعم.", reply_markup=kb.back_to_main())
         return
 
     # خصم الرصيد فوراً + إنشاء سجل طلب + استدعاء API
@@ -1198,13 +1185,13 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
         user_id, "PUBG", offer["label"], config.get_offer_price(offer), player_id, api_uuid=api_uuid,
     )
 
-    await q.edit_message_text(
+    await _safe_edit(
+        q,
         f"⏳ *جاري معالجة طلبك...*\n\n"
         f"💎 {offer['label']}\n"
         f"🎮 Player ID: `{player_id}`\n"
         f"📋 رقم الطلب: #{order_id}\n\n"
         "_بترجعلك النتيجة بعد ثوانٍ_",
-        parse_mode=ParseMode.MARKDOWN,
     )
 
     try:
@@ -1671,7 +1658,8 @@ async def cb_fastcard_amount_start(update: Update, context: ContextTypes.DEFAULT
     context.user_data.pop("fc_custom_offer", None)
     context.user_data.pop("fc_offer_id", None)
 
-    await q.edit_message_text(
+    await _safe_edit(
+        q,
         f"{cat['title']}\n\n"
         f"💼 رصيدك الحالي: {user['balance']:,.0f} ل.س\n\n".replace(",", "،") +
         "✍️ *اكتب المبلغ يلي بدّك* بالليرة السورية (أرقام فقط):\n"
@@ -1679,7 +1667,6 @@ async def cb_fastcard_amount_start(update: Update, context: ContextTypes.DEFAULT
         f"🔢 الحد الأدنى: {min_a:,} ل.س\n".replace(",", "،") +
         f"🔝 الحد الأعلى: {max_a:,} ل.س\n".replace(",", "،") +
         f"📊 العمولة: {markup}%",
-        parse_mode=ParseMode.MARKDOWN,
         reply_markup=kb.cancel_inline(),
     )
     return FASTCARD_CUSTOM_AMOUNT
