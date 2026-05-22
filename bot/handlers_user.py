@@ -786,10 +786,22 @@ async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ============= Store callbacks =============
+async def _safe_edit(q, text: str, reply_markup=None, parse_mode=ParseMode.MARKDOWN):
+    """يعدّل الرسالة سواء كانت نصاً أو صورة (caption). يمنع الفشل الصامت."""
+    try:
+        await q.edit_message_text(text, reply_markup=reply_markup, parse_mode=parse_mode)
+        return
+    except Exception:
+        pass
+    try:
+        await q.edit_message_caption(caption=text, reply_markup=reply_markup, parse_mode=parse_mode)
+    except Exception:
+        pass
+
+
 async def _show_with_photo(q, photo: str, caption: str, markup):
     """إرسال رسالة مع صورة — يحاول edit_message_media إذا كانت الرسالة صورة، وإلا يعدّل النص مباشرة."""
     from telegram import InputMediaPhoto
-    # حاول تعديل الميديا إذا كانت الرسالة صورة بالفعل
     try:
         await q.edit_message_media(
             media=InputMediaPhoto(media=photo, caption=caption, parse_mode=ParseMode.MARKDOWN),
@@ -798,11 +810,7 @@ async def _show_with_photo(q, photo: str, caption: str, markup):
         return
     except Exception:
         pass
-    # الرسالة نص — عدّل النص مباشرة (يحافظ على نوع الرسالة ويضمن أن الأزرار تشتغل لاحقاً)
-    try:
-        await q.edit_message_text(caption, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
-    except Exception:
-        pass
+    await _safe_edit(q, caption, reply_markup=markup)
 
 
 async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -815,46 +823,47 @@ async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
     P = config.SECTION_PHOTOS
 
     if data == "store:games":
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             "🎮 *الألعاب*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
             "اختر اللعبة اللي تبي تشحنها 👇\n\n"
             "⚡ التسليم تلقائي خلال دقائق",
             reply_markup=kb.games_menu(),
-            parse_mode=ParseMode.MARKDOWN,
         )
     elif data == "store:cards":
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             "💳 *البطاقات الرقمية*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
             "اختر نوع البطاقة 👇\n\n"
             "📌 كل البطاقات أكواد جاهزة من المخزون\n"
             "⚡ يوصلك الكود فور تأكيد الطلب",
             reply_markup=kb.cards_menu(),
-            parse_mode=ParseMode.MARKDOWN,
         )
     elif data == "store:subs":
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             "💎 *اشتراكات التطبيقات*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
             "اختر التطبيق اللي تبي تشترك فيه 👇\n\n"
             "📩 يُفعَّل الاشتراك على إيميل/يوزر تدخله وقت الطلب\n"
             "⏱️ التفعيل خلال دقائق إلى ساعات حسب التطبيق",
             reply_markup=kb.subs_menu(),
-            parse_mode=ParseMode.MARKDOWN,
         )
     elif data == "store:balance":
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             "📱 *تعبئة الجوال*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
             "اختر شبكتك 👇\n\n"
             "⚡ التعبئة مباشرة على رقمك خلال دقائق\n"
             "📞 يُطلب رقم الجوال وقت الطلب",
             reply_markup=kb.balance_menu(),
-            parse_mode=ParseMode.MARKDOWN,
         )
     elif data == "store:smm":
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             "📈 *خدمات الرشق*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
             "متابعين • لايكات • مشاهدات\n\n"
@@ -862,7 +871,6 @@ async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "🔗 يُطلب رابط الحساب أو المنشور وقت الطلب\n"
             "⚡ معظم الخدمات تبدأ خلال 0-24 ساعة",
             reply_markup=kb.smm_menu(),
-            parse_mode=ParseMode.MARKDOWN,
         )
     elif data == "store:pubg":
         await _show_with_photo(
@@ -1011,7 +1019,7 @@ async def _send_fastcard_list(q, prefix: str, photo: str = None):
     if photo:
         await _show_with_photo(q, photo, intro, markup)
     else:
-        await q.edit_message_text(intro, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
+        await _safe_edit(q, intro, reply_markup=markup)
 
 
 async def cb_supercell_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1117,21 +1125,21 @@ async def cb_pubg_uc_select(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user = db.get_user(update.effective_user.id)
     if (user["balance"] or 0) < config.get_offer_price(offer):
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             f"❌ رصيدك غير كافٍ.\n\nالعرض: *{offer['label']}*\n"
             f"السعر: {config.get_offer_price(offer)} ل.س\nرصيدك: {user['balance']:.0f} ل.س\n\n"
             "اشحن رصيدك أولاً.",
             reply_markup=kb.insufficient_balance(),
-            parse_mode=ParseMode.MARKDOWN,
         )
         return ConversationHandler.END
 
     context.user_data["pubg_offer_id"] = offer_id
-    await q.edit_message_text(
+    await _safe_edit(
+        q,
         f"💎 *{offer['label']} — {config.get_offer_price(offer)} ل.س*\n\n"
         f"رصيدك: {user['balance']:.0f} ل.س\n\n"
         "📝 ابعت الـ *Player ID* تبعك (الرقم الموجود بحسابك ببجي):",
-        parse_mode=ParseMode.MARKDOWN,
         reply_markup=kb.cancel_inline(),
     )
     return PUBG_PLAYER_ID
@@ -1830,14 +1838,14 @@ async def cb_fastcard_buy_select(update: Update, context: ContextTypes.DEFAULT_T
 
     user = db.get_user(update.effective_user.id)
     if (user["balance"] or 0) < config.get_offer_price(offer):
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             f"❌ رصيدك غير كافٍ.\n\n"
             f"العرض: *{offer['label']}*\n"
             f"السعر: {config.get_offer_price(offer):,} ل.س\n".replace(",", "،") +
             f"رصيدك: {user['balance']:,.0f} ل.س\n\n".replace(",", "،") +
             "اشحن رصيدك أولاً.",
             reply_markup=kb.insufficient_balance(),
-            parse_mode=ParseMode.MARKDOWN,
         )
         return ConversationHandler.END
 
@@ -1854,13 +1862,13 @@ async def cb_fastcard_buy_select(update: Update, context: ContextTypes.DEFAULT_T
     if not fields:
         price_fmt = f"{config.get_offer_price(offer):,}".replace(",", "،")
         bal_fmt   = f"{user['balance']:,.0f}".replace(",", "،")
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             f"{cat['title']}\n\n"
             f"🔷 *الحزمة:* {offer['label']}\n"
             f"🔷 *السعر:* {price_fmt} ل.س\n"
             f"🔷 *رصيدك:* {bal_fmt} ل.س\n\n"
             "⚠️ بعد التأكيد ينزل الكود مباشرة. ما فينا نسترجع الكود بعد الشراء.",
-            parse_mode=ParseMode.MARKDOWN,
             reply_markup=kb.fastcard_confirm(prefix, offer_id, config.get_offer_price(offer)),
         )
         return ConversationHandler.END
@@ -1897,9 +1905,7 @@ async def _ask_field(q_or_msg, context, offer, cat, fields, idx, user_balance, f
     """يعرض رسالة طلب الحقل. يدعم CallbackQuery (edit) أو Message (send في نفس الشات)."""
     text = _field_prompt_text(offer, cat, fields, idx, user_balance, first=first)
     if hasattr(q_or_msg, "edit_message_text"):
-        await q_or_msg.edit_message_text(
-            text, parse_mode=ParseMode.MARKDOWN, reply_markup=kb.cancel_inline()
-        )
+        await _safe_edit(q_or_msg, text, reply_markup=kb.cancel_inline())
     else:
         # نستخدم send_message على chat_id لأن الرسالة الأصلية ربما انحذفت (لو حقل حساس)
         await context.bot.send_message(
