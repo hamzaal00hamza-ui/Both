@@ -933,12 +933,23 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     return "🔴 غير متاح"
                 return "🟢 متاح"
 
+            def _params(pid: int) -> str:
+                """يعرض الحقول المطلوبة للمنتج حسب Fastcard."""
+                p = products_map.get(pid)
+                if not p:
+                    return ""
+                raw = p.get("params") or []
+                if isinstance(raw, list) and raw:
+                    keys = [str(x.get("key") or x.get("name") or x) for x in raw if x]
+                    return f" ← حقول: `{'`, `'.join(keys)}`"
+                return ""
+
             s1_lines = "\n".join(
                 f"  • {o['label']} — ID `{o['product_id']}` {_status(o['product_id'])}"
                 for o in config.PUBG_UC_OFFERS if o.get("product_id")
             )
             s2_lines = "\n".join(
-                f"  • {o['label']} — ID `{o['product_id']}` {_status(o['product_id'])}"
+                f"  • {o['label']} — ID `{o['product_id']}` {_status(o['product_id'])}{_params(o['product_id'])}"
                 for o in config.PUBG_S2_UC_OFFERS if o.get("product_id")
             )
 
@@ -948,7 +959,7 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"💵 الرصيد: *{balance_usd:.4f} $*\n\n"
                 f"*🪙 ببجي سيرفر 1:*\n{s1_lines or '—'}\n\n"
                 f"*🪙 ببجي سيرفر 2:*\n{s2_lines or '—'}\n\n"
-                "_عند نفاد الرصيد أو ظهور ❓ يعني الـ product\\_id غلط أو تغيّر._",
+                "_❓ = product\\_id غلط أو تغيّر — 🔴 = موقوف مؤقتاً_",
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=kb.back_to_admin(),
             )
