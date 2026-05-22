@@ -713,7 +713,7 @@ async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = q.data
 
     if data == "menu:main":
-        await q.edit_message_text("👇 اختر من القائمة أدناه:")
+        await _safe_edit(q, "👇 اختر من القائمة أدناه:")
 
     elif data == "menu:account":
         user = db.get_user(update.effective_user.id)
@@ -732,38 +732,38 @@ async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📦 عدد الطلبات: *{orders_count}*\n"
             "━━━━━━━━━━━━━━━━━"
         )
-        await q.edit_message_text(text, reply_markup=kb.back_to_main(), parse_mode=ParseMode.MARKDOWN)
+        await _safe_edit(q, text, reply_markup=kb.back_to_main())
 
     elif data == "menu:recharge":
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             "💰 *شحن رصيد الحساب*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
             "اختر طريقة الدفع المناسبة لك 👇\n\n"
             "⚡ التحقق التلقائي يضيف الرصيد فوراً\n"
             "🛡️ كل العمليات مشفّرة وآمنة",
             reply_markup=kb.recharge_methods(),
-            parse_mode=ParseMode.MARKDOWN,
         )
 
     elif data == "menu:store":
-        await q.edit_message_text("👇 اختر من القائمة أدناه:")
+        await _safe_edit(q, "👇 اختر من القائمة أدناه:")
 
     elif data == "menu:subs":
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             "💎 *اشتراكات التطبيقات*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
             "اختر التطبيق اللي تبي تفعّل اشتراكه 👇",
             reply_markup=kb.subs_menu(),
-            parse_mode=ParseMode.MARKDOWN,
         )
 
     elif data == "menu:smm":
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             "📈 *خدمات الرشق*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
             "اختر الخدمة المناسبة لك 👇",
             reply_markup=kb.smm_menu(),
-            parse_mode=ParseMode.MARKDOWN,
         )
 
     elif data == "menu:loyalty":
@@ -771,17 +771,17 @@ async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif data == "menu:referral":
         text, markup = await _build_referral_screen(update.effective_user.id, context.bot)
-        await q.edit_message_text(text, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
+        await _safe_edit(q, text, reply_markup=markup)
 
     elif data == "menu:support":
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             "📞 *التواصل مع الدعم*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
             "💬 فريقنا جاهز لمساعدتك على مدار الساعة.\n\n"
             f"📩 راسلنا الآن عبر: {config.SUPPORT_USERNAME}\n\n"
             "⏱️ متوسط الرد: أقل من 10 دقائق",
             reply_markup=kb.back_to_main(),
-            parse_mode=ParseMode.MARKDOWN,
         )
 
 
