@@ -1895,7 +1895,8 @@ def get_level_for_amount(total_recharged: float) -> str:
 SECTION_PHOTOS: dict[str, str] = {
     # ── ببجي ──
     "pubg":        "https://raw.githubusercontent.com/hamzaal00hamza-ui/Both/main/assets/pubg.jpg",
-    "pubg_uc":     "https://raw.githubusercontent.com/hamzaal00hamza-ui/Both/main/assets/pubg.jpg",
+    "pubg_uc":     "https://raw.githubusercontent.com/hamzaal00hamza-ui/Both/main/assets/pubg_uc.jpg",
+    "pubg_s2":     "https://raw.githubusercontent.com/hamzaal00hamza-ui/Both/main/assets/pubg_uc.jpg",
     "pubg_mem":    "https://raw.githubusercontent.com/hamzaal00hamza-ui/Both/main/assets/pubg.jpg",
     # ── فري فاير ──
     "freefire":    "https://upload.wikimedia.org/wikipedia/en/9/94/Garena_Free_Fire.jpg",
