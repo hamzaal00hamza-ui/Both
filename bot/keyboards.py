@@ -455,7 +455,10 @@ def admin_panel() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("📊 إحصائيات", callback_data="admin:stats")],
         [InlineKeyboardButton("⏳ الطلبات المعلقة", callback_data="admin:pending")],
         [InlineKeyboardButton("💼 حالة المتجر (API)", callback_data="admin:supplier")],
-        [InlineKeyboardButton("📱 رصيد سرياتيل كاش", callback_data="admin:syriatel_balance")],
+        [
+            InlineKeyboardButton("📱 رصيد سرياتيل كاش", callback_data="admin:syriatel_balance"),
+            InlineKeyboardButton("💰 رصيد شام كاش", callback_data="admin:shamcash_balance"),
+        ],
         [InlineKeyboardButton("🔍 فحص أسعار Fastcard الآن", callback_data="admin:price_check")],
         [InlineKeyboardButton("📈 تقرير اليوم", callback_data="admin:today_report")],
         [InlineKeyboardButton("💵 الأرباح", callback_data="admin:profit")],
