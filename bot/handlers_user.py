@@ -601,7 +601,6 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
     async def send(msg, markup):
         await update.message.reply_text(msg, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
 
-    P = config.SECTION_PHOTOS
 
     if text == "🎮 قسم الألعاب":
         await update.message.reply_text(
@@ -798,29 +797,12 @@ async def _safe_edit(q, text: str, reply_markup=None, parse_mode=ParseMode.MARKD
     except Exception:
         pass
 
-
-async def _show_with_photo(q, photo: str, caption: str, markup):
-    """إرسال رسالة مع صورة — يحاول edit_message_media إذا كانت الرسالة صورة، وإلا يعدّل النص مباشرة."""
-    from telegram import InputMediaPhoto
-    try:
-        await q.edit_message_media(
-            media=InputMediaPhoto(media=photo, caption=caption, parse_mode=ParseMode.MARKDOWN),
-            reply_markup=markup,
-        )
-        return
-    except Exception:
-        pass
-    await _safe_edit(q, caption, reply_markup=markup)
-
-
 async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
     if await is_banned(update):
         return
     data = q.data
-
-    P = config.SECTION_PHOTOS
 
     if data == "store:games":
         await _safe_edit(
@@ -873,49 +855,49 @@ async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=kb.smm_menu(),
         )
     elif data == "store:pubg":
-        await _show_with_photo(
-            q, P["pubg"],
+        await _safe_edit(
+            q,
             "🎮 *ببجي موبايل — PUBG Mobile*\n\n"
             "اختر القسم 👇",
-            kb.pubg_sections(),
+            reply_markup=kb.pubg_sections(),
         )
     elif data == "store:freefire":
-        await _show_with_photo(
-            q, P["freefire"],
+        await _safe_edit(
+            q,
             "🔥 *فري فاير — Free Fire*\n\n"
             "اختر القسم 👇",
-            kb.freefire_sections(),
+            reply_markup=kb.freefire_sections(),
         )
     elif data == "store:supercell":
-        await _show_with_photo(
-            q, P["supercell"],
+        await _safe_edit(
+            q,
             "🏰 *ألعاب Supercell*\n\n"
             "اختر اللعبة 👇\n\n"
             "📌 الشحن مباشر بإيميل وكلمة مرور Supercell ID",
-            kb.supercell_sections(),
+            reply_markup=kb.supercell_sections(),
         )
     elif data == "store:cod":
-        await _show_with_photo(
-            q, P["cod"],
+        await _safe_edit(
+            q,
             "🪖 *كول أوف ديوتي موبايل*\n\n"
             "اختر القسم 👇\n\n"
             "💎 *شدات:* Player ID + إيميل + واتساب\n"
             "🎫 *Battle Pass:* Player ID فقط",
-            kb.cod_sections(),
+            reply_markup=kb.cod_sections(),
         )
     elif data == "store:delta":
-        await _send_fastcard_list(q, "df", photo=P.get("delta"))
+        await _send_fastcard_list(q, "df")
     elif data == "store:minecraft":
-        await _send_fastcard_list(q, "mc", photo=P.get("minecraft"))
+        await _send_fastcard_list(q, "mc")
     elif data == "store:fortnite":
-        await _send_fastcard_list(q, "fn", photo=P.get("fortnite"))
+        await _send_fastcard_list(q, "fn")
     elif data == "store:ludo":
-        await _show_with_photo(
-            q, P["ludo"],
+        await _safe_edit(
+            q,
             "🎲 *ألعاب لودو*\n\n"
             "اختر اللعبة 👇\n\n"
             "📌 الشحن مباشر بإدخال Player ID",
-            kb.ludo_sections(),
+            reply_markup=kb.ludo_sections(),
         )
 
 
@@ -926,21 +908,20 @@ async def cb_pubg_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     data = q.data
 
-    P = config.SECTION_PHOTOS
     if data == "pubg:uc":
-        await _show_with_photo(
-            q, P["pubg_uc"],
+        await _safe_edit(
+            q,
             "🪙 *شدات ببجي — شحن تلقائي مباشر*\n\n"
             "اختر الباقة، ثم ادخل Player ID وستصلك الشدات على حسابك خلال ثوانٍ:",
-            kb.pubg_uc_offers(),
+            reply_markup=kb.pubg_uc_offers(),
         )
     elif data == "pubg:membership":
-        await _send_fastcard_list(q, "pm", photo=P.get("pubg_mem"))
+        await _send_fastcard_list(q, "pm")
     elif data == "pubg:codes":
-        await _send_fastcard_list(q, "pc", photo=P.get("pubg"))
+        await _send_fastcard_list(q, "pc")
 
 
-async def _send_fastcard_list(q, prefix: str, photo: str = None):
+async def _send_fastcard_list(q, prefix: str):
     cat = config.FASTCARD_CATEGORIES.get(prefix)
     if not cat:
         return
@@ -976,12 +957,12 @@ async def _send_fastcard_list(q, prefix: str, photo: str = None):
     import sys
     offers = getattr(sys.modules["bot.config"], cat["offers_attr"], [])
     if not offers:
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             f"{cat['title']}\n\n"
             "🔧 هذا القسم قيد التجهيز حالياً، رح تتوفر العروض قريباً جداً.\n"
             "شكراً لصبرك 🌷",
             reply_markup=kb.fastcard_offers_list(prefix),
-            parse_mode=ParseMode.MARKDOWN,
         )
         return
 
@@ -1016,10 +997,7 @@ async def _send_fastcard_list(q, prefix: str, photo: str = None):
         )
 
     markup = kb.fastcard_offers_list(prefix)
-    if photo:
-        await _show_with_photo(q, photo, intro, markup)
-    else:
-        await _safe_edit(q, intro, reply_markup=markup)
+    await _safe_edit(q, intro, reply_markup=markup)
 
 
 async def cb_supercell_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1034,7 +1012,7 @@ async def cb_supercell_section(update: Update, context: ContextTypes.DEFAULT_TYP
     prefix = parts[1]
     if prefix not in ("bs", "coc", "cr", "hd"):
         return
-    await _send_fastcard_list(q, prefix, photo=config.SECTION_PHOTOS.get(prefix))
+    await _send_fastcard_list(q, prefix)
 
 
 async def cb_cod_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1066,7 +1044,7 @@ async def cb_ludo_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prefix = parts[1]
     if prefix not in ("lw", "lc", "yl"):
         return
-    await _send_fastcard_list(q, prefix, photo=config.SECTION_PHOTOS.get("ludo"))
+    await _send_fastcard_list(q, prefix)
 
 
 async def cb_cards_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1380,18 +1358,17 @@ async def cb_freefire_section(update: Update, context: ContextTypes.DEFAULT_TYPE
         return
     data = q.data
 
-    P = config.SECTION_PHOTOS
     if data == "ff:diamonds":
-        await _show_with_photo(
-            q, P["ff_dia"],
+        await _safe_edit(
+            q,
             "💎 *جواهر فري فاير — شحن تلقائي مباشر*\n\n"
             "اختر الباقة، ثم ادخل Player ID وستصلك الجواهر على حسابك خلال ثوانٍ:",
-            kb.freefire_diamond_offers(),
+            reply_markup=kb.freefire_diamond_offers(),
         )
     elif data == "ff:membership":
-        await _send_fastcard_list(q, "fm", photo=P.get("ff_mem"))
+        await _send_fastcard_list(q, "fm")
     elif data == "ff:codes":
-        await _send_fastcard_list(q, "fc", photo=P.get("freefire"))
+        await _send_fastcard_list(q, "fc")
 
 
 # ============= Free Fire diamonds purchase (auto via Fastcard API) =============
@@ -1408,21 +1385,21 @@ async def cb_freefire_diamond_select(update: Update, context: ContextTypes.DEFAU
 
     user = db.get_user(update.effective_user.id)
     if (user["balance"] or 0) < config.get_offer_price(offer):
-        await q.edit_message_text(
+        await _safe_edit(
+            q,
             f"❌ رصيدك غير كافٍ.\n\nالعرض: *{offer['label']}*\n"
             f"السعر: {config.get_offer_price(offer)} ل.س\nرصيدك: {user['balance']:.0f} ل.س\n\n"
             "اشحن رصيدك أولاً.",
             reply_markup=kb.insufficient_balance(),
-            parse_mode=ParseMode.MARKDOWN,
         )
         return ConversationHandler.END
 
     context.user_data["ff_offer_id"] = offer_id
-    await q.edit_message_text(
+    await _safe_edit(
+        q,
         f"💎 *{offer['label']} — {config.get_offer_price(offer)} ل.س*\n\n"
         f"رصيدك: {user['balance']:.0f} ل.س\n\n"
         "📝 ابعت الـ *Player ID* تبعك (الرقم الموجود بحسابك فري فاير):",
-        parse_mode=ParseMode.MARKDOWN,
         reply_markup=kb.cancel_inline(),
     )
     return FREEFIRE_PLAYER_ID
@@ -1661,8 +1638,7 @@ async def cb_fastcard_list_nav(update: Update, context: ContextTypes.DEFAULT_TYP
     if len(parts) != 2:
         return
     prefix = parts[1]
-    photo = config.SECTION_PHOTOS.get(prefix)
-    await _send_fastcard_list(q, prefix, photo=photo)
+    await _send_fastcard_list(q, prefix)
 
 
 async def cb_fastcard_sold_out(update: Update, context: ContextTypes.DEFAULT_TYPE):
