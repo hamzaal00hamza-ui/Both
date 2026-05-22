@@ -941,7 +941,8 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 raw = p.get("params") or []
                 if isinstance(raw, list) and raw:
                     keys = [str(x.get("key") or x.get("name") or x) for x in raw if x]
-                    return f" ← حقول: `{'`, `'.join(keys)}`"
+                    sep = "`, `"
+                    return f" ← حقول: `{sep.join(keys)}`"
                 return ""
 
             s1_lines = "\n".join(
