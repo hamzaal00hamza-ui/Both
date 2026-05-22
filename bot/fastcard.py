@@ -60,7 +60,17 @@ def _request(method: str, path: str, *, params=None, data=None, timeout: int = 2
     if isinstance(body, dict) and body.get("status") and body["status"] != "OK":
         msg = body.get("message") or body.get("error") or "خطأ غير معروف"
         code = body.get("code")
-        raise FastcardError(f"خطأ من المتجر: {msg} (code={code})", code=code)
+        # للتشخيص: ضم الـ body الخام في الرسالة لأخطاء 500
+        extra_dbg = ""
+        if code == 500:
+            import json as _json
+            try:
+                extra_dbg = f"\nRAW: {_json.dumps(body, ensure_ascii=False)[:400]}"
+                if data:
+                    extra_dbg += f"\nSENT: {_json.dumps(data, ensure_ascii=False)[:300]}"
+            except Exception:
+                pass
+        raise FastcardError(f"خطأ من المتجر: {msg} (code={code}){extra_dbg}", code=code)
 
     return body
 
