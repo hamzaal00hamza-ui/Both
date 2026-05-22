@@ -941,7 +941,10 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     icon = "🟢"
                     raw_params = p.get("params") or []
                     if isinstance(raw_params, list) and raw_params:
-                        keys = [str(x.get("key") or x.get("name") or x) for x in raw_params if x]
+                        keys = [
+                            str(x.get("key") or x.get("name") or x) if isinstance(x, dict) else str(x)
+                            for x in raw_params if x
+                        ]
                         note = "حقول: " + ", ".join(keys)
                     else:
                         note = "متاح"
