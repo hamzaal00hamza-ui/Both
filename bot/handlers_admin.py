@@ -812,6 +812,52 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
         return ConversationHandler.END
 
+    if data == "admin:shamcash_balance":
+        from . import shamcash
+        if not shamcash._enabled():
+            await q.edit_message_text(
+                "⚠️ *شام كاش (التحقق التلقائي) غير مفعّل*\n\n"
+                "ضع `SHAMCASH_TOKEN` في الـ Secrets ثم أعد تشغيل البوت.",
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=kb.back_to_admin(),
+            )
+            return ConversationHandler.END
+        try:
+            account_id = await asyncio.to_thread(shamcash.get_active_account_id)
+            if not account_id:
+                await q.edit_message_text(
+                    "❌ لم يُعثر على حساب شام كاش نشط.",
+                    reply_markup=kb.back_to_admin(),
+                )
+                return ConversationHandler.END
+            balances_data = await asyncio.to_thread(shamcash.get_balances, account_id)
+            # الـ API يرجع dict أو list حسب الإصدار
+            items = balances_data if isinstance(balances_data, list) else balances_data.get("balances", [balances_data])
+            coin_names = {1: "USD 💵", 2: "SYP 🇸🇾", 3: "EUR 💶"}
+            lines = [f"💰 *رصيد محفظة شام كاش*\n", f"🆔 الحساب: `{account_id}`\n"]
+            for item in items:
+                coin_id = item.get("coin_id") or item.get("coin", "")
+                amount  = item.get("amount") or item.get("balance") or 0
+                coin_label = coin_names.get(int(coin_id), str(coin_id)) if str(coin_id).isdigit() else str(coin_id)
+                lines.append(f"• {coin_label}: *{float(amount):,.2f}*")
+            await q.edit_message_text(
+                "\n".join(lines),
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=kb.back_to_admin(),
+            )
+        except shamcash.ShamCashError as e:
+            await q.edit_message_text(
+                f"❌ تعذّر جلب الرصيد:\n`{e.code}` — {e.message}",
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=kb.back_to_admin(),
+            )
+        except Exception as e:
+            await q.edit_message_text(
+                f"❌ خطأ غير متوقّع: {e}",
+                reply_markup=kb.back_to_admin(),
+            )
+        return ConversationHandler.END
+
     if data == "admin:supplier":
         if not fastcard.is_enabled():
             await q.edit_message_text(
