@@ -912,17 +912,43 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             profile = await asyncio.to_thread(fastcard.get_profile)
             balance_usd = float(profile.get("balance") or 0)
             email = profile.get("email") or "—"
-            offers_text = "\n".join(
-                f"• {o['label']}: product_id `{o['product_id']}` — يبيع للزبون بـ {o['price']} ل.س"
-                for o in config.PUBG_UC_OFFERS
+
+            # جمع كل product_ids من ببجي (سيرفر 1 + سيرفر 2)
+            all_pubg_ids = (
+                [o["product_id"] for o in config.PUBG_UC_OFFERS if o.get("product_id")]
+                + [o["product_id"] for o in config.PUBG_S2_UC_OFFERS if o.get("product_id")]
             )
+            # جلب بيانات المنتجات من Fastcard
+            try:
+                products_raw = await asyncio.to_thread(fastcard.get_products, all_pubg_ids)
+                products_map = {int(p["id"]): p for p in products_raw if isinstance(p, dict) and p.get("id")}
+            except Exception:
+                products_map = {}
+
+            def _status(pid: int) -> str:
+                p = products_map.get(pid)
+                if not p:
+                    return "❓ غير موجود"
+                if not p.get("available", True):
+                    return "🔴 غير متاح"
+                return "🟢 متاح"
+
+            s1_lines = "\n".join(
+                f"  • {o['label']} — ID `{o['product_id']}` {_status(o['product_id'])}"
+                for o in config.PUBG_UC_OFFERS if o.get("product_id")
+            )
+            s2_lines = "\n".join(
+                f"  • {o['label']} — ID `{o['product_id']}` {_status(o['product_id'])}"
+                for o in config.PUBG_S2_UC_OFFERS if o.get("product_id")
+            )
+
             await q.edit_message_text(
                 f"💼 *حالة المتجر (Fastcard API)*\n\n"
                 f"📧 الحساب: `{email}`\n"
-                f"💵 الرصيد المتوفر: *{balance_usd:.4f} $*\n"
-                f"🌐 Base: `{config.FASTCARD_BASE}`\n\n"
-                f"*ربط المنتجات:*\n{offers_text}\n\n"
-                "_عند نفاد الرصيد عند المتجر، الطلبات راح تفشل وتسترجع تلقائياً._",
+                f"💵 الرصيد: *{balance_usd:.4f} $*\n\n"
+                f"*🪙 ببجي سيرفر 1:*\n{s1_lines or '—'}\n\n"
+                f"*🪙 ببجي سيرفر 2:*\n{s2_lines or '—'}\n\n"
+                "_عند نفاد الرصيد أو ظهور ❓ يعني الـ product\\_id غلط أو تغيّر._",
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=kb.back_to_admin(),
             )
