@@ -82,6 +82,18 @@ def get_syp_per_usd() -> float:
     return float(DEFAULT_SYP_PER_USD)
 
 
+def get_profit_margin() -> float:
+    """هامش الربح المطبّق على العروض. يُقرأ من DB إذا تم ضبطه من لوحة الأدمن."""
+    try:
+        from . import database as _db
+        val = _db.get_setting("profit_margin")
+        if val is not None:
+            return float(val)
+    except Exception:
+        pass
+    return float(PROFIT_MARGIN)
+
+
 def get_usd_to_syp() -> float:
     """سعر تحويل شحن شام كاش دولار → رصيد ل.س. يُقرأ من DB إذا تم ضبطه."""
     try:
@@ -136,7 +148,7 @@ def get_offer_price(offer: dict) -> int:
     qty = offer.get("qty", 1) or 1
     current_rate = get_syp_per_usd()
     cost_syp = float(cost_usd) * qty * current_rate
-    return round_up_to_500(cost_syp * (1 + PROFIT_MARGIN))
+    return round_up_to_500(cost_syp * (1 + get_profit_margin()))
 
 
 # ===== خريطة كل أقسام المنتجات للوحة تعديل الأسعار =====
