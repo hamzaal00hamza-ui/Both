@@ -1668,7 +1668,9 @@ async def cb_fastcard_list_nav(update: Update, context: ContextTypes.DEFAULT_TYP
     parts = q.data.split(":", 1)
     if len(parts) != 2:
         return
-    await _send_fastcard_list(q, parts[1])
+    prefix = parts[1]
+    photo = config.SECTION_PHOTOS.get(prefix)
+    await _send_fastcard_list(q, prefix, photo=photo)
 
 
 async def cb_fastcard_sold_out(update: Update, context: ContextTypes.DEFAULT_TYPE):
