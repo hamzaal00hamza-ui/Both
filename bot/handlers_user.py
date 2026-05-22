@@ -701,12 +701,7 @@ async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = q.data
 
     if data == "menu:main":
-        await q.answer()
-        try:
-            await q.message.delete()
-        except Exception:
-            pass
-        return
+        await q.edit_message_text("👇 اختر من القائمة أدناه:")
 
     elif data == "menu:account":
         user = db.get_user(update.effective_user.id)
@@ -739,12 +734,7 @@ async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     elif data == "menu:store":
-        await q.answer()
-        try:
-            await q.message.delete()
-        except Exception:
-            pass
-        return
+        await q.edit_message_text("👇 اختر من القائمة أدناه:")
 
     elif data == "menu:subs":
         await q.edit_message_text(
