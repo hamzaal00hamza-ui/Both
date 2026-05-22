@@ -739,13 +739,12 @@ async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     elif data == "menu:store":
-        await q.edit_message_text(
-            "🛒 *المتجر الرئيسي*\n"
-            "━━━━━━━━━━━━━━━━━\n\n"
-            "اختر القسم اللي يهمّك 👇",
-            reply_markup=kb.store_menu(),
-            parse_mode=ParseMode.MARKDOWN,
-        )
+        await q.answer()
+        try:
+            await q.message.delete()
+        except Exception:
+            pass
+        return
 
     elif data == "menu:subs":
         await q.edit_message_text(
