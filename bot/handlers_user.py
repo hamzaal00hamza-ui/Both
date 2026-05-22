@@ -115,13 +115,13 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     _syria = timezone(timedelta(hours=3))
     _hour = datetime.now(_syria).hour
     if 5 <= _hour < 12:
-        _greeting = "🌅 *صباح الخير* 🌅"
+        _greeting = "🌅 *GOOD MORNING* 🌅"
     elif 12 <= _hour < 17:
-        _greeting = "☀️ *مساء الخير* ☀️"
+        _greeting = "☀️ *GOOD AFTERNOON* ☀️"
     elif 17 <= _hour < 21:
-        _greeting = "🌆 *مساء النور* 🌆"
+        _greeting = "🌆 *GOOD EVENING* 🌆"
     else:
-        _greeting = "🌙 *طاب مساؤك* 🌙"
+        _greeting = "🌙 *GOOD NIGHT* 🌙"
 
     welcome_caption = (
         f"{_greeting}\n\n"
