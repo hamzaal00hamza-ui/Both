@@ -763,24 +763,8 @@ async def auto_exchange_rate_update(context: ContextTypes.DEFAULT_TYPE) -> None:
         old = result["old_rate"]
         changed = result["changed"]
 
-        if changed:
-            direction = "📈" if avg > old else "📉"
-            msg = (
-                f"💱 *تحديث سعر الصرف تلقائي*\n\n"
-                f"🛒 شراء: *{buy:,.0f} ل.س/$*\n"
-                f"💵 بيع:   *{sell:,.0f} ل.س/$*\n"
-                f"📊 متوسط: *{avg:,.0f} ل.س/$*\n\n"
-                f"{direction} تغيّر من *{old:,.0f}* إلى *{avg:,.0f}* ل.س/$\n"
-                f"_المصدر: @SaymouaaExchange_"
-            )
-        else:
-            msg = (
-                f"🌐 *سعر الصرف من @SaymouaaExchange*\n\n"
-                f"🛒 شراء: *{buy:,.0f} ل.س/$*\n"
-                f"💵 بيع:   *{sell:,.0f} ل.س/$*\n"
-                f"📊 متوسط محفوظ: *{cur_rate:,.0f} ل.س/$* _(لم يتغير)_"
-            )
-        await _send_admin(context.application, msg)
+        # السعر يُحدَّث تلقائياً في الخلفية بدون إشعار — يمكن مراجعته من لوحة الأدمن
+        _ = (buy, sell, avg, old, changed, cur_rate)  # suppress unused warnings
     except Exception as e:
         logger.warning("auto_exchange_rate_update failed: %s", e)
 
