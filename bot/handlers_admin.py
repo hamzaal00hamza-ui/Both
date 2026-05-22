@@ -833,33 +833,54 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             balances_data = await asyncio.to_thread(shamcash.get_balances, account_id)
             coin_names = {1: "USD 💵", 2: "SYP 🇸🇾", 3: "EUR 💶"}
             lines = ["💰 *رصيد محفظة شام كاش*\n", f"🆔 الحساب: `{account_id}`\n"]
-            # الـ API قد يرجع list مباشرة، أو dict فيه "balances" list، أو dict فيه "data" list
+
+            # normalize: قد يرجع list أو dict فيه "balances"/"data"، أو dict مفاتيحه عملات
             if isinstance(balances_data, list):
                 items = balances_data
             elif isinstance(balances_data, dict):
                 items = (
                     balances_data.get("balances")
                     or balances_data.get("data")
-                    or [balances_data]
+                    or None
                 )
+                if items is None:
+                    # dict مباشر: {"USD": 100, "SYP": 5000, ...}
+                    items = [{"coin": k, "amount": v} for k, v in balances_data.items()]
             else:
                 items = []
+
             if not items:
                 lines.append("⚠️ لا توجد بيانات رصيد.")
+
+            coin_str_map = {"USD": "USD 💵", "SYP": "SYP 🇸🇾", "EUR": "EUR 💶",
+                            "usd": "USD 💵", "syp": "SYP 🇸🇾", "eur": "EUR 💶"}
+
             for item in items:
                 if not isinstance(item, dict):
+                    lines.append(f"• {item}")
                     continue
-                raw_coin = item.get("coin_id") or item.get("coinId") or item.get("coin") or ""
-                raw_amount = item.get("amount") or item.get("balance") or item.get("value") or 0
-                try:
-                    coin_label = coin_names.get(int(raw_coin), f"عملة {raw_coin}")
-                except (ValueError, TypeError):
-                    coin_label = str(raw_coin) or "—"
+                # coin: يمكن coin_id (int)، أو coin (str)، أو name، أو currency
+                raw_coin = (item.get("coin_id") or item.get("coinId") or
+                            item.get("coin") or item.get("name") or
+                            item.get("currency") or "")
+                # amount: يمكن amount، أو balance، أو value
+                raw_amount = item.get("amount")
+                if raw_amount is None:
+                    raw_amount = item.get("balance")
+                if raw_amount is None:
+                    raw_amount = item.get("value", 0)
+
+                # label
+                if isinstance(raw_coin, int):
+                    coin_label = coin_names.get(raw_coin, f"عملة {raw_coin}")
+                else:
+                    coin_label = coin_str_map.get(str(raw_coin), str(raw_coin)) or "—"
                 try:
                     amt = float(raw_amount)
                 except (ValueError, TypeError):
                     amt = 0.0
                 lines.append(f"• {coin_label}: *{amt:,.2f}*")
+
             await q.edit_message_text(
                 "\n".join(lines),
                 parse_mode=ParseMode.MARKDOWN,
