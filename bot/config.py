@@ -1520,7 +1520,7 @@ FASTCARD_CATEGORIES = {
     },
     # ===== ألعاب جديدة =====
     "pubg_s2": {
-        "title": "🎮 ببجي موبايل — سيرفر 2 (شحن تلقائي)",
+        "title": "🪙 ببجي موبايل — سيرفر 2 (شحن تلقائي)",
         "game": "PUBG_S2",
         "input_fields": [{"key": "playerId", "label": "Player ID (الرقم داخل اللعبة)", "type": "id"}],
         "back_callback": "store:pubg",
@@ -1898,6 +1898,7 @@ SECTION_PHOTOS: dict[str, str] = {
     "pubg_uc":     "https://raw.githubusercontent.com/hamzaal00hamza-ui/Both/main/assets/pubg_uc.jpg",
     "pubg_s2":     "https://raw.githubusercontent.com/hamzaal00hamza-ui/Both/main/assets/pubg_uc.jpg",
     "pubg_mem":    "https://raw.githubusercontent.com/hamzaal00hamza-ui/Both/main/assets/pubg.jpg",
+    "pubg_codes":  "https://raw.githubusercontent.com/hamzaal00hamza-ui/Both/main/assets/pubg_uc.jpg",
     # ── فري فاير ──
     "freefire":    "https://upload.wikimedia.org/wikipedia/en/9/94/Garena_Free_Fire.jpg",
     "ff_dia":      "https://i.imgur.com/K3r7GJf.png",
