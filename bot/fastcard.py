@@ -59,18 +59,24 @@ def _request(method: str, path: str, *, params=None, data=None, timeout: int = 2
     # شكل الخطأ النموذجي: {"status":"ERROR","code":100,"message":"..."}
     if isinstance(body, dict) and body.get("status") and body["status"] != "OK":
         msg = body.get("message") or body.get("error") or "خطأ غير معروف"
-        code = body.get("code")
-        # للتشخيص: ضم الـ body الخام في الرسالة لأخطاء 500
+        code_raw = body.get("code")
+        try:
+            code = int(code_raw) if code_raw is not None else None
+        except (TypeError, ValueError):
+            code = code_raw
+        # للتشخيص: ضم الـ body الخام دائماً (مش بس لـ 500)
+        import json as _json
         extra_dbg = ""
-        if code == 500:
-            import json as _json
-            try:
-                extra_dbg = f"\nRAW: {_json.dumps(body, ensure_ascii=False)[:400]}"
-                if data:
-                    extra_dbg += f"\nSENT: {_json.dumps(data, ensure_ascii=False)[:300]}"
-            except Exception:
-                pass
-        raise FastcardError(f"خطأ من المتجر: {msg} (code={code}){extra_dbg}", code=code)
+        try:
+            extra_dbg = f" | RAW={_json.dumps(body, ensure_ascii=False)[:300]}"
+            if data:
+                # نخفي أي ID حساس بالـ payload المعروض (نبدله بـ ***)
+                safe_sent = {k: ("***" if k.lower() in ("playerid", "player id") else v) for k, v in data.items()}
+                extra_dbg += f" | SENT={_json.dumps(safe_sent, ensure_ascii=False)[:200]}"
+        except Exception:
+            pass
+        logger.error(f"Fastcard error: msg={msg} code={code} body={body} sent={data}")
+        raise FastcardError(f"{msg} (code={code}){extra_dbg}", code=code)
 
     return body
 
