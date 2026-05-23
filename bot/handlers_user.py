@@ -69,7 +69,16 @@ async def is_banned(update: Update) -> bool:
 
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = await ensure_user(update)
+    try:
+        user = await ensure_user(update)
+    except Exception as _e:
+        import traceback as _tb
+        _tb_str = _tb.format_exc()[-1500:]
+        try:
+            await update.message.reply_text(f"❌ DB ERROR:\n{_e}\n\n{_tb_str}")
+        except Exception:
+            pass
+        return
     if user.get("is_banned"):
         await update.message.reply_text("🚫 تم حظرك من استخدام البوت. تواصل مع الدعم: " + config.SUPPORT_USERNAME)
         return
