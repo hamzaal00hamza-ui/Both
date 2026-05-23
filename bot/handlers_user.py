@@ -1208,17 +1208,18 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
         logger.error(f"new_order failed: {e}")
         await context.bot.send_message(
             user_id,
-            f"❌ *تعذّر تنفيذ الطلب وتم استرجاع المبلغ لرصيدك.*\n\n"
+            f"❌ تعذّر تنفيذ الطلب وتم استرجاع المبلغ كاملاً لرصيدك.\n\n"
             f"السبب: {e.message}\n"
             f"رقم الطلب: #{order_id}",
-            parse_mode=ParseMode.MARKDOWN,
             reply_markup=kb.back_to_main(),
         )
         if config.ADMIN_ID:
             try:
+                dbg = f"\n`{e.debug}`" if getattr(e, "debug", "") else ""
                 await notify.notify_admin(
                     context.bot,
-                    f"⚠️ *فشل طلب API* #{order_id}\nUser: {user_id}\nالخطأ: {e.message}",
+                    f"⚠️ *فشل طلب PUBG API* #{order_id}\nUser: {user_id}\n"
+                    f"الخطأ: {e.message} (code={e.code}){dbg}",
                     parse_mode=ParseMode.MARKDOWN,
                 )
             except Exception:
@@ -1488,17 +1489,18 @@ async def cb_freefire_diamond_confirm(update: Update, context: ContextTypes.DEFA
         logger.error(f"FF new_order failed: {e}")
         await context.bot.send_message(
             user_id,
-            f"❌ *تعذّر تنفيذ الطلب وتم استرجاع المبلغ لرصيدك.*\n\n"
+            f"❌ تعذّر تنفيذ الطلب وتم استرجاع المبلغ كاملاً لرصيدك.\n\n"
             f"السبب: {e.message}\n"
             f"رقم الطلب: #{order_id}",
-            parse_mode=ParseMode.MARKDOWN,
             reply_markup=kb.back_to_main(),
         )
         if config.ADMIN_ID:
             try:
+                dbg = f"\n`{e.debug}`" if getattr(e, "debug", "") else ""
                 await notify.notify_admin(
                     context.bot,
-                    f"⚠️ *فشل طلب فري فاير API* #{order_id}\nUser: {user_id}\nالخطأ: {e.message}",
+                    f"⚠️ *فشل طلب فري فاير API* #{order_id}\nUser: {user_id}\n"
+                    f"الخطأ: {e.message} (code={e.code}){dbg}",
                     parse_mode=ParseMode.MARKDOWN,
                 )
             except Exception:
@@ -2093,11 +2095,12 @@ async def cb_fastcard_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         if config.ADMIN_ID:
             try:
+                dbg = f"\n{e.debug}" if getattr(e, "debug", "") else ""
                 await notify.notify_admin(
                     context.bot,
                     f"⚠️ فشل طلب تلقائي #{order_id}\n"
                     f"User: {user_id}\nالقسم: {cat['title']}\nالعرض: {offer['label']}\n"
-                    f"الخطأ: {e.message}",
+                    f"الخطأ: {e.message} (code={e.code}){dbg}",
                 )
             except Exception:
                 pass

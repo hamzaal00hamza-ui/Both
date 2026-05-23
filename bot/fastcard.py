@@ -14,10 +14,34 @@ logger = logging.getLogger(__name__)
 
 
 class FastcardError(Exception):
-    def __init__(self, message: str, code: Optional[int] = None):
+    def __init__(self, message: str, code: Optional[int] = None, debug: str = ""):
         super().__init__(message)
         self.message = message
         self.code = code
+        self.debug = debug  # تفاصيل RAW/SENT — للأدمن/اللوغ فقط، مش للزبون
+
+
+# رسائل عربية مفهومة لأكواد Fastcard الشائعة
+_CODE_MESSAGES = {
+    100: "خطأ بالطلب — تواصل مع الدعم.",
+    101: "Player ID غير صحيح — تأكد منه وأعد المحاولة.",
+    102: "Player ID غير صحيح — تأكد منه وأعد المحاولة.",
+    110: "هذا العرض غير متوفر حالياً عند المتجر — جرّب عرض تاني أو تواصل مع الدعم.",
+    111: "هذا العرض غير متوفر حالياً عند المتجر — جرّب عرض تاني أو تواصل مع الدعم.",
+    120: "رصيد المتجر غير كافٍ مؤقتاً — تواصل مع الدعم.",
+    500: "خطأ مؤقت من المتجر — جرّب بعد دقيقة.",
+}
+
+
+def _friendly(msg: str, code) -> str:
+    """يحوّل رسالة المتجر الإنكليزية لرسالة عربية مفهومة حسب الكود."""
+    try:
+        c = int(code) if code is not None else None
+    except (TypeError, ValueError):
+        c = None
+    if c in _CODE_MESSAGES:
+        return _CODE_MESSAGES[c]
+    return msg or "خطأ غير معروف من المتجر."
 
 
 def is_enabled() -> bool:
@@ -64,19 +88,20 @@ def _request(method: str, path: str, *, params=None, data=None, timeout: int = 2
             code = int(code_raw) if code_raw is not None else None
         except (TypeError, ValueError):
             code = code_raw
-        # للتشخيص: ضم الـ body الخام دائماً (مش بس لـ 500)
+        # للتشخيص: نخزّن الـ RAW/SENT بحقل debug منفصل (للأدمن/اللوغ فقط، مش للزبون)
         import json as _json
-        extra_dbg = ""
+        debug_str = ""
         try:
-            extra_dbg = f" | RAW={_json.dumps(body, ensure_ascii=False)[:300]}"
+            debug_str = f"RAW={_json.dumps(body, ensure_ascii=False)[:300]}"
             if data:
-                # نخفي أي ID حساس بالـ payload المعروض (نبدله بـ ***)
                 safe_sent = {k: ("***" if k.lower() in ("playerid", "player id") else v) for k, v in data.items()}
-                extra_dbg += f" | SENT={_json.dumps(safe_sent, ensure_ascii=False)[:200]}"
+                debug_str += f" | SENT={_json.dumps(safe_sent, ensure_ascii=False)[:200]}"
         except Exception:
             pass
         logger.error(f"Fastcard error: msg={msg} code={code} body={body} sent={data}")
-        raise FastcardError(f"{msg} (code={code}){extra_dbg}", code=code)
+        # رسالة عربية مفهومة للزبون + debug منفصل
+        friendly = _friendly(msg, code)
+        raise FastcardError(friendly, code=code, debug=debug_str)
 
     return body
 
