@@ -283,7 +283,6 @@ def ludo_sections() -> InlineKeyboardMarkup:
 def pubg_sections() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("💎 شدات — سيرفر 1", callback_data="pubg:uc")],
-        [InlineKeyboardButton("💎 شدات — سيرفر 2", callback_data="fclist:pubg_s2")],
         [InlineKeyboardButton("👑 عضويات ببجي", callback_data="pubg:membership")],
         [InlineKeyboardButton("🎟️ أكواد شدات", callback_data="pubg:codes")],
         [InlineKeyboardButton("⬅️ رجوع", callback_data="store:games")],

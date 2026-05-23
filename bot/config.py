@@ -239,7 +239,6 @@ PRICE_EDIT_CATEGORIES = [
     ("smm_tgv",     "TELEGRAM_VIEWS",          "📊 رشق مشاهدات تلغرام"),
     ("smm_tgr",     "TELEGRAM_REACTIONS",      "💯 رشق تفاعل تلغرام"),
     # ألعاب جديدة
-    ("pubg_s2",     "PUBG_S2_UC_OFFERS",       "🪙 ببجي - سيرفر 2"),
     ("ff_s2",       "FREEFIRE_S2_OFFERS",      "🔥 فري فاير - سيرفر 2"),
     ("ff_eu",       "FREEFIRE_EU_OFFERS",      "🔥 فري فاير - أوروبا"),
     ("rblx_us",     "ROBLOX_USA_OFFERS",       "🎮 Roblox USA"),
@@ -407,15 +406,6 @@ PUBG_UC_OFFERS = [
     {"id": "uc_325",  "label": "325 شدة",  "uc": 325,  "price": 73500,  "product_id": 2833, "cost_usd": 4.43372, "manual_price": True},
     {"id": "uc_660",  "label": "660 شدة",  "uc": 660,  "price": 146500, "product_id": 2834, "cost_usd": 8.86744, "manual_price": True},
     {"id": "uc_1800", "label": "1800 شدة", "uc": 1800, "price": 365500, "product_id": 2835, "cost_usd": 22.1686, "manual_price": True},
-]
-
-# ببجي سيرفر 2 — شحن تلقائي
-PUBG_S2_UC_OFFERS = [
-    {"id": "pubg_s2_60",   "label": "60 شدة (سيرفر 2)",   "price": 13000,  "product_id": 6949, "cost_usd": 0.789,  "enabled": True},
-    {"id": "pubg_s2_325",  "label": "325 شدة (سيرفر 2)",  "price": 65000,  "product_id": 6950, "cost_usd": 4.316,  "enabled": True},
-    {"id": "pubg_s2_660",  "label": "660 شدة (سيرفر 2)",  "price": 130000, "product_id": 6951, "cost_usd": 8.567,  "enabled": True},
-    {"id": "pubg_s2_1800", "label": "1800 شدة (سيرفر 2)", "price": 325000, "product_id": 6952, "cost_usd": 22.019, "enabled": True},
-    {"id": "pubg_s2_3850", "label": "3850 شدة (سيرفر 2)", "price": 634500, "product_id": 6953, "cost_usd": 43.021, "enabled": True},
 ]
 
 # عروض جواهر فري فاير — شحن تلقائي عبر Fastcard (سيرفر اوتو 1)
@@ -1531,13 +1521,6 @@ FASTCARD_CATEGORIES = {
         "offers_attr": "LUDO_YALLA_OFFERS",
     },
     # ===== ألعاب جديدة =====
-    "pubg_s2": {
-        "title": "🪙 ببجي موبايل — سيرفر 2 (شحن تلقائي)",
-        "game": "PUBG_S2",
-        "input_fields": [{"key": "playerId", "label": "Player ID (الرقم داخل اللعبة)", "type": "id"}],
-        "back_callback": "store:pubg",
-        "offers_attr": "PUBG_S2_UC_OFFERS",
-    },
     "ff_s2": {
         "title": "🔥 فري فاير — سيرفر 2 (شحن تلقائي)",
         "game": "FREEFIRE_S2",
