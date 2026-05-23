@@ -14,6 +14,10 @@ except (ValueError, TypeError):
 ADMIN_CHANNEL = os.environ.get("ADMIN_CHANNEL", "")
 
 DB_PATH = os.environ.get("DB_PATH", "bot/database.db")
+# تأكد إن مجلد الـ DB موجود (مهم لـ Railway Volume على /data)
+_db_dir = os.path.dirname(DB_PATH)
+if _db_dir:
+    os.makedirs(_db_dir, exist_ok=True)
 
 SYRIATEL_CASH_NUMBER = "0982493924"
 
