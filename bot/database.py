@@ -1,7 +1,7 @@
 """
-طبقة قاعدة البيانات - SQLite
+طبقة قاعدة البيانات - Postgres (عبر طبقة توافق sqlite)
 """
-import sqlite3
+from . import _pg_compat as sqlite3
 from contextlib import contextmanager
 from datetime import datetime
 from typing import Optional, List, Dict, Any
