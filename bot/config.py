@@ -411,11 +411,11 @@ PUBG_UC_OFFERS = [
 
 # ببجي سيرفر 2 — شحن تلقائي
 PUBG_S2_UC_OFFERS = [
-    {"id": "pubg_s2_60",   "label": "60 شدة (سيرفر 2)",   "price": 13000,  "product_id": 6949, "cost_usd": 0.789,  "enabled": True},
-    {"id": "pubg_s2_325",  "label": "325 شدة (سيرفر 2)",  "price": 65000,  "product_id": 6950, "cost_usd": 4.316,  "enabled": True},
-    {"id": "pubg_s2_660",  "label": "660 شدة (سيرفر 2)",  "price": 130000, "product_id": 6951, "cost_usd": 8.567,  "enabled": True},
-    {"id": "pubg_s2_1800", "label": "1800 شدة (سيرفر 2)", "price": 325000, "product_id": 6952, "cost_usd": 22.019, "enabled": True},
-    {"id": "pubg_s2_3850", "label": "3850 شدة (سيرفر 2)", "price": 634500, "product_id": 6953, "cost_usd": 43.021, "enabled": True},
+    {"id": "pubg_s2_60",   "label": "60 شدة (سيرفر 2)",   "price": 13000,  "product_id": 6949, "cost_usd": 0.789,  "enabled": False},
+    {"id": "pubg_s2_325",  "label": "325 شدة (سيرفر 2)",  "price": 65000,  "product_id": 6950, "cost_usd": 4.316,  "enabled": False},
+    {"id": "pubg_s2_660",  "label": "660 شدة (سيرفر 2)",  "price": 130000, "product_id": 6951, "cost_usd": 8.567,  "enabled": False},
+    {"id": "pubg_s2_1800", "label": "1800 شدة (سيرفر 2)", "price": 325000, "product_id": 6952, "cost_usd": 22.019, "enabled": False},
+    {"id": "pubg_s2_3850", "label": "3850 شدة (سيرفر 2)", "price": 634500, "product_id": 6953, "cost_usd": 43.021, "enabled": False},
 ]
 
 # عروض جواهر فري فاير — شحن تلقائي عبر Fastcard (سيرفر اوتو 1)
