@@ -48,6 +48,7 @@ def _translate_placeholders(sql):
 
 
 _TYPE_RE = re.compile(r'\bINTEGER\s+PRIMARY\s+KEY\s+AUTOINCREMENT\b', re.IGNORECASE)
+_INT_RE = re.compile(r'\bINTEGER\b', re.IGNORECASE)
 _REAL_RE = re.compile(r'\bREAL\b', re.IGNORECASE)
 _IGNORE_RE = re.compile(r'INSERT\s+OR\s+IGNORE\s+INTO', re.IGNORECASE)
 _REPLACE_RE = re.compile(r'INSERT\s+OR\s+REPLACE\s+INTO', re.IGNORECASE)
@@ -65,7 +66,8 @@ def _translate(sql):
         sql = _IGNORE_RE.sub('INSERT INTO', sql)
     if _REPLACE_RE.search(sql):
         sql = _REPLACE_RE.sub('INSERT INTO', sql)
-    sql = _TYPE_RE.sub('SERIAL PRIMARY KEY', sql)
+    sql = _TYPE_RE.sub('BIGSERIAL PRIMARY KEY', sql)
+    sql = _INT_RE.sub('BIGINT', sql)
     sql = _REAL_RE.sub('DOUBLE PRECISION', sql)
     sql = _ALTER_ADD_RE.sub(r'\1 IF NOT EXISTS ', sql)
     sql = _translate_placeholders(sql)

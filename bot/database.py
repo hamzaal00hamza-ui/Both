@@ -159,6 +159,25 @@ def init_db():
                 updated_at TEXT
             )
         """)
+        # Migration: ترقية أعمدة INTEGER القديمة إلى BIGINT (Telegram IDs > 2^31)
+        _bigint_cols = [
+            ("users", "user_id"), ("users", "referrer_id"),
+            ("recharge_requests", "user_id"), ("recharge_requests", "id"),
+            ("orders", "user_id"), ("orders", "id"),
+            ("consumed_transactions", "transaction_id"), ("consumed_transactions", "user_id"),
+            ("uc_codes", "user_id"), ("uc_codes", "order_id"), ("uc_codes", "id"),
+            ("referral_commissions", "referrer_id"), ("referral_commissions", "referred_user_id"),
+            ("referral_commissions", "id"),
+            ("order_ratings", "order_id"), ("order_ratings", "user_id"),
+            ("coupons", "id"),
+            ("coupon_uses", "user_id"), ("coupon_uses", "order_id"), ("coupon_uses", "id"),
+            ("coupon_uses", "coupon_id"),
+        ]
+        for tbl, col in _bigint_cols:
+            try:
+                cur.execute(f"ALTER TABLE {tbl} ALTER COLUMN {col} TYPE BIGINT")
+            except sqlite3.Error:
+                pass
         # Migration: إعادة حساب مستوى كل المستخدمين الموجودين بناءً على إجمالي شحنهم
         # (يضمن استخدام أسماء المستويات الجديدة مع الإيموجي وإضافة VIP/ملكي)
         cur.execute("SELECT user_id, total_recharged FROM users")
