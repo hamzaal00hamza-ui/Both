@@ -1224,11 +1224,10 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
         if config.ADMIN_ID:
             try:
-                dbg = f"\n`{e.debug}`" if getattr(e, "debug", "") else ""
                 await notify.notify_admin(
                     context.bot,
                     f"⚠️ *فشل طلب PUBG API* #{order_id}\nUser: {user_id}\n"
-                    f"الخطأ: {e.message} (code={e.code}){dbg}",
+                    f"الخطأ: {e.message}",
                     parse_mode=ParseMode.MARKDOWN,
                 )
             except Exception:
@@ -1505,11 +1504,10 @@ async def cb_freefire_diamond_confirm(update: Update, context: ContextTypes.DEFA
         )
         if config.ADMIN_ID:
             try:
-                dbg = f"\n`{e.debug}`" if getattr(e, "debug", "") else ""
                 await notify.notify_admin(
                     context.bot,
                     f"⚠️ *فشل طلب فري فاير API* #{order_id}\nUser: {user_id}\n"
-                    f"الخطأ: {e.message} (code={e.code}){dbg}",
+                    f"الخطأ: {e.message}",
                     parse_mode=ParseMode.MARKDOWN,
                 )
             except Exception:
@@ -2104,12 +2102,11 @@ async def cb_fastcard_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         if config.ADMIN_ID:
             try:
-                dbg = f"\n{e.debug}" if getattr(e, "debug", "") else ""
                 await notify.notify_admin(
                     context.bot,
                     f"⚠️ فشل طلب تلقائي #{order_id}\n"
                     f"User: {user_id}\nالقسم: {cat['title']}\nالعرض: {offer['label']}\n"
-                    f"الخطأ: {e.message} (code={e.code}){dbg}",
+                    f"الخطأ: {e.message}",
                 )
             except Exception:
                 pass
