@@ -143,7 +143,26 @@ def new_order(product_id: int, *, player_id: Optional[str] = None, order_uuid: O
         for k, v in extra.items():
             payload[k] = str(v)
 
-    body = _request("POST", f"newOrder/{int(product_id)}/params", data=payload)
+    try:
+        body = _request("POST", f"newOrder/{int(product_id)}/params", data=payload)
+    except FastcardError as e:
+        # بعض منتجات "package" بترفض qty → نعيد المحاولة بدون qty
+        if e.code == 500:
+            payload_no_qty = {k: v for k, v in payload.items() if k != "qty"}
+            new_uuid = str(uuid.uuid4())
+            payload_no_qty["order_uuid"] = new_uuid
+            try:
+                body = _request("POST", f"newOrder/{int(product_id)}/params", data=payload_no_qty)
+                order_uuid = new_uuid
+            except FastcardError:
+                # المحاولة 3: endpoint بدون /params
+                new_uuid2 = str(uuid.uuid4())
+                payload["order_uuid"] = new_uuid2
+                body = _request("POST", f"newOrder/{int(product_id)}", data=payload)
+                order_uuid = new_uuid2
+        else:
+            raise
+
     out = body.get("data") if isinstance(body, dict) else None
     if not isinstance(out, dict):
         raise FastcardError("رد غير متوقع من newOrder")
