@@ -411,11 +411,11 @@ PUBG_UC_OFFERS = [
 
 # ببجي سيرفر 2 — شحن تلقائي
 PUBG_S2_UC_OFFERS = [
-    {"id": "pubg_s2_60",   "label": "60 شدة (سيرفر 2)",   "price": 13000,  "product_id": 6949, "cost_usd": 0.789,  "enabled": True},
-    {"id": "pubg_s2_325",  "label": "325 شدة (سيرفر 2)",  "price": 65000,  "product_id": 6950, "cost_usd": 4.316,  "enabled": True},
-    {"id": "pubg_s2_660",  "label": "660 شدة (سيرفر 2)",  "price": 130000, "product_id": 6951, "cost_usd": 8.567,  "enabled": True},
-    {"id": "pubg_s2_1800", "label": "1800 شدة (سيرفر 2)", "price": 325000, "product_id": 6952, "cost_usd": 22.019, "enabled": True},
-    {"id": "pubg_s2_3850", "label": "3850 شدة (سيرفر 2)", "price": 634500, "product_id": 6953, "cost_usd": 43.021, "enabled": True},
+    {"id": "pubg_s2_60",   "label": "60 شدة (سيرفر 2)",   "price": 13000,  "product_id": 6949, "cost_usd": 0.789,  "enabled": False},
+    {"id": "pubg_s2_325",  "label": "325 شدة (سيرفر 2)",  "price": 65000,  "product_id": 6950, "cost_usd": 4.316,  "enabled": False},
+    {"id": "pubg_s2_660",  "label": "660 شدة (سيرفر 2)",  "price": 130000, "product_id": 6951, "cost_usd": 8.567,  "enabled": False},
+    {"id": "pubg_s2_1800", "label": "1800 شدة (سيرفر 2)", "price": 325000, "product_id": 6952, "cost_usd": 22.019, "enabled": False},
+    {"id": "pubg_s2_3850", "label": "3850 شدة (سيرفر 2)", "price": 634500, "product_id": 6953, "cost_usd": 43.021, "enabled": False},
 ]
 
 # عروض جواهر فري فاير — شحن تلقائي عبر Fastcard (سيرفر اوتو 1)
@@ -1155,17 +1155,17 @@ NETFLIX_OFFERS = [
 # `qty` = القيمة المرسلة لـ API (ليرة جديدة). `manual_price=True` يمنع إعادة الحساب من cost_usd.
 
 SYRIATEL_BALANCE_OFFERS = [
-    {"id": "syriatel_balance_3039_961",    "label": "📲 رصيد سيريتل ≈ 1,000 ل.س",   "price": 1500,   "product_id": 3039, "qty": 9.61,    "manual_price": True, "enabled": True},
-    {"id": "syriatel_balance_3039_2019",   "label": "📲 رصيد سيريتل ≈ 2,000 ل.س",   "price": 2500,   "product_id": 3039, "qty": 20.19,   "manual_price": True, "enabled": True},
-    {"id": "syriatel_balance_3039_4038",   "label": "📲 رصيد سيريتل ≈ 4,000 ل.س",   "price": 4500,   "product_id": 3039, "qty": 40.38,   "manual_price": True, "enabled": True},
-    {"id": "syriatel_balance_3039_10096",  "label": "📲 رصيد سيريتل ≈ 10,000 ل.س",  "price": 11500,  "product_id": 3039, "qty": 100.96,  "manual_price": True, "enabled": True},
-    {"id": "syriatel_balance_3039_10575",  "label": "📲 رصيد سيريتل ≈ 10,500 ل.س",  "price": 12000,  "product_id": 3039, "qty": 105.75,  "manual_price": True, "enabled": True},
-    {"id": "syriatel_balance_3039_16057",  "label": "📲 رصيد سيريتل ≈ 16,000 ل.س",  "price": 18000,  "product_id": 3039, "qty": 160.57,  "manual_price": True, "enabled": True},
-    {"id": "syriatel_balance_3039_24038",  "label": "📲 رصيد سيريتل ≈ 24,000 ل.س",  "price": 26500,  "product_id": 3039, "qty": 240.38,  "manual_price": True, "enabled": True},
-    {"id": "syriatel_balance_3039_43269",  "label": "📲 رصيد سيريتل ≈ 43,000 ل.س",  "price": 48000,  "product_id": 3039, "qty": 432.69,  "manual_price": True, "enabled": True},
-    {"id": "syriatel_balance_3039_62019",  "label": "📲 رصيد سيريتل ≈ 62,000 ل.س",  "price": 68500,  "product_id": 3039, "qty": 620.19,  "manual_price": True, "enabled": True},
-    {"id": "syriatel_balance_3039_105769", "label": "📲 رصيد سيريتل ≈ 105,000 ل.س", "price": 116500, "product_id": 3039, "qty": 1057.69, "manual_price": True, "enabled": True},
-    {"id": "syriatel_balance_3039_210576", "label": "📲 رصيد سيريتل ≈ 210,000 ل.س", "price": 232000, "product_id": 3039, "qty": 2105.76, "manual_price": True, "enabled": True},
+    {"id": "syriatel_balance_3039_961",    "label": "📲 رصيد سيريتل ≈ 1,000 ل.س",   "price": 1500,   "product_id": 3039, "qty": 9.61,    "manual_price": True, "enabled": False},
+    {"id": "syriatel_balance_3039_2019",   "label": "📲 رصيد سيريتل ≈ 2,000 ل.س",   "price": 2500,   "product_id": 3039, "qty": 20.19,   "manual_price": True, "enabled": False},
+    {"id": "syriatel_balance_3039_4038",   "label": "📲 رصيد سيريتل ≈ 4,000 ل.س",   "price": 4500,   "product_id": 3039, "qty": 40.38,   "manual_price": True, "enabled": False},
+    {"id": "syriatel_balance_3039_10096",  "label": "📲 رصيد سيريتل ≈ 10,000 ل.س",  "price": 11500,  "product_id": 3039, "qty": 100.96,  "manual_price": True, "enabled": False},
+    {"id": "syriatel_balance_3039_10575",  "label": "📲 رصيد سيريتل ≈ 10,500 ل.س",  "price": 12000,  "product_id": 3039, "qty": 105.75,  "manual_price": True, "enabled": False},
+    {"id": "syriatel_balance_3039_16057",  "label": "📲 رصيد سيريتل ≈ 16,000 ل.س",  "price": 18000,  "product_id": 3039, "qty": 160.57,  "manual_price": True, "enabled": False},
+    {"id": "syriatel_balance_3039_24038",  "label": "📲 رصيد سيريتل ≈ 24,000 ل.س",  "price": 26500,  "product_id": 3039, "qty": 240.38,  "manual_price": True, "enabled": False},
+    {"id": "syriatel_balance_3039_43269",  "label": "📲 رصيد سيريتل ≈ 43,000 ل.س",  "price": 48000,  "product_id": 3039, "qty": 432.69,  "manual_price": True, "enabled": False},
+    {"id": "syriatel_balance_3039_62019",  "label": "📲 رصيد سيريتل ≈ 62,000 ل.س",  "price": 68500,  "product_id": 3039, "qty": 620.19,  "manual_price": True, "enabled": False},
+    {"id": "syriatel_balance_3039_105769", "label": "📲 رصيد سيريتل ≈ 105,000 ل.س", "price": 116500, "product_id": 3039, "qty": 1057.69, "manual_price": True, "enabled": False},
+    {"id": "syriatel_balance_3039_210576", "label": "📲 رصيد سيريتل ≈ 210,000 ل.س", "price": 232000, "product_id": 3039, "qty": 2105.76, "manual_price": True, "enabled": False},
 ]
 
 # لـ amount: qty المرسل = القيمة بالليرة القديمة المعروضة ÷ 100 (تحويل قديمة → جديدة).
