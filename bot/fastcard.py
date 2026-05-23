@@ -176,8 +176,10 @@ def new_order(product_id: int, *, player_id: Optional[str] = None, order_uuid: O
         for k, v in extra.items():
             payload[k] = str(v)
 
+    # التوثيق الرسمي بيستخدم query string (?qty=...&playerId=...&order_uuid=...)
+    # مش form body — منتجات Server 2 صارمة وبتطلب query string فقط.
     try:
-        body = _request("POST", f"newOrder/{int(product_id)}/params", data=payload)
+        body = _request("POST", f"newOrder/{int(product_id)}/params", params=payload)
     except FastcardError as e:
         # بعض منتجات "package" بترفض qty → نعيد المحاولة بدون qty
         if e.code == 500:
@@ -185,13 +187,13 @@ def new_order(product_id: int, *, player_id: Optional[str] = None, order_uuid: O
             new_uuid = str(uuid.uuid4())
             payload_no_qty["order_uuid"] = new_uuid
             try:
-                body = _request("POST", f"newOrder/{int(product_id)}/params", data=payload_no_qty)
+                body = _request("POST", f"newOrder/{int(product_id)}/params", params=payload_no_qty)
                 order_uuid = new_uuid
             except FastcardError:
                 # المحاولة 3: endpoint بدون /params
                 new_uuid2 = str(uuid.uuid4())
                 payload["order_uuid"] = new_uuid2
-                body = _request("POST", f"newOrder/{int(product_id)}", data=payload)
+                body = _request("POST", f"newOrder/{int(product_id)}", params=payload)
                 order_uuid = new_uuid2
         else:
             raise
