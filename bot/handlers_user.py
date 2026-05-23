@@ -2171,20 +2171,42 @@ async def cb_fastcard_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE
         else:
             closing = "✨ تم التنفيذ على حسابك مباشرة."
 
-        await context.bot.send_message(
-            user_id,
-            f"✅ *تم تنفيذ طلبك بنجاح!*\n\n"
-            f"{cat['title']}\n"
-            f"العرض: {offer['label']}\n" +
-            (f"📌 البيانات: `{summary}`\n" if summary and summary != "—" else "") +
-            f"💰 السعر: {config.get_offer_price(offer):,} ل.س\n".replace(",", "،") +
-            f"📋 رقم الطلب: #{order_id}\n"
-            f"💼 رصيدك الجديد: {new_user['balance']:,.0f} ل.س".replace(",", "،") +
-            f"{extra_txt}\n\n" +
-            closing,
-            parse_mode=ParseMode.MARKDOWN,
-            reply_markup=kb.back_to_main(),
-        )
+        try:
+            _balance = float((new_user or {}).get("balance") or 0)
+            _msg = (
+                f"✅ *تم تنفيذ طلبك بنجاح!*\n\n"
+                f"{cat['title']}\n"
+                f"العرض: {offer['label']}\n" +
+                (f"📌 البيانات: `{summary}`\n" if summary and summary != "—" else "") +
+                f"💰 السعر: {config.get_offer_price(offer):,} ل.س\n".replace(",", "،") +
+                f"📋 رقم الطلب: #{order_id}\n"
+                f"💼 رصيدك الجديد: {_balance:,.0f} ل.س".replace(",", "،") +
+                f"{extra_txt}\n\n" +
+                closing
+            )
+            await context.bot.send_message(
+                user_id, _msg,
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=kb.back_to_main(),
+            )
+        except Exception as _send_err:
+            try:
+                await context.bot.send_message(
+                    user_id,
+                    f"✅ تم تنفيذ طلبك بنجاح!\nرقم الطلب: #{order_id}\n{offer.get('label','')}{extra_txt}",
+                    reply_markup=kb.back_to_main(),
+                )
+            except Exception:
+                pass
+            if config.ADMIN_ID:
+                try:
+                    import traceback as _tb
+                    await context.bot.send_message(
+                        config.ADMIN_ID,
+                        f"⚠️ فشل إرسال إشعار النجاح للمستخدم {user_id} على الطلب #{order_id}:\n{_send_err}\n\n{_tb.format_exc()[-800:]}",
+                    )
+                except Exception:
+                    pass
         await grant_loyalty_for_order(context.bot, user_id, float(config.get_offer_price(offer)))
         await send_rating_prompt(context.bot, user_id, order_id, offer.get("label", ""))
         if config.ADMIN_ID:
