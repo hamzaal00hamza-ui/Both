@@ -2086,20 +2086,18 @@ async def cb_fastcard_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE
         logger.error(f"Fastcard generic ({prefix}/{offer_id}) new_order failed: <redacted error>")
         await context.bot.send_message(
             user_id,
-            f"❌ *تعذّر تنفيذ الطلب وتم استرجاع المبلغ كاملاً لرصيدك.*\n\n"
+            f"❌ تعذّر تنفيذ الطلب وتم استرجاع المبلغ كاملاً لرصيدك.\n\n"
             f"السبب: {e.message}\n"
             f"رقم الطلب: #{order_id}",
-            parse_mode=ParseMode.MARKDOWN,
             reply_markup=kb.back_to_main(),
         )
         if config.ADMIN_ID:
             try:
                 await notify.notify_admin(
                     context.bot,
-                    f"⚠️ *فشل طلب تلقائي* #{order_id}\n"
+                    f"⚠️ فشل طلب تلقائي #{order_id}\n"
                     f"User: {user_id}\nالقسم: {cat['title']}\nالعرض: {offer['label']}\n"
                     f"الخطأ: {e.message}",
-                    parse_mode=ParseMode.MARKDOWN,
                 )
             except Exception:
                 pass
