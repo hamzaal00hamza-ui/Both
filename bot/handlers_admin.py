@@ -1759,8 +1759,33 @@ async def cb_back_to_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 
+async def cmd_fcprod(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """تشخيص: /fcprod 6949 → يرجع تفاصيل المنتج من Fastcard (params, qty_values, type...)"""
+    if not is_admin(update):
+        return
+    args = context.args or []
+    if not args or not args[0].isdigit():
+        await update.message.reply_text("الاستخدام: `/fcprod <product_id>`\nمثال: `/fcprod 6949`",
+                                        parse_mode=ParseMode.MARKDOWN)
+        return
+    pid = int(args[0])
+    try:
+        prods = await asyncio.to_thread(fastcard.get_products, [pid])
+    except Exception as e:
+        await update.message.reply_text(f"❌ فشل: `{e}`", parse_mode=ParseMode.MARKDOWN)
+        return
+    if not prods:
+        await update.message.reply_text(f"⚠️ لا منتج بالـ ID {pid}")
+        return
+    import json as _json
+    txt = _json.dumps(prods[0], ensure_ascii=False, indent=2)[:3500]
+    await update.message.reply_text(f"📦 منتج {pid}:\n```\n{txt}\n```",
+                                    parse_mode=ParseMode.MARKDOWN)
+
+
 def register_admin_handlers(app):
     app.add_handler(CommandHandler("admin", cmd_admin))
+    app.add_handler(CommandHandler("fcprod", cmd_fcprod))
 
     back_handler = CallbackQueryHandler(cb_back_to_admin, pattern=r"^admin:panel$")
 
