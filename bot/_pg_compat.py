@@ -54,9 +54,12 @@ _REPLACE_RE = re.compile(r'INSERT\s+OR\s+REPLACE\s+INTO', re.IGNORECASE)
 _ALTER_ADD_RE = re.compile(r'(ALTER\s+TABLE\s+\w+\s+ADD\s+COLUMN)\s+(?!IF\s+NOT\s+EXISTS)', re.IGNORECASE)
 _INSERT_HEAD_RE = re.compile(r'^\s*INSERT\s+INTO', re.IGNORECASE)
 _RETURNING_RE = re.compile(r'\bRETURNING\b', re.IGNORECASE)
+_BEGIN_RE = re.compile(r'^\s*BEGIN(\s+(IMMEDIATE|DEFERRED|EXCLUSIVE|TRANSACTION))?\s*;?\s*$', re.IGNORECASE)
 
 
 def _translate(sql):
+    if _BEGIN_RE.match(sql):
+        return 'SELECT 1', False
     has_ignore = bool(_IGNORE_RE.search(sql))
     if has_ignore:
         sql = _IGNORE_RE.sub('INSERT INTO', sql)
@@ -161,6 +164,16 @@ class _Connection:
 
     def cursor(self):
         return _Cursor(self)
+
+    def execute(self, sql, params=()):
+        cur = self.cursor()
+        cur.execute(sql, params)
+        return cur
+
+    def executemany(self, sql, seq):
+        cur = self.cursor()
+        cur.executemany(sql, seq)
+        return cur
 
     def commit(self):
         pass
