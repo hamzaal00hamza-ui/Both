@@ -411,11 +411,11 @@ PUBG_UC_OFFERS = [
 
 # ببجي سيرفر 2 — شحن تلقائي
 PUBG_S2_UC_OFFERS = [
-    {"id": "pubg_s2_60",   "label": "60 شدة (سيرفر 2)",   "price": 13000,  "product_id": 6949, "cost_usd": 0.789,  "enabled": False},
-    {"id": "pubg_s2_325",  "label": "325 شدة (سيرفر 2)",  "price": 65000,  "product_id": 6950, "cost_usd": 4.316,  "enabled": False},
-    {"id": "pubg_s2_660",  "label": "660 شدة (سيرفر 2)",  "price": 130000, "product_id": 6951, "cost_usd": 8.567,  "enabled": False},
-    {"id": "pubg_s2_1800", "label": "1800 شدة (سيرفر 2)", "price": 325000, "product_id": 6952, "cost_usd": 22.019, "enabled": False},
-    {"id": "pubg_s2_3850", "label": "3850 شدة (سيرفر 2)", "price": 634500, "product_id": 6953, "cost_usd": 43.021, "enabled": False},
+    {"id": "pubg_s2_60",   "label": "60 شدة (سيرفر 2)",   "price": 13000,  "product_id": 6949, "cost_usd": 0.789,  "enabled": True},
+    {"id": "pubg_s2_325",  "label": "325 شدة (سيرفر 2)",  "price": 65000,  "product_id": 6950, "cost_usd": 4.316,  "enabled": True},
+    {"id": "pubg_s2_660",  "label": "660 شدة (سيرفر 2)",  "price": 130000, "product_id": 6951, "cost_usd": 8.567,  "enabled": True},
+    {"id": "pubg_s2_1800", "label": "1800 شدة (سيرفر 2)", "price": 325000, "product_id": 6952, "cost_usd": 22.019, "enabled": True},
+    {"id": "pubg_s2_3850", "label": "3850 شدة (سيرفر 2)", "price": 634500, "product_id": 6953, "cost_usd": 43.021, "enabled": True},
 ]
 
 # عروض جواهر فري فاير — شحن تلقائي عبر Fastcard (سيرفر اوتو 1)
@@ -501,10 +501,10 @@ PUBG_CODES = [
 
 # أكواد فري فاير — من المخزون. ⚠️ كل العروض حالياً نافد مخزونها (enabled=False)
 FREEFIRE_CODES = [
-    {"id": "fc_231",  "label": "🎟️ كود 231 جوهرة",  "price": 27500,   "product_id": 4246, "cost_usd": 1.8688,  "enabled": False},
-    {"id": "fc_583",  "label": "🎟️ كود 583 جوهرة",  "price": 68500,   "product_id": 7143, "cost_usd": 4.6721,  "enabled": False},
-    {"id": "fc_1188", "label": "🎟️ كود 1188 جوهرة", "price": 137000,  "product_id": 7144, "cost_usd": 9.3442,  "enabled": False},
-    {"id": "fc_2420", "label": "🎟️ كود 2420 جوهرة", "price": 274000,  "product_id": 7145, "cost_usd": 18.6885, "enabled": False},
+    {"id": "fc_231",  "label": "🎟️ كود 231 جوهرة",  "price": 27500,   "product_id": 4246, "cost_usd": 1.8688,  "enabled": True},
+    {"id": "fc_583",  "label": "🎟️ كود 583 جوهرة",  "price": 68500,   "product_id": 7143, "cost_usd": 4.6721,  "enabled": True},
+    {"id": "fc_1188", "label": "🎟️ كود 1188 جوهرة", "price": 137000,  "product_id": 7144, "cost_usd": 9.3442,  "enabled": True},
+    {"id": "fc_2420", "label": "🎟️ كود 2420 جوهرة", "price": 274000,  "product_id": 7145, "cost_usd": 18.6885, "enabled": True},
 ]
 
 # ===== ألعاب Supercell (شحن مباشر بالإيميل والباسورد) =====
@@ -542,13 +542,13 @@ CLASH_ROYALE_OFFERS = [
 
 # Hay Day — كل العروض حالياً نافد مخزونها (enabled=False) — جاهزين للتفعيل لما يرجعوا
 HAY_DAY_OFFERS = [
-    {"id": "hd_50",    "label": "💎 50 جوهرة",    "price": 12000,    "product_id": 7196, "cost_usd": 0.8215,   "enabled": False},
-    {"id": "hd_130",   "label": "💎 130 جوهرة",   "price": 30500,    "product_id": 7197, "cost_usd": 2.0537,   "enabled": False},
-    {"id": "hd_275",   "label": "💎 275 جوهرة",   "price": 60500,    "product_id": 7198, "cost_usd": 4.1074,   "enabled": False},
-    {"id": "hd_570",   "label": "💎 570 جوهرة",   "price": 121000,   "product_id": 7199, "cost_usd": 8.2147,   "enabled": False},
-    {"id": "hd_1500",  "label": "💎 1500 جوهرة",  "price": 241500,   "product_id": 7200, "cost_usd": 16.4294,  "enabled": False},
-    {"id": "hd_4000",  "label": "💎 4000 جوهرة",  "price": 603000,   "product_id": 7201, "cost_usd": 41.0736,  "enabled": False},
-    {"id": "hd_pass",  "label": "🎫 فارم باس",    "price": 91000,    "product_id": 7202, "cost_usd": 6.161,    "enabled": False},
+    {"id": "hd_50",    "label": "💎 50 جوهرة",    "price": 12000,    "product_id": 7196, "cost_usd": 0.8215,   "enabled": True},
+    {"id": "hd_130",   "label": "💎 130 جوهرة",   "price": 30500,    "product_id": 7197, "cost_usd": 2.0537,   "enabled": True},
+    {"id": "hd_275",   "label": "💎 275 جوهرة",   "price": 60500,    "product_id": 7198, "cost_usd": 4.1074,   "enabled": True},
+    {"id": "hd_570",   "label": "💎 570 جوهرة",   "price": 121000,   "product_id": 7199, "cost_usd": 8.2147,   "enabled": True},
+    {"id": "hd_1500",  "label": "💎 1500 جوهرة",  "price": 241500,   "product_id": 7200, "cost_usd": 16.4294,  "enabled": True},
+    {"id": "hd_4000",  "label": "💎 4000 جوهرة",  "price": 603000,   "product_id": 7201, "cost_usd": 41.0736,  "enabled": True},
+    {"id": "hd_pass",  "label": "🎫 فارم باس",    "price": 91000,    "product_id": 7202, "cost_usd": 6.161,    "enabled": True},
 ]
 
 # الحقول القياسية لطلبات Supercell
@@ -876,7 +876,7 @@ PSN_US_OFFERS = [
     {"id": "ps_us_3655", "label": "بلاي ستيشن امريكي 25$", "price": 386500, "product_id": 3655, "cost_usd": 23.45215, "manual_price": True, "enabled": True},
     {"id": "ps_us_3656", "label": "بلاي ستيشن امريكي 50$", "price": 759500, "product_id": 3656, "cost_usd": 46.12223, "manual_price": True, "enabled": True},
     {"id": "ps_us_3660", "label": "بلاي ستيشن امريكي 100$", "price": 1519000, "product_id": 3660, "cost_usd": 92.243465, "manual_price": True, "enabled": True},
-    {"id": "ps_us_3661", "label": "بلاي ستيشن امريكي 110$", "price": 1517000, "product_id": 3661, "cost_usd": 103.19742, "enabled": False},
+    {"id": "ps_us_3661", "label": "بلاي ستيشن امريكي 110$", "price": 1517000, "product_id": 3661, "cost_usd": 103.19742, "enabled": True},
 ]
 
 # === Playstation KSA ===
@@ -885,13 +885,13 @@ PSN_SA_OFFERS = [
     {"id": "ps_sa_3676", "label": "بلاي ستيشن سعودي 20$", "price": 334000, "product_id": 3676, "cost_usd": 20.263175, "manual_price": True, "enabled": True},
     {"id": "ps_sa_3680", "label": "بلاي ستيشن سعودي 50$", "price": 841000, "product_id": 3680, "cost_usd": 51.06141, "manual_price": True, "enabled": True},
     {"id": "ps_sa_3683", "label": "بلاي ستيشن سعودي 100$", "price": 1668000, "product_id": 3683, "cost_usd": 101.311895, "manual_price": True, "enabled": True},
-    {"id": "ps_sa_3673", "label": "بلاي ستيشن سعودي 5$", "price": 1517000, "product_id": 3673, "cost_usd": 103.19742, "enabled": False},
-    {"id": "ps_sa_3675", "label": "بلاي ستيشن سعودي 15$", "price": 1517000, "product_id": 3675, "cost_usd": 103.19742, "enabled": False},
-    {"id": "ps_sa_3677", "label": "بلاي ستيشن سعودي 30$", "price": 1517000, "product_id": 3677, "cost_usd": 103.19742, "enabled": False},
-    {"id": "ps_sa_3678", "label": "بلاي ستيشن سعودي 40$", "price": 1517000, "product_id": 3678, "cost_usd": 103.19742, "enabled": False},
-    {"id": "ps_sa_3679", "label": "بلاي ستيشن سعودي 45$", "price": 1517000, "product_id": 3679, "cost_usd": 103.19742, "enabled": False},
-    {"id": "ps_sa_3681", "label": "بلاي ستيشن سعودي 60$", "price": 1517000, "product_id": 3681, "cost_usd": 103.19742, "enabled": False},
-    {"id": "ps_sa_3682", "label": "بلاي ستيشن سعودي 70$", "price": 1517000, "product_id": 3682, "cost_usd": 103.19742, "enabled": False},
+    {"id": "ps_sa_3673", "label": "بلاي ستيشن سعودي 5$", "price": 1517000, "product_id": 3673, "cost_usd": 103.19742, "enabled": True},
+    {"id": "ps_sa_3675", "label": "بلاي ستيشن سعودي 15$", "price": 1517000, "product_id": 3675, "cost_usd": 103.19742, "enabled": True},
+    {"id": "ps_sa_3677", "label": "بلاي ستيشن سعودي 30$", "price": 1517000, "product_id": 3677, "cost_usd": 103.19742, "enabled": True},
+    {"id": "ps_sa_3678", "label": "بلاي ستيشن سعودي 40$", "price": 1517000, "product_id": 3678, "cost_usd": 103.19742, "enabled": True},
+    {"id": "ps_sa_3679", "label": "بلاي ستيشن سعودي 45$", "price": 1517000, "product_id": 3679, "cost_usd": 103.19742, "enabled": True},
+    {"id": "ps_sa_3681", "label": "بلاي ستيشن سعودي 60$", "price": 1517000, "product_id": 3681, "cost_usd": 103.19742, "enabled": True},
+    {"id": "ps_sa_3682", "label": "بلاي ستيشن سعودي 70$", "price": 1517000, "product_id": 3682, "cost_usd": 103.19742, "enabled": True},
 ]
 
 # === Playstation Lebanon ===
@@ -1040,7 +1040,7 @@ GPLAY_US_OFFERS = [
     {"id": "gp_us_4169", "label": "بطاقة غوغل 10$ امريكي", "price": 168500, "product_id": 4169, "cost_usd": 10.21467, "manual_price": True, "enabled": True},
     {"id": "gp_us_4170", "label": "بطاقة غوغل 25$ امريكي", "price": 420500, "product_id": 4170, "cost_usd": 25.536675, "manual_price": True, "enabled": True},
     {"id": "gp_us_4171", "label": "بطاقة غوغل 50$ امريكي", "price": 841000, "product_id": 4171, "cost_usd": 51.07335, "manual_price": True, "enabled": True},
-    {"id": "gp_us_4172", "label": "بطاقة غوغل 100$ امريكي", "price": 1517000, "product_id": 4172, "cost_usd": 103.19742, "enabled": False},
+    {"id": "gp_us_4172", "label": "بطاقة غوغل 100$ امريكي", "price": 1517000, "product_id": 4172, "cost_usd": 103.19742, "enabled": True},
 ]
 
 # === Google KSA ===
@@ -1080,7 +1080,7 @@ XBOX_US_OFFERS = [
     {"id": "xb_us_4189", "label": "بطاقة اكس بوكس 25$ امريكي", "price": 390500, "product_id": 4189, "cost_usd": 23.71284, "manual_price": True, "enabled": True},
     {"id": "xb_us_3933", "label": "بطاقة اكس بوكس 50$ امريكي", "price": 781000, "product_id": 3933, "cost_usd": 47.424685, "manual_price": True, "enabled": True},
     {"id": "xb_us_3934", "label": "بطاقة اكس بوكس 100$ امريكي", "price": 1562000, "product_id": 3934, "cost_usd": 94.84937, "manual_price": True, "enabled": True},
-    {"id": "xb_us_4187", "label": "بطاقة اكس بوكس 15$ امريكي", "price": 1517000, "product_id": 4187, "cost_usd": 103.19742, "enabled": False},
+    {"id": "xb_us_4187", "label": "بطاقة اكس بوكس 15$ امريكي", "price": 1517000, "product_id": 4187, "cost_usd": 103.19742, "enabled": True},
 ]
 
 # === XBOX KSA ===
@@ -1095,7 +1095,7 @@ XBOX_SA_OFFERS = [
 RAZER_GL_OFFERS = [
     {"id": "rz_gl_3604", "label": "1$ RAZER عالمي", "price": 16000, "product_id": 3604, "cost_usd": 0.970125, "manual_price": True, "enabled": True},
     {"id": "rz_gl_3605", "label": "2$ RAZER عالمي", "price": 32000, "product_id": 3605, "cost_usd": 1.939255, "manual_price": True, "enabled": True},
-    {"id": "rz_gl_3610", "label": "100$ RAZER عالمي", "price": 30500, "product_id": 3610, "cost_usd": 2.064626, "enabled": False},
+    {"id": "rz_gl_3610", "label": "100$ RAZER عالمي", "price": 30500, "product_id": 3610, "cost_usd": 2.064626, "enabled": True},
     {"id": "rz_gl_3606", "label": "5$ RAZER عالمي", "price": 80000, "product_id": 3606, "cost_usd": 4.84764, "manual_price": True, "enabled": True},
     {"id": "rz_gl_3607", "label": "10$ RAZER عالمي", "price": 160000, "product_id": 3607, "cost_usd": 9.694285, "manual_price": True, "enabled": True},
     {"id": "rz_gl_3608", "label": "20$ RAZER عالمي", "price": 319500, "product_id": 3608, "cost_usd": 19.387575, "manual_price": True, "enabled": True},
@@ -1155,17 +1155,17 @@ NETFLIX_OFFERS = [
 # `qty` = القيمة المرسلة لـ API (ليرة جديدة). `manual_price=True` يمنع إعادة الحساب من cost_usd.
 
 SYRIATEL_BALANCE_OFFERS = [
-    {"id": "syriatel_balance_3039_961",    "label": "📲 رصيد سيريتل ≈ 1,000 ل.س",   "price": 1500,   "product_id": 3039, "qty": 9.61,    "manual_price": True, "enabled": False},
-    {"id": "syriatel_balance_3039_2019",   "label": "📲 رصيد سيريتل ≈ 2,000 ل.س",   "price": 2500,   "product_id": 3039, "qty": 20.19,   "manual_price": True, "enabled": False},
-    {"id": "syriatel_balance_3039_4038",   "label": "📲 رصيد سيريتل ≈ 4,000 ل.س",   "price": 4500,   "product_id": 3039, "qty": 40.38,   "manual_price": True, "enabled": False},
-    {"id": "syriatel_balance_3039_10096",  "label": "📲 رصيد سيريتل ≈ 10,000 ل.س",  "price": 11500,  "product_id": 3039, "qty": 100.96,  "manual_price": True, "enabled": False},
-    {"id": "syriatel_balance_3039_10575",  "label": "📲 رصيد سيريتل ≈ 10,500 ل.س",  "price": 12000,  "product_id": 3039, "qty": 105.75,  "manual_price": True, "enabled": False},
-    {"id": "syriatel_balance_3039_16057",  "label": "📲 رصيد سيريتل ≈ 16,000 ل.س",  "price": 18000,  "product_id": 3039, "qty": 160.57,  "manual_price": True, "enabled": False},
-    {"id": "syriatel_balance_3039_24038",  "label": "📲 رصيد سيريتل ≈ 24,000 ل.س",  "price": 26500,  "product_id": 3039, "qty": 240.38,  "manual_price": True, "enabled": False},
-    {"id": "syriatel_balance_3039_43269",  "label": "📲 رصيد سيريتل ≈ 43,000 ل.س",  "price": 48000,  "product_id": 3039, "qty": 432.69,  "manual_price": True, "enabled": False},
-    {"id": "syriatel_balance_3039_62019",  "label": "📲 رصيد سيريتل ≈ 62,000 ل.س",  "price": 68500,  "product_id": 3039, "qty": 620.19,  "manual_price": True, "enabled": False},
-    {"id": "syriatel_balance_3039_105769", "label": "📲 رصيد سيريتل ≈ 105,000 ل.س", "price": 116500, "product_id": 3039, "qty": 1057.69, "manual_price": True, "enabled": False},
-    {"id": "syriatel_balance_3039_210576", "label": "📲 رصيد سيريتل ≈ 210,000 ل.س", "price": 232000, "product_id": 3039, "qty": 2105.76, "manual_price": True, "enabled": False},
+    {"id": "syriatel_balance_3039_961",    "label": "📲 رصيد سيريتل ≈ 1,000 ل.س",   "price": 1500,   "product_id": 3039, "qty": 9.61,    "manual_price": True, "enabled": True},
+    {"id": "syriatel_balance_3039_2019",   "label": "📲 رصيد سيريتل ≈ 2,000 ل.س",   "price": 2500,   "product_id": 3039, "qty": 20.19,   "manual_price": True, "enabled": True},
+    {"id": "syriatel_balance_3039_4038",   "label": "📲 رصيد سيريتل ≈ 4,000 ل.س",   "price": 4500,   "product_id": 3039, "qty": 40.38,   "manual_price": True, "enabled": True},
+    {"id": "syriatel_balance_3039_10096",  "label": "📲 رصيد سيريتل ≈ 10,000 ل.س",  "price": 11500,  "product_id": 3039, "qty": 100.96,  "manual_price": True, "enabled": True},
+    {"id": "syriatel_balance_3039_10575",  "label": "📲 رصيد سيريتل ≈ 10,500 ل.س",  "price": 12000,  "product_id": 3039, "qty": 105.75,  "manual_price": True, "enabled": True},
+    {"id": "syriatel_balance_3039_16057",  "label": "📲 رصيد سيريتل ≈ 16,000 ل.س",  "price": 18000,  "product_id": 3039, "qty": 160.57,  "manual_price": True, "enabled": True},
+    {"id": "syriatel_balance_3039_24038",  "label": "📲 رصيد سيريتل ≈ 24,000 ل.س",  "price": 26500,  "product_id": 3039, "qty": 240.38,  "manual_price": True, "enabled": True},
+    {"id": "syriatel_balance_3039_43269",  "label": "📲 رصيد سيريتل ≈ 43,000 ل.س",  "price": 48000,  "product_id": 3039, "qty": 432.69,  "manual_price": True, "enabled": True},
+    {"id": "syriatel_balance_3039_62019",  "label": "📲 رصيد سيريتل ≈ 62,000 ل.س",  "price": 68500,  "product_id": 3039, "qty": 620.19,  "manual_price": True, "enabled": True},
+    {"id": "syriatel_balance_3039_105769", "label": "📲 رصيد سيريتل ≈ 105,000 ل.س", "price": 116500, "product_id": 3039, "qty": 1057.69, "manual_price": True, "enabled": True},
+    {"id": "syriatel_balance_3039_210576", "label": "📲 رصيد سيريتل ≈ 210,000 ل.س", "price": 232000, "product_id": 3039, "qty": 2105.76, "manual_price": True, "enabled": True},
 ]
 
 # لـ amount: qty المرسل = القيمة بالليرة القديمة المعروضة ÷ 100 (تحويل قديمة → جديدة).
@@ -1254,10 +1254,10 @@ PAYEER_OFFERS = [
     # هامش ربح 12% فوق التكلفة (qty × cost_usd × 14700 × 1.12) مدور لأقرب 500 ل.س.
     {"id": "payeer_3047_50", "label": "🟢 شحن PAYEER 50$", "price": 854000, "product_id": 3047, "cost_usd": 1.037109, "qty": 50, "manual_price": True, "enabled": True},
     {"id": "payeer_3047_200", "label": "🟢 شحن PAYEER 200$", "price": 3415000, "product_id": 3047, "cost_usd": 1.037109, "qty": 200, "manual_price": True, "enabled": True},
-    {"id": "payeer_3047_500", "label": "🟢 شحن PAYEER 500$", "price": 8537500, "product_id": 3047, "cost_usd": 1.037109, "qty": 500, "manual_price": True, "enabled": False},
-    {"id": "payeer_3047_1000", "label": "🟢 شحن PAYEER 1,000$", "price": 17075000, "product_id": 3047, "cost_usd": 1.037109, "qty": 1000, "manual_price": True, "enabled": False},
-    {"id": "payeer_3047_2000", "label": "🟢 شحن PAYEER 2,000$", "price": 34150000, "product_id": 3047, "cost_usd": 1.037109, "qty": 2000, "manual_price": True, "enabled": False},
-    {"id": "payeer_3047_5000", "label": "🟢 شحن PAYEER 5,000$", "price": 85375000, "product_id": 3047, "cost_usd": 1.037109, "qty": 5000, "manual_price": True, "enabled": False},
+    {"id": "payeer_3047_500", "label": "🟢 شحن PAYEER 500$", "price": 8537500, "product_id": 3047, "cost_usd": 1.037109, "qty": 500, "manual_price": True, "enabled": True},
+    {"id": "payeer_3047_1000", "label": "🟢 شحن PAYEER 1,000$", "price": 17075000, "product_id": 3047, "cost_usd": 1.037109, "qty": 1000, "manual_price": True, "enabled": True},
+    {"id": "payeer_3047_2000", "label": "🟢 شحن PAYEER 2,000$", "price": 34150000, "product_id": 3047, "cost_usd": 1.037109, "qty": 2000, "manual_price": True, "enabled": True},
+    {"id": "payeer_3047_5000", "label": "🟢 شحن PAYEER 5,000$", "price": 85375000, "product_id": 3047, "cost_usd": 1.037109, "qty": 5000, "manual_price": True, "enabled": True},
 ]
 
 PERFECTMONEY_OFFERS = [
@@ -1269,17 +1269,17 @@ PERFECTMONEY_OFFERS = [
 ]
 
 PAYONEER_OFFERS = [
-    {"id": "payoneer_3052_100", "label": "🟠 Payoneer 100$", "price": 157768500, "product_id": 3052, "cost_usd": 107.325317, "qty": 100, "enabled": False},  # auto-disabled: price needs manual review
-    {"id": "payoneer_3052_250", "label": "🟠 Payoneer 250$", "price": 394421000, "product_id": 3052, "cost_usd": 107.325317, "qty": 250, "enabled": False},  # auto-disabled: price needs manual review
+    {"id": "payoneer_3052_100", "label": "🟠 Payoneer 100$", "price": 157768500, "product_id": 3052, "cost_usd": 107.325317, "qty": 100, "enabled": True},  # auto-disabled: price needs manual review
+    {"id": "payoneer_3052_250", "label": "🟠 Payoneer 250$", "price": 394421000, "product_id": 3052, "cost_usd": 107.325317, "qty": 250, "enabled": True},  # auto-disabled: price needs manual review
 ]
 
 CLIQ_JORDAN_OFFERS = [
-    {"id": "cliq_jordan_7771_5000", "label": "🏦 CLIQ JORDAN 5,000 د.أ", "price": 107369000, "product_id": 7771, "cost_usd": 1.4608, "qty": 5000, "enabled": False},  # auto-disabled: price needs manual review
-    {"id": "cliq_jordan_7771_25000", "label": "🏦 CLIQ JORDAN 25,000 د.أ", "price": 536844000, "product_id": 7771, "cost_usd": 1.4608, "qty": 25000, "enabled": False},  # auto-disabled: price needs manual review
-    {"id": "cliq_jordan_7771_50000", "label": "🏦 CLIQ JORDAN 50,000 د.أ", "price": 1073688000, "product_id": 7771, "cost_usd": 1.4608, "qty": 50000, "enabled": False},  # auto-disabled: price needs manual review
-    {"id": "cliq_jordan_7771_100000", "label": "🏦 CLIQ JORDAN 100,000 د.أ", "price": 2147376000, "product_id": 7771, "cost_usd": 1.4608, "qty": 100000, "enabled": False},  # auto-disabled: price needs manual review
-    {"id": "cliq_jordan_7771_250000", "label": "🏦 CLIQ JORDAN 250,000 د.أ", "price": 5368440000, "product_id": 7771, "cost_usd": 1.4608, "qty": 250000, "enabled": False},  # auto-disabled: price needs manual review
-    {"id": "cliq_jordan_7771_500000", "label": "🏦 CLIQ JORDAN 500,000 د.أ", "price": 10736880000, "product_id": 7771, "cost_usd": 1.4608, "qty": 500000, "enabled": False},  # auto-disabled: price needs manual review
+    {"id": "cliq_jordan_7771_5000", "label": "🏦 CLIQ JORDAN 5,000 د.أ", "price": 107369000, "product_id": 7771, "cost_usd": 1.4608, "qty": 5000, "enabled": True},  # auto-disabled: price needs manual review
+    {"id": "cliq_jordan_7771_25000", "label": "🏦 CLIQ JORDAN 25,000 د.أ", "price": 536844000, "product_id": 7771, "cost_usd": 1.4608, "qty": 25000, "enabled": True},  # auto-disabled: price needs manual review
+    {"id": "cliq_jordan_7771_50000", "label": "🏦 CLIQ JORDAN 50,000 د.أ", "price": 1073688000, "product_id": 7771, "cost_usd": 1.4608, "qty": 50000, "enabled": True},  # auto-disabled: price needs manual review
+    {"id": "cliq_jordan_7771_100000", "label": "🏦 CLIQ JORDAN 100,000 د.أ", "price": 2147376000, "product_id": 7771, "cost_usd": 1.4608, "qty": 100000, "enabled": True},  # auto-disabled: price needs manual review
+    {"id": "cliq_jordan_7771_250000", "label": "🏦 CLIQ JORDAN 250,000 د.أ", "price": 5368440000, "product_id": 7771, "cost_usd": 1.4608, "qty": 250000, "enabled": True},  # auto-disabled: price needs manual review
+    {"id": "cliq_jordan_7771_500000", "label": "🏦 CLIQ JORDAN 500,000 د.أ", "price": 10736880000, "product_id": 7771, "cost_usd": 1.4608, "qty": 500000, "enabled": True},  # auto-disabled: price needs manual review
 ]
 
 USDT_TRC20_OFFERS = [
@@ -1296,7 +1296,7 @@ USDT_BEP20_OFFERS = [
     {"id": "usdt_bep20_4251_50", "label": "₮ USDT BEP20 — 50$", "price": 848000, "product_id": 4251, "cost_usd": 1.03, "qty": 50, "manual_price": True, "enabled": True},
     {"id": "usdt_bep20_4251_100", "label": "₮ USDT BEP20 — 100$", "price": 1696000, "product_id": 4251, "cost_usd": 1.03, "qty": 100, "manual_price": True, "enabled": True},
     {"id": "usdt_bep20_4251_250", "label": "₮ USDT BEP20 — 250$", "price": 4239500, "product_id": 4251, "cost_usd": 1.03, "qty": 250, "manual_price": True, "enabled": True},
-    {"id": "usdt_bep20_4251_500", "label": "₮ USDT BEP20 — 500$", "price": 8479000, "product_id": 4251, "cost_usd": 1.03, "qty": 500, "manual_price": True, "enabled": False},
+    {"id": "usdt_bep20_4251_500", "label": "₮ USDT BEP20 — 500$", "price": 8479000, "product_id": 4251, "cost_usd": 1.03, "qty": 500, "manual_price": True, "enabled": True},
 ]
 
 TOUCH_OFFERS = [
@@ -1319,9 +1319,9 @@ WHISH_OFFERS = [
     # هامش ربح 12% فوق التكلفة.
     {"id": "whish_7770_50", "label": "🇱🇧 Whish Money 50$", "price": 854000, "product_id": 7770, "cost_usd": 1.037188, "qty": 50, "manual_price": True, "enabled": True},
     {"id": "whish_7770_100", "label": "🇱🇧 Whish Money 100$", "price": 1708000, "product_id": 7770, "cost_usd": 1.037188, "qty": 100, "manual_price": True, "enabled": True},
-    {"id": "whish_7770_500", "label": "🇱🇧 Whish Money 500$", "price": 8538500, "product_id": 7770, "cost_usd": 1.037188, "qty": 500, "manual_price": True, "enabled": False},
-    {"id": "whish_7770_1000", "label": "🇱🇧 Whish Money 1,000$", "price": 17076500, "product_id": 7770, "cost_usd": 1.037188, "qty": 1000, "manual_price": True, "enabled": False},
-    {"id": "whish_7770_2000", "label": "🇱🇧 Whish Money 2,000$", "price": 34153000, "product_id": 7770, "cost_usd": 1.037188, "qty": 2000, "manual_price": True, "enabled": False},
+    {"id": "whish_7770_500", "label": "🇱🇧 Whish Money 500$", "price": 8538500, "product_id": 7770, "cost_usd": 1.037188, "qty": 500, "manual_price": True, "enabled": True},
+    {"id": "whish_7770_1000", "label": "🇱🇧 Whish Money 1,000$", "price": 17076500, "product_id": 7770, "cost_usd": 1.037188, "qty": 1000, "manual_price": True, "enabled": True},
+    {"id": "whish_7770_2000", "label": "🇱🇧 Whish Money 2,000$", "price": 34153000, "product_id": 7770, "cost_usd": 1.037188, "qty": 2000, "manual_price": True, "enabled": True},
 ]
 
 ASIACELL_OFFERS = [
@@ -1377,17 +1377,17 @@ TURKCELL_OFFERS = [
 TOSLA_OFFERS = [
     # هامش ربح 12% فوق التكلفة (qty × cost_usd × 14700 × 1.12) مدور لأقرب 500 ل.س.
     {"id": "tosla_3051_100", "label": "🇹🇷 TOSLA 100 ₺", "price": 5131500, "product_id": 3051, "cost_usd": 3.116569, "qty": 100, "manual_price": True, "enabled": True},
-    {"id": "tosla_3051_500", "label": "🇹🇷 TOSLA 500 ₺", "price": 25656000, "product_id": 3051, "cost_usd": 3.116569, "qty": 500, "manual_price": True, "enabled": False},
-    {"id": "tosla_3051_1000", "label": "🇹🇷 TOSLA 1,000 ₺", "price": 51311500, "product_id": 3051, "cost_usd": 3.116569, "qty": 1000, "manual_price": True, "enabled": False},
-    {"id": "tosla_3051_2000", "label": "🇹🇷 TOSLA 2,000 ₺", "price": 102622500, "product_id": 3051, "cost_usd": 3.116569, "qty": 2000, "manual_price": True, "enabled": False},
+    {"id": "tosla_3051_500", "label": "🇹🇷 TOSLA 500 ₺", "price": 25656000, "product_id": 3051, "cost_usd": 3.116569, "qty": 500, "manual_price": True, "enabled": True},
+    {"id": "tosla_3051_1000", "label": "🇹🇷 TOSLA 1,000 ₺", "price": 51311500, "product_id": 3051, "cost_usd": 3.116569, "qty": 1000, "manual_price": True, "enabled": True},
+    {"id": "tosla_3051_2000", "label": "🇹🇷 TOSLA 2,000 ₺", "price": 102622500, "product_id": 3051, "cost_usd": 3.116569, "qty": 2000, "manual_price": True, "enabled": True},
 ]
 
 OLDUBIL_OFFERS = [
     # هامش ربح 12% فوق التكلفة (qty × cost_usd × 14700 × 1.12) مدور لأقرب 500 ل.س.
     {"id": "oldubil_3050_100", "label": "🇹🇷 Oldubil 100 ₺", "price": 5131500, "product_id": 3050, "cost_usd": 3.116569, "qty": 100, "manual_price": True, "enabled": True},
-    {"id": "oldubil_3050_500", "label": "🇹🇷 Oldubil 500 ₺", "price": 25656000, "product_id": 3050, "cost_usd": 3.116569, "qty": 500, "manual_price": True, "enabled": False},
-    {"id": "oldubil_3050_1000", "label": "🇹🇷 Oldubil 1,000 ₺", "price": 51311500, "product_id": 3050, "cost_usd": 3.116569, "qty": 1000, "manual_price": True, "enabled": False},
-    {"id": "oldubil_3050_2000", "label": "🇹🇷 Oldubil 2,000 ₺", "price": 102622500, "product_id": 3050, "cost_usd": 3.116569, "qty": 2000, "manual_price": True, "enabled": False},
+    {"id": "oldubil_3050_500", "label": "🇹🇷 Oldubil 500 ₺", "price": 25656000, "product_id": 3050, "cost_usd": 3.116569, "qty": 500, "manual_price": True, "enabled": True},
+    {"id": "oldubil_3050_1000", "label": "🇹🇷 Oldubil 1,000 ₺", "price": 51311500, "product_id": 3050, "cost_usd": 3.116569, "qty": 1000, "manual_price": True, "enabled": True},
+    {"id": "oldubil_3050_2000", "label": "🇹🇷 Oldubil 2,000 ₺", "price": 102622500, "product_id": 3050, "cost_usd": 3.116569, "qty": 2000, "manual_price": True, "enabled": True},
 ]
 
 VODAFONE_CASH_OFFERS = [
