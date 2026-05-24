@@ -484,8 +484,6 @@ FREEFIRE_MEMBERSHIPS = [
 
 # أكواد ببجي — من المخزون. لا يحتاج Player ID
 PUBG_CODES = [
-    {"id": "pc_60",   "label": "🎟️ كود 60 شدة",     "price": 15500,   "product_id": 7783, "cost_usd": 0.9139,  "manual_price": True, "enabled": True},
-    {"id": "pc_60p",  "label": "🎟️ كود 60 شدة (بكج)", "price": 15500,   "product_id": 2843, "cost_usd": 0.92,    "manual_price": True, "enabled": True},
     {"id": "pc_325",  "label": "🎟️ كود 325 شدة",    "price": 75500,   "product_id": 2844, "cost_usd": 4.5641,  "manual_price": True, "enabled": True},
     {"id": "pc_660",  "label": "🎟️ كود 660 شدة",    "price": 150500,  "product_id": 2845, "cost_usd": 9.1271,  "manual_price": True, "enabled": True},
     {"id": "pc_1800", "label": "🎟️ كود 1800 شدة",   "price": 376000,  "product_id": 2846, "cost_usd": 22.8173, "manual_price": True, "enabled": True},
