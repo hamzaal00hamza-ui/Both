@@ -1320,27 +1320,8 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
             except Exception:
                 pass
     else:
-        # ما زال processing بعد التايم آوت — لا نسترجع
-        await context.bot.send_message(
-            user_id,
-            f"⏳ *طلبك قيد المعالجة عند المتجر.*\n\n"
-            f"📋 رقم الطلب: #{order_id}\n"
-            f"الحالة الحالية: {final_status or 'processing'}\n\n"
-            "ستوصلك الشدات تلقائياً حال موافقة المتجر. لو طوّل الموضوع تواصل مع الدعم.",
-            parse_mode=ParseMode.MARKDOWN,
-            reply_markup=kb.back_to_main(),
-        )
-        if config.ADMIN_ID:
-            try:
-                await notify.notify_admin(
-                    context.bot,
-                    f"⏳ *طلب معلّق بعد التايم آوت* #{order_id}\n"
-                    f"User: {user_id}\nPlayer ID: `{player_id}`\n"
-                    f"API Order: `{api_order_id}`\nStatus: {final_status or 'processing'}",
-                    parse_mode=ParseMode.MARKDOWN,
-                )
-            except Exception:
-                pass
+        # ما زال processing بعد التايم آوت — لا نسترجع، ولا نزعج المستخدم أو الأدمن
+        pass
 
     context.user_data.pop("pubg_offer_id", None)
     context.user_data.pop("pubg_player_id", None)
@@ -1598,26 +1579,8 @@ async def cb_freefire_diamond_confirm(update: Update, context: ContextTypes.DEFA
             except Exception:
                 pass
     else:
-        await context.bot.send_message(
-            user_id,
-            f"⏳ *طلبك قيد المعالجة عند المتجر.*\n\n"
-            f"📋 رقم الطلب: #{order_id}\n"
-            f"الحالة الحالية: {final_status or 'processing'}\n\n"
-            "ستوصلك الجواهر تلقائياً حال موافقة المتجر. لو طوّل الموضوع تواصل مع الدعم.",
-            parse_mode=ParseMode.MARKDOWN,
-            reply_markup=kb.back_to_main(),
-        )
-        if config.ADMIN_ID:
-            try:
-                await notify.notify_admin(
-                    context.bot,
-                    f"⏳ *طلب فري فاير معلّق* #{order_id}\n"
-                    f"User: {user_id}\nPlayer ID: `{player_id}`\n"
-                    f"API Order: `{api_order_id}`\nStatus: {final_status or 'processing'}",
-                    parse_mode=ParseMode.MARKDOWN,
-                )
-            except Exception:
-                pass
+        # ما زال processing بعد التايم آوت — لا نزعج المستخدم أو الأدمن
+        pass
 
     context.user_data.pop("ff_offer_id", None)
     context.user_data.pop("ff_player_id", None)
@@ -2253,26 +2216,8 @@ async def cb_fastcard_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE
             except Exception:
                 pass
     else:
-        await context.bot.send_message(
-            user_id,
-            f"⏳ *طلبك قيد المعالجة عند المتجر.*\n\n"
-            f"📋 رقم الطلب: #{order_id}\n"
-            f"الحالة الحالية: {final_status or 'processing'}\n\n"
-            "ستوصلك النتيجة تلقائياً حال موافقة المتجر. لو طوّل الموضوع تواصل مع الدعم.",
-            parse_mode=ParseMode.MARKDOWN,
-            reply_markup=kb.back_to_main(),
-        )
-        if config.ADMIN_ID:
-            try:
-                await notify.notify_admin(
-                    context.bot,
-                    f"⏳ *طلب تلقائي معلّق* #{order_id}\n"
-                    f"User: {user_id}\nالقسم: {cat['title']}\nالعرض: {offer['label']}\n"
-                    f"API Order: `{api_order_id}`\nStatus: {final_status or 'processing'}",
-                    parse_mode=ParseMode.MARKDOWN,
-                )
-            except Exception:
-                pass
+        # ما زال processing بعد التايم آوت — لا نزعج المستخدم أو الأدمن
+        pass
 
     for k in ("fc_prefix", "fc_offer_id", "fc_player_id", "fc_fields", "fc_field_idx", "fc_custom_offer"):
         context.user_data.pop(k, None)
