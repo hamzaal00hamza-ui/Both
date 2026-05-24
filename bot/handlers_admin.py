@@ -1770,9 +1770,36 @@ async def cmd_fcprod(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                     parse_mode=ParseMode.MARKDOWN)
 
 
+async def cmd_fcfind(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """تشخيص: /fcfind 60 UC → يبحث في كل منتجات Fastcard عن اسم يطابق ويرجع IDs."""
+    if not is_admin(update):
+        return
+    args = context.args or []
+    if not args:
+        await update.message.reply_text("الاستخدام: `/fcfind <نص>`\nمثال: `/fcfind 60 UC`",
+                                        parse_mode=ParseMode.MARKDOWN)
+        return
+    needle = " ".join(args).strip().lower()
+    try:
+        prods = await asyncio.to_thread(fastcard.get_products, None, True)
+    except Exception as e:
+        await update.message.reply_text(f"❌ فشل: `{e}`", parse_mode=ParseMode.MARKDOWN)
+        return
+    matches = [p for p in prods if needle in (p.get("name") or "").lower()]
+    if not matches:
+        await update.message.reply_text(f"⚠️ ما لقيت شي يطابق `{needle}`", parse_mode=ParseMode.MARKDOWN)
+        return
+    lines = [f"`{p.get('id')}` — {p.get('name')}" for p in matches[:50]]
+    await update.message.reply_text(
+        f"🔎 *نتائج البحث* ({len(matches)}):\n" + "\n".join(lines),
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
 def register_admin_handlers(app):
     app.add_handler(CommandHandler("admin", cmd_admin))
     app.add_handler(CommandHandler("fcprod", cmd_fcprod))
+    app.add_handler(CommandHandler("fcfind", cmd_fcfind))
 
     back_handler = CallbackQueryHandler(cb_back_to_admin, pattern=r"^admin:panel$")
 
