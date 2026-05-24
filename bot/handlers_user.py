@@ -19,7 +19,7 @@ from telegram.ext import (
     filters,
 )
 
-from . import config, database as db, keyboards as kb, fastcard
+from . import config, database as db, keyboards as kb, fastcard, fastcard_web
 from . import notify
 from .shamcash import (
     is_enabled as shamcash_enabled,
@@ -1148,6 +1148,24 @@ async def msg_pubg_player_id(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     context.user_data["pubg_player_id"] = text
     user = db.get_user(update.effective_user.id)
+
+    # عروض تتطلب تحقق من اسم اللاعب قبل الشحن
+    if offer.get("verify") and fastcard_web.is_enabled():
+        verify_cost_syp = round(config.FASTCARD_VERIFY_COST_USD * config.get_syp_per_usd())
+        await update.message.reply_text(
+            f"💎 *{offer['label']}*\n\n"
+            f"🎮 Player ID: `{text}`\n"
+            f"💰 سعر الشحن: {config.get_offer_price(offer)} ل.س\n"
+            f"💼 رصيدك: {user['balance']:.0f} ل.س\n\n"
+            f"⚠️ هاد العرض بدو *تحقق من اسم اللاعب* قبل الشراء.\n"
+            f"رح يخصم من رصيدك {verify_cost_syp:.0f} ل.س لقاء التحقق "
+            f"(غير قابل للاسترجاع حتى لو ألغيت الشحن).\n\n"
+            "اضغط تحقق ليطلع لك اسم اللاعب وتأكدلو قبل الشحن.",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb.pubg_uc_verify(offer_id, verify_cost_syp),
+        )
+        return ConversationHandler.END
+
     await update.message.reply_text(
         f"💎 *{offer['label']}*\n\n"
         f"🎮 Player ID: `{text}`\n"
@@ -1158,6 +1176,90 @@ async def msg_pubg_player_id(update: Update, context: ContextTypes.DEFAULT_TYPE)
         reply_markup=kb.pubg_uc_confirm(offer_id, config.get_offer_price(offer)),
     )
     return ConversationHandler.END
+
+
+async def cb_pubg_uc_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """تحقق من اسم اللاعب عبر موقع فاست كارد قبل الشراء."""
+    q = update.callback_query
+    await q.answer("جاري التحقق...")
+    if await is_banned(update):
+        return
+
+    offer_id = q.data.split(":", 1)[1]
+    offer = next((o for o in config.PUBG_UC_OFFERS if o["id"] == offer_id), None)
+    if not offer or not offer.get("verify"):
+        return
+
+    player_id = context.user_data.get("pubg_player_id")
+    if not player_id:
+        await _safe_edit(q, "⚠️ انتهت الجلسة. اضغط /start وابدأ من جديد.", reply_markup=kb.back_to_main())
+        return
+
+    if not fastcard_web.is_enabled():
+        await _safe_edit(q, "⚠️ خدمة التحقق من الاسم غير مفعّلة حالياً. تواصل مع الدعم.", reply_markup=kb.back_to_main())
+        return
+
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    verify_cost_syp = round(config.FASTCARD_VERIFY_COST_USD * config.get_syp_per_usd())
+    offer_price = config.get_offer_price(offer)
+
+    if (user["balance"] or 0) < verify_cost_syp:
+        await _safe_edit(
+            q,
+            f"❌ رصيدك غير كافٍ للتحقق.\n\nالتكلفة: {verify_cost_syp:.0f} ل.س\nرصيدك: {user['balance']:.0f} ل.س",
+            reply_markup=kb.insufficient_balance(),
+        )
+        return
+
+    # نخصم تكلفة التحقق فوراً (غير قابلة للاسترجاع)
+    db.update_balance(user_id, -verify_cost_syp)
+
+    await _safe_edit(
+        q,
+        f"⏳ جاري التحقق من Player ID: `{player_id}`...",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+    try:
+        resp = await asyncio.to_thread(fastcard_web.check_player, player_id, int(offer["product_id"]))
+    except fastcard_web.FastcardWebError as e:
+        # فشل اتصال → نرجّع تكلفة التحقق
+        db.update_balance(user_id, verify_cost_syp)
+        logger.warning("fastcard_web.check_player error: %s", e)
+        await context.bot.send_message(
+            user_id,
+            f"❌ تعذّر التحقق من الاسم وتم استرجاع المبلغ.\nالسبب: {e.message}",
+            reply_markup=kb.back_to_main(),
+        )
+        return
+
+    if not resp.get("success"):
+        # رد سلبي (مثلاً ID غير موجود) — التكلفة ما بترجع لأن الموقع خصمها فعلاً
+        msg = str(resp.get("message") or "اللاعب غير موجود")
+        await context.bot.send_message(
+            user_id,
+            f"❌ *لم يتم العثور على اللاعب.*\n\nPlayer ID: `{player_id}`\nرسالة الموقع: {msg}\n\n"
+            "تأكد من الرقم وحاول مرة ثانية.",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb.back_to_main(),
+        )
+        return
+
+    name = fastcard_web.extract_player_name(resp) or "—"
+    user2 = db.get_user(user_id)
+    await context.bot.send_message(
+        user_id,
+        f"✅ *تم التحقق من الاسم بنجاح*\n\n"
+        f"🎮 Player ID: `{player_id}`\n"
+        f"👤 اسم اللاعب: *{name}*\n\n"
+        f"💎 العرض: {offer['label']}\n"
+        f"💰 السعر: {offer_price:.0f} ل.س\n"
+        f"💼 رصيدك: {user2['balance']:.0f} ل.س\n\n"
+        "⚠️ تأكد من الاسم. بعد التأكيد ما فينا نستردّ الطلب.",
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=kb.pubg_uc_confirm(offer_id, offer_price),
+    )
 
 
 async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3203,6 +3305,7 @@ def register_user_handlers(app):
     app.add_handler(pubg_conv)
 
     app.add_handler(CallbackQueryHandler(cb_pubg_uc_confirm, pattern=r"^pubg_uc_confirm:"))
+    app.add_handler(CallbackQueryHandler(cb_pubg_uc_verify, pattern=r"^pubg_uc_verify:"))
 
     freefire_conv = ConversationHandler(
         entry_points=[CallbackQueryHandler(cb_freefire_diamond_select, pattern=r"^ff_dia:")],

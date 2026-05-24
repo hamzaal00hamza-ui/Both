@@ -307,6 +307,13 @@ def pubg_uc_confirm(offer_id: str, price: float) -> InlineKeyboardMarkup:
     ])
 
 
+def pubg_uc_verify(offer_id: str, verify_cost_syp: float) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(f"🔎 تحقق من الاسم ({verify_cost_syp:.0f} ل.س)", callback_data=f"pubg_uc_verify:{offer_id}")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="pubg:uc")],
+    ])
+
+
 def freefire_sections() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("💎 جواهر — سيرفر 1 (تلقائي)", callback_data="ff:diamonds")],

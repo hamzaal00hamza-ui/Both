@@ -407,7 +407,7 @@ USD_TO_SYP = DEFAULT_USD_TO_SYP
 
 PUBG_UC_OFFERS = [
     {"id": "uc_60",    "label": "60 شدة",                "uc": 60,   "price": 15000,  "product_id": 2832, "cost_usd": 0.902466, "manual_price": True},
-    {"id": "uc_60v",   "label": "60 شدة (تحقق من الاسم)", "uc": 60,   "price": 15500,  "product_id": 7806, "cost_usd": 0.85,     "manual_price": True},
+    {"id": "uc_60v",   "label": "60 شدة (تحقق من الاسم)", "uc": 60,   "price": 15500,  "product_id": 7806, "cost_usd": 0.85,     "manual_price": True, "verify": True},
     {"id": "uc_325",  "label": "325 شدة",  "uc": 325,  "price": 73500,  "product_id": 2833, "cost_usd": 4.43372, "manual_price": True},
     {"id": "uc_660",  "label": "660 شدة",  "uc": 660,  "price": 146500, "product_id": 2834, "cost_usd": 8.86744, "manual_price": True},
     {"id": "uc_1800", "label": "1800 شدة", "uc": 1800, "price": 365500, "product_id": 2835, "cost_usd": 22.1686, "manual_price": True},
@@ -1867,6 +1867,14 @@ PRICE_CHECK_MINUTE_UTC = int(os.environ.get("PRICE_CHECK_MINUTE_UTC", "0"))
 # مدة الانتظار الإجمالية (ثواني) لـ polling حالة الطلب بعد إنشائه
 FASTCARD_POLL_TIMEOUT = int(os.environ.get("FASTCARD_POLL_TIMEOUT", "45"))
 FASTCARD_POLL_INTERVAL = int(os.environ.get("FASTCARD_POLL_INTERVAL", "3"))
+
+# ===== Fastcard Website Login (للتحقق من اسم اللاعب) =====
+# مطلوب يدوياً لأن seller API ما بتدعم redeemtech_check_player
+FASTCARD_WEB_BASE = os.environ.get("FASTCARD_WEB_BASE", "https://fastcard1.store")
+FASTCARD_WEB_USERNAME = os.environ.get("FASTCARD_WEB_USERNAME", "")
+FASTCARD_WEB_PASSWORD = os.environ.get("FASTCARD_WEB_PASSWORD", "")
+# تكلفة التحقق من الاسم بالدولار (بتخصم من رصيد المستخدم بل.س على أساس سعر صرف Sham Cash)
+FASTCARD_VERIFY_COST_USD = float(os.environ.get("FASTCARD_VERIFY_COST_USD", "0.03"))
 
 # ===== Sham Cash Auto Integration =====
 # توثيق الـ API: https://shamcash-api.com/docs
