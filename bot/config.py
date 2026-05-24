@@ -406,7 +406,7 @@ def collect_priced_offers() -> list:
 USD_TO_SYP = DEFAULT_USD_TO_SYP
 
 PUBG_UC_OFFERS = [
-    {"id": "uc_60",   "label": "60 شدة",   "uc": 60,   "price": 15000,  "product_id": 2832, "cost_usd": 0.902466, "manual_price": True},
+    {"id": "uc_60",   "label": "60 شدة",   "uc": 60,   "price": 15000,  "product_id": 7806, "cost_usd": 0.85, "manual_price": True},
     {"id": "uc_325",  "label": "325 شدة",  "uc": 325,  "price": 73500,  "product_id": 2833, "cost_usd": 4.43372, "manual_price": True},
     {"id": "uc_660",  "label": "660 شدة",  "uc": 660,  "price": 146500, "product_id": 2834, "cost_usd": 8.86744, "manual_price": True},
     {"id": "uc_1800", "label": "1800 شدة", "uc": 1800, "price": 365500, "product_id": 2835, "cost_usd": 22.1686, "manual_price": True},
