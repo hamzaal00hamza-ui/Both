@@ -540,6 +540,21 @@ def get_pending_recharges(limit: int = 20) -> List[Dict[str, Any]]:
         return [dict(r) for r in cur.fetchall()]
 
 
+def get_pending_fastcard_orders(max_age_hours: int = 24, limit: int = 100) -> List[Dict[str, Any]]:
+    """طلبات Fastcard التي لم تُحسم بعد (api_uuid موجود، الحالة processing/pending/wait/unknown)."""
+    from datetime import datetime, timedelta, timezone
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=max_age_hours)).isoformat()
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT * FROM orders WHERE api_uuid IS NOT NULL AND api_uuid <> '' "
+            "AND status IN ('pending','processing','wait','unknown') "
+            "AND created_at >= ? ORDER BY id ASC LIMIT ?",
+            (cutoff, limit),
+        )
+        return [dict(r) for r in cur.fetchall()]
+
+
 def get_pending_orders(limit: int = 20) -> List[Dict[str, Any]]:
     with get_conn() as conn:
         cur = conn.cursor()

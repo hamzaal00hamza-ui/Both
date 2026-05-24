@@ -769,6 +769,101 @@ async def auto_exchange_rate_update(context: ContextTypes.DEFAULT_TYPE) -> None:
         logger.warning("auto_exchange_rate_update failed: %s", e)
 
 
+async def fastcard_followup_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """يتابع طلبات Fastcard المعلّقة ويرسل إشعارات الإتمام/الرفض للمستخدم والأدمن."""
+    if not fastcard.is_enabled():
+        return
+    from . import notify
+    try:
+        pending = await asyncio.to_thread(db.get_pending_fastcard_orders, 24, 100)
+    except Exception as e:
+        logger.warning("fastcard_followup: fetch failed: %s", e)
+        return
+
+    bot = context.bot
+    for order in pending:
+        api_uuid = order.get("api_uuid")
+        if not api_uuid:
+            continue
+        try:
+            info = await asyncio.to_thread(fastcard.check_order, api_uuid, True)
+        except Exception as e:
+            logger.warning("fastcard_followup: check_order failed for #%s: %s", order.get("id"), e)
+            continue
+        if not info:
+            continue
+        status = (info.get("status") or "").lower()
+        order_id = int(order["id"])
+        user_id = int(order["user_id"])
+        item = order.get("item") or ""
+        price = float(order.get("price") or 0)
+        player_id = order.get("player_id") or ""
+        api_order_id = info.get("order_id") or order.get("api_order_id") or ""
+
+        accepted = status in ("accept", "accepted", "completed", "done", "success")
+        rejected = status in ("reject", "rejected", "fail", "failed", "refund", "refunded", "canceled", "cancelled")
+
+        if accepted:
+            try:
+                db.update_order_api(order_id, status=status, api_response=config.sanitize_for_storage(info))
+            except Exception:
+                pass
+            replay = info.get("replay_api") or []
+            extra = ""
+            if isinstance(replay, list) and replay:
+                val = str(replay[0]).strip()
+                if val:
+                    extra = f"\n📩 رد المتجر: `{val}`"
+            try:
+                await bot.send_message(
+                    user_id,
+                    f"✅ *تم تنفيذ طلبك بنجاح!*\n\n"
+                    f"💎 العرض: {item}\n"
+                    + (f"🎮 Player ID: `{player_id}`\n" if player_id else "")
+                    + f"💰 السعر: {price:,.0f} ل.س\n".replace(",", "،")
+                    + f"📋 رقم الطلب: #{order_id}"
+                    + extra,
+                    parse_mode=ParseMode.MARKDOWN,
+                )
+            except Exception as e:
+                logger.warning("fastcard_followup: user notify failed #%s: %s", order_id, e)
+            if config.ADMIN_ID:
+                try:
+                    await notify.notify_admin(
+                        bot,
+                        f"💰 *بيع تلقائي (متابعة)* #{order_id}\nUser: {user_id}\nالعرض: {item}\n"
+                        + (f"Player ID: `{player_id}`\n" if player_id else "")
+                        + f"السعر: {price:,.0f} ل.س\nAPI Order: `{api_order_id}`".replace(",", "،"),
+                        parse_mode=ParseMode.MARKDOWN,
+                    )
+                except Exception:
+                    pass
+        elif rejected:
+            try:
+                db.update_order_api(order_id, status=status, api_response=config.sanitize_for_storage(info))
+                db.update_balance(user_id, price)
+            except Exception as e:
+                logger.warning("fastcard_followup: refund failed #%s: %s", order_id, e)
+            try:
+                await bot.send_message(
+                    user_id,
+                    f"❌ *المتجر رفض الطلب وتم استرجاع المبلغ كاملاً.*\n\n"
+                    f"📋 رقم الطلب: #{order_id}\nالعرض: {item}\nالحالة: {status}",
+                    parse_mode=ParseMode.MARKDOWN,
+                )
+            except Exception:
+                pass
+            if config.ADMIN_ID:
+                try:
+                    await notify.notify_admin(
+                        bot,
+                        f"⚠️ *طلب مرفوض (متابعة)* #{order_id}\nUser: {user_id}\nالعرض: {item}\nالحالة: {status}",
+                        parse_mode=ParseMode.MARKDOWN,
+                    )
+                except Exception:
+                    pass
+
+
 def schedule_jobs(app: Application) -> None:
     """يُسجّل المهام المجدولة على JobQueue الخاص بالتطبيق."""
     jq = app.job_queue
@@ -799,6 +894,15 @@ def schedule_jobs(app: Application) -> None:
 
     # تحديث سعر الصرف — معطّل، يتم يدوياً من لوحة الأدمن
     # jq.run_repeating(auto_exchange_rate_update, interval=3600, first=30, name="exchange_rate_update")
+
+    # متابعة طلبات Fastcard المعلّقة كل دقيقة — يرسل إشعار حال الإتمام/الرفض
+    if fastcard.is_enabled():
+        jq.run_repeating(
+            fastcard_followup_job,
+            interval=60,
+            first=30,
+            name="fastcard_followup",
+        )
 
     # فحص أسعار Fastcard اليومي — يقارن cost_usd مع API ويرسل تنبيه بالفروق
     if fastcard.is_enabled():
