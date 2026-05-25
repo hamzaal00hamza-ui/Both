@@ -786,7 +786,7 @@ async def fastcard_followup_job(context: ContextTypes.DEFAULT_TYPE) -> None:
         if not api_uuid:
             continue
         try:
-            info = await asyncio.to_thread(fastcard.check_order, api_uuid, True)
+            info = await asyncio.to_thread(lambda u=api_uuid: fastcard.check_order(u, by_uuid=True))
         except Exception as e:
             logger.warning("fastcard_followup: check_order failed for #%s: %s", order.get("id"), e)
             continue
