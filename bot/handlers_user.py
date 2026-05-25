@@ -1254,6 +1254,7 @@ async def cb_pubg_uc_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     name = fastcard_web.extract_player_name(resp) or "—"
+    context.user_data["pubg_verified_name"] = name
     user2 = db.get_user(user_id)
     await context.bot.send_message(
         user_id,
@@ -1312,12 +1313,19 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
         "_بترجعلك النتيجة بعد ثوانٍ_",
     )
 
+    # لو العرض بدو تحقق، نمرر اسم اللاعب المتحقق كـ extra حتى يحاكي البوت سلوك الموقع
+    extra_params = None
+    verified_name = context.user_data.get("pubg_verified_name")
+    if offer.get("verify") and verified_name and verified_name != "—":
+        extra_params = {"player_name": verified_name, "name": verified_name, "nickname": verified_name}
+
     try:
         result = await asyncio.to_thread(
             fastcard.new_order,
             offer["product_id"],
             player_id=player_id,
             order_uuid=api_uuid,
+            extra=extra_params,
         )
     except fastcard.FastcardError as e:
         # فشل الإنشاء → استرجاع المبلغ
@@ -1342,7 +1350,7 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
             except Exception:
                 pass
         context.user_data.pop("pubg_offer_id", None)
-        context.user_data.pop("pubg_player_id", None)
+        context.user_data.pop("pubg_player_id", None); context.user_data.pop("pubg_verified_name", None)
         return
 
     api_order_id = str(result.get("order_id") or "")
@@ -1433,7 +1441,7 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
         pass
 
     context.user_data.pop("pubg_offer_id", None)
-    context.user_data.pop("pubg_player_id", None)
+    context.user_data.pop("pubg_player_id", None); context.user_data.pop("pubg_verified_name", None)
 
 
 # ============= Free Fire =============
