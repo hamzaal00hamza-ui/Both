@@ -1149,7 +1149,14 @@ async def msg_pubg_player_id(update: Update, context: ContextTypes.DEFAULT_TYPE)
     context.user_data["pubg_player_id"] = text
     user = db.get_user(update.effective_user.id)
 
-    # عروض تتطلب تحقق من اسم اللاعب قبل الشحن
+    # عروض تتطلب تحقق من اسم اللاعب قبل الشحن — لا يُسمح بالطلب بدون تحقق
+    if offer.get("verify") and not fastcard_web.is_enabled():
+        await update.message.reply_text(
+            "⚠️ خدمة التحقق من الاسم لهذا العرض غير متاحة حالياً. اختر عرضاً آخر أو تواصل مع الدعم.",
+            reply_markup=kb.back_to_main(),
+        )
+        return ConversationHandler.END
+
     if offer.get("verify") and fastcard_web.is_enabled():
         verify_cost_syp = round(config.FASTCARD_VERIFY_COST_USD * config.get_syp_per_usd())
         await update.message.reply_text(
