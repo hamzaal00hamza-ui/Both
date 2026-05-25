@@ -1796,10 +1796,101 @@ async def cmd_fcfind(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def cmd_fcrefund(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يدوي: /fcrefund <order_id> → يرجّع رصيد الزبون ويعلّم الطلب مسترجَع."""
+    if not is_admin(update):
+        return
+    args = context.args or []
+    if not args or not args[0].lstrip("#").isdigit():
+        await update.message.reply_text(
+            "الاستخدام: `/fcrefund <رقم_الطلب>`\nمثال: `/fcrefund 123`",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return
+    order_id = int(args[0].lstrip("#"))
+    order = db.get_order(order_id)
+    if not order:
+        await update.message.reply_text(f"⚠️ طلب #{order_id} غير موجود.")
+        return
+    status = (order.get("status") or "").lower()
+    if status in ("refunded", "refund", "rejected", "reject", "canceled", "cancelled"):
+        await update.message.reply_text(f"⚠️ الطلب #{order_id} مسترجَع/مرفوض مسبقاً (الحالة: {status}).")
+        return
+    if status in ("accept", "accepted", "completed", "done", "success"):
+        await update.message.reply_text(
+            f"⚠️ الطلب #{order_id} مقبول/منفّذ. لو متأكد بدك ترجّعه استخدم `/fcrefund_force {order_id}`.",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return
+
+    user_id = int(order["user_id"])
+    price = float(order.get("price") or 0)
+    item = order.get("item") or ""
+    try:
+        db.update_balance(user_id, price)
+        db.update_order_status(order_id, "refunded")
+    except Exception as e:
+        await update.message.reply_text(f"❌ فشل الاسترجاع: `{e}`", parse_mode=ParseMode.MARKDOWN)
+        return
+
+    await update.message.reply_text(
+        f"✅ تم استرجاع *{price:.0f} ل.س* للمستخدم `{user_id}` وتعليم الطلب #{order_id} كـ refunded.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+    try:
+        await context.bot.send_message(
+            user_id,
+            f"↩️ *تم استرجاع المبلغ كاملاً لرصيدك.*\n\n"
+            f"📋 رقم الطلب: #{order_id}\n💎 {item}\n💰 المبلغ: {price:,.0f} ل.س".replace(",", "،"),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+    except Exception:
+        pass
+
+
+async def cmd_fcrefund_force(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """نسخة force: ترجّع حتى لو الطلب علامته accepted."""
+    if not is_admin(update):
+        return
+    args = context.args or []
+    if not args or not args[0].lstrip("#").isdigit():
+        await update.message.reply_text("الاستخدام: `/fcrefund_force <رقم_الطلب>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    order_id = int(args[0].lstrip("#"))
+    order = db.get_order(order_id)
+    if not order:
+        await update.message.reply_text(f"⚠️ طلب #{order_id} غير موجود.")
+        return
+    user_id = int(order["user_id"])
+    price = float(order.get("price") or 0)
+    item = order.get("item") or ""
+    try:
+        db.update_balance(user_id, price)
+        db.update_order_status(order_id, "refunded")
+    except Exception as e:
+        await update.message.reply_text(f"❌ فشل: `{e}`", parse_mode=ParseMode.MARKDOWN)
+        return
+    await update.message.reply_text(
+        f"✅ تم استرجاع *{price:.0f} ل.س* (force) للمستخدم `{user_id}` وطلب #{order_id} → refunded.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+    try:
+        await context.bot.send_message(
+            user_id,
+            f"↩️ *تم استرجاع المبلغ كاملاً لرصيدك.*\n\n"
+            f"📋 رقم الطلب: #{order_id}\n💎 {item}\n💰 المبلغ: {price:,.0f} ل.س".replace(",", "،"),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+    except Exception:
+        pass
+
+
 def register_admin_handlers(app):
     app.add_handler(CommandHandler("admin", cmd_admin))
     app.add_handler(CommandHandler("fcprod", cmd_fcprod))
     app.add_handler(CommandHandler("fcfind", cmd_fcfind))
+    app.add_handler(CommandHandler("fcrefund", cmd_fcrefund))
+    app.add_handler(CommandHandler("fcrefund_force", cmd_fcrefund_force))
 
     back_handler = CallbackQueryHandler(cb_back_to_admin, pattern=r"^admin:panel$")
 
