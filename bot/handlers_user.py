@@ -1313,21 +1313,36 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
         "_بترجعلك النتيجة بعد ثوانٍ_",
     )
 
-    # لو العرض بدو تحقق، نمرر اسم اللاعب المتحقق كـ extra حتى يحاكي البوت سلوك الموقع
-    extra_params = None
-    verified_name = context.user_data.get("pubg_verified_name")
-    if offer.get("verify") and verified_name and verified_name != "—":
-        extra_params = {"player_name": verified_name, "name": verified_name, "nickname": verified_name}
+    # العروض اللي بدها تحقق (مثل uc_60v) منمرّرها عبر endpoint الموقع نفسه
+    # (order-handler.php) لأن seller API ما بينفّذها تلقائياً.
+    use_web = bool(offer.get("verify")) and fastcard_web.is_enabled()
 
     try:
-        result = await asyncio.to_thread(
-            fastcard.new_order,
-            offer["product_id"],
-            player_id=player_id,
-            order_uuid=api_uuid,
-            extra=extra_params,
-        )
-    except fastcard.FastcardError as e:
+        if use_web:
+            web_resp = await asyncio.to_thread(
+                fastcard_web.place_order,
+                offer["product_id"],
+                player_id=player_id,
+                quantity=1,
+            )
+            # نلفّ الرد بشكل شبيه بـ seller API حتى يكمل بقية الكود
+            success = bool(web_resp.get("success"))
+            result = {
+                "order_id": str(web_resp.get("order_id") or web_resp.get("id") or ""),
+                "status": "accept" if success else "reject",
+                "replay_api": [str(web_resp.get("message") or web_resp.get("data") or "")],
+                "_raw": web_resp,
+            }
+            if not success:
+                raise fastcard.FastcardError(str(web_resp.get("message") or "فشل الطلب عبر الموقع"))
+        else:
+            result = await asyncio.to_thread(
+                fastcard.new_order,
+                offer["product_id"],
+                player_id=player_id,
+                order_uuid=api_uuid,
+            )
+    except (fastcard.FastcardError, fastcard_web.FastcardWebError) as e:
         # فشل الإنشاء → استرجاع المبلغ
         db.update_balance(user_id, config.get_offer_price(offer))
         db.update_order_api(order_id, status="rejected", api_response=str(e))

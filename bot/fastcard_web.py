@@ -113,6 +113,53 @@ def check_player(player_id: str, product_id: int) -> Dict[str, Any]:
     raise FastcardWebError("فشل الاتصال بعد محاولتين")
 
 
+def place_order(product_id: int, player_id: str, quantity: int = 1) -> Dict[str, Any]:
+    """
+    ينفّذ الطلب عبر endpoint الموقع نفسه (وليس seller API).
+    هاد الـ endpoint هو اللي بيستعملو الموقع وبيوصل تلقائي خلال ثوانٍ.
+        POST /api/order-handler.php
+        body: product_id, quantity, player_id
+    """
+    if not is_enabled():
+        raise FastcardWebError("الطلب عبر الموقع غير مفعّل (مفاتيح الموقع ناقصة)")
+
+    url = config.FASTCARD_WEB_BASE.rstrip("/") + "/api/order-handler.php"
+    payload = {
+        "product_id": int(product_id),
+        "quantity": int(quantity),
+        "player_id": str(player_id),
+    }
+
+    for attempt in (1, 2):
+        s = _get_session(force_relogin=(attempt == 2))
+        try:
+            r = s.post(url, data=payload, timeout=60,
+                       headers={"X-Requested-With": "XMLHttpRequest"})
+        except Exception as e:
+            if attempt == 2:
+                raise FastcardWebError(f"تعذّر الاتصال بالموقع: {e}")
+            continue
+
+        # نسجّل خام للتشخيص
+        raw = (r.text or "")[:1000]
+        logger.info(f"fastcard_web.place_order status={r.status_code} body={raw}")
+
+        try:
+            data = r.json()
+        except Exception:
+            if attempt == 2:
+                raise FastcardWebError(f"رد غير متوقع من الموقع: {raw[:200]}")
+            continue
+
+        msg = str(data.get("message") or "")
+        if not data.get("success") and ("تسجيل الدخول" in msg or "login" in msg.lower()):
+            if attempt == 1:
+                continue
+        return data
+
+    raise FastcardWebError("فشل الاتصال بعد محاولتين")
+
+
 def extract_player_name(resp: Dict[str, Any]) -> Optional[str]:
     """يحاول يستخرج اسم اللاعب من الرد بعدة مفاتيح شائعة."""
     if not resp or not resp.get("success"):
