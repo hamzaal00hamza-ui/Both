@@ -1051,10 +1051,16 @@ async def _handle_stock(q, data: str):
     if missing_pids:
         section_added = True
         lines.append("\n❓ *غير موجودة في فاست كارد:*")
-        for pid in missing_pids[:20]:
+        for pid in missing_pids[:30]:
             o = by_pid[pid]
             mark = "⛔" if pid in disabled else "✅"
             lines.append(f"  • {_short(o['label'])} | #{pid} {mark}")
+            btn_label = "تشغيل" if pid in disabled else "إيقاف"
+            action = "enable" if pid in disabled else "disable"
+            rows.append([InlineKeyboardButton(
+                f"{mark} {_short(o['label'], 22)} — {btn_label}",
+                callback_data=f"admin:stock:{action}:{pid}",
+            )])
 
     # المنتجات الموقوفة يدوياً (حتى لو متوفرة)
     manual_only = [pid for pid in disabled if pid not in out_of_stock_pids and pid in stock_map]
