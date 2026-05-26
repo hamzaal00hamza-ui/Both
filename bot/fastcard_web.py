@@ -140,22 +140,47 @@ def place_order(product_id: int, player_id: str, quantity: int = 1) -> Dict[str,
                 raise FastcardWebError(f"تعذّر الاتصال بالموقع: {e}")
             continue
 
-        # نسجّل خام للتشخيص
-        raw = (r.text or "")[:1000]
-        logger.info(f"fastcard_web.place_order status={r.status_code} body={raw}")
+        raw = (r.text or "")
+        logger.info(f"fastcard_web.place_order status={r.status_code} body={raw[:500]}")
 
+        # محاولة قراءة JSON أولاً
         try:
             data = r.json()
+            msg = str(data.get("message") or "")
+            if not data.get("success") and ("تسجيل الدخول" in msg or "login" in msg.lower()):
+                if attempt == 1:
+                    continue
+            return data
         except Exception:
-            if attempt == 2:
-                raise FastcardWebError(f"رد غير متوقع من الموقع: {raw[:200]}")
+            pass
+
+        # الرد HTML — نحلّلو بكلمات مفتاحية
+        low = raw.lower()
+        # علامات تسجيل خروج → أعد المحاولة مع تسجيل دخول جديد
+        if attempt == 1 and ("login" in low or "تسجيل الدخول" in raw) and "order-result" not in low:
             continue
 
-        msg = str(data.get("message") or "")
-        if not data.get("success") and ("تسجيل الدخول" in msg or "login" in msg.lower()):
-            if attempt == 1:
-                continue
-        return data
+        # كلمات نجاح بالعربي/الإنجليزي
+        success_kw = ["نجح", "تم تنفيذ", "بنجاح", "تمت", "success", "delivered", "completed", "approved"]
+        fail_kw = ["فشل", "خطأ", "غير صحيح", "غير كاف", "رصيد", "failed", "error", "invalid", "insufficient"]
+
+        is_success = any(k in raw for k in success_kw[:4]) or any(k in low for k in success_kw[4:])
+        is_fail = any(k in raw for k in fail_kw[:5]) or any(k in low for k in fail_kw[5:])
+
+        # افتراضياً: لو الـ HTTP 200 وفي order-result بدون كلمات فشل صريحة → اعتبرو ناجح
+        if r.status_code == 200 and not is_fail:
+            is_success = True
+
+        # ملخص نصّي مختصر
+        import re
+        text = re.sub(r"<[^>]+>", " ", raw)
+        text = re.sub(r"\s+", " ", text).strip()[:300]
+
+        return {
+            "success": bool(is_success and not is_fail),
+            "message": text or ("تم بنجاح" if is_success else "فشل"),
+            "_html": True,
+        }
 
     raise FastcardWebError("فشل الاتصال بعد محاولتين")
 
