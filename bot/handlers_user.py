@@ -4,6 +4,7 @@
 import asyncio
 import logging
 import re
+import time
 import uuid
 from typing import Optional, Dict, Any
 
@@ -1313,6 +1314,7 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
         "_بترجعلك النتيجة بعد ثوانٍ_",
     )
 
+    _start_ts = time.time()
     # العروض اللي بدها تحقق (مثل uc_60v) منمرّرها عبر endpoint الموقع نفسه
     # (order-handler.php) لأن seller API ما بينفّذها تلقائياً.
     use_web = bool(offer.get("verify")) and fastcard_web.is_enabled()
@@ -1393,12 +1395,7 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
     rejected = final_status in ("reject", "rejected", "fail", "failed", "refund", "refunded", "canceled", "cancelled")
 
     if accepted:
-        replay = final_data.get("replay_api") or []
-        extra = ""
-        if isinstance(replay, list) and replay:
-            val = str(replay[0]).strip()
-            if val:
-                extra = f"\n📩 رد المتجر: `{val}`"
+        took = max(0, int(round(time.time() - _start_ts)))
         new_user = db.get_user(user_id)
         await context.bot.send_message(
             user_id,
@@ -1407,8 +1404,8 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
             f"🎮 Player ID: `{player_id}`\n"
             f"💰 السعر: {config.get_offer_price(offer)} ل.س\n"
             f"📋 رقم الطلب: #{order_id}\n"
-            f"💼 رصيدك الجديد: {new_user['balance']:.0f} ل.س"
-            f"{extra}\n\n"
+            f"💼 رصيدك الجديد: {new_user['balance']:.0f} ل.س\n"
+            f"⏱ مدة التنفيذ: {took} ثانية\n\n"
             "✨ الشدات أُضيفت على حسابك ببجي مباشرة.",
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=kb.back_to_main(),
