@@ -864,6 +864,62 @@ async def fastcard_followup_job(context: ContextTypes.DEFAULT_TYPE) -> None:
                     pass
 
 
+async def stock_check_job(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """فحص دوري لمخزون منتجاتنا في فاست كارد. يرسل للأدمن:
+    - تنبيه عند منتج صار غير متوفر فجأة
+    - تنبيه عند منتج كان غير متوفر ورجع متوفر
+    """
+    import json
+    if not fastcard.is_enabled():
+        return
+    try:
+        offers = config.collect_priced_offers()
+        pids = sorted({o["product_id"] for o in offers if o.get("product_id")})
+        if not pids:
+            return
+        stock_map = await asyncio.to_thread(fastcard.check_stock, pids)
+        if not stock_map:
+            return  # تجاهل لو فشل الجلب
+
+        prev_raw = db.get_setting("known_unavailable_pids", "[]") or "[]"
+        try:
+            prev = set(int(x) for x in json.loads(prev_raw))
+        except Exception:
+            prev = set()
+
+        current_unavail = {pid for pid, avail in stock_map.items() if avail is False}
+        by_pid = {o["product_id"]: o for o in offers}
+
+        # رجعوا متوفرين
+        back_in_stock = prev - current_unavail
+        # صاروا غير متوفرين
+        newly_unavail = current_unavail - prev
+
+        for pid in sorted(back_in_stock):
+            o = by_pid.get(pid)
+            label = o["label"] if o else f"#{pid}"
+            await _send_admin(
+                context.application,
+                f"🟢 *منتج رجع متوفر!*\n\n"
+                f"📦 {label}\n"
+                f"🆔 ID: `{pid}`",
+            )
+
+        for pid in sorted(newly_unavail):
+            o = by_pid.get(pid)
+            label = o["label"] if o else f"#{pid}"
+            await _send_admin(
+                context.application,
+                f"🔴 *منتج صار غير متوفر*\n\n"
+                f"📦 {label}\n"
+                f"🆔 ID: `{pid}`",
+            )
+
+        db.set_setting("known_unavailable_pids", json.dumps(sorted(current_unavail)))
+    except Exception as e:
+        logger.warning(f"stock_check_job failed: {e}")
+
+
 def schedule_jobs(app: Application) -> None:
     """يُسجّل المهام المجدولة على JobQueue الخاص بالتطبيق."""
     jq = app.job_queue
@@ -902,6 +958,15 @@ def schedule_jobs(app: Application) -> None:
             interval=60,
             first=30,
             name="fastcard_followup",
+        )
+
+    # فحص مخزون Fastcard كل 10 دقائق — تنبيه عند نفاد أو رجوع منتج
+    if fastcard.is_enabled():
+        jq.run_repeating(
+            stock_check_job,
+            interval=600,
+            first=90,
+            name="stock_check",
         )
 
     # فحص أسعار Fastcard اليومي — يقارن cost_usd مع API ويرسل تنبيه بالفروق

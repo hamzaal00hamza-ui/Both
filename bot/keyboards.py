@@ -466,6 +466,7 @@ def admin_panel() -> InlineKeyboardMarkup:
             InlineKeyboardButton("💰 رصيد شام كاش", callback_data="admin:shamcash_balance"),
         ],
         [InlineKeyboardButton("🔍 فحص أسعار Fastcard الآن", callback_data="admin:price_check")],
+        [InlineKeyboardButton("📦 المنتجات غير المتوفرة", callback_data="admin:stock")],
         [InlineKeyboardButton("📈 تقرير اليوم", callback_data="admin:today_report")],
         [InlineKeyboardButton("💵 الأرباح", callback_data="admin:profit")],
         [InlineKeyboardButton("🏆 أفضل الزبائن", callback_data="admin:top_users")],

@@ -123,6 +123,16 @@ def place_order(product_id: int, player_id: str, quantity: int = 1) -> Dict[str,
     if not is_enabled():
         raise FastcardWebError("الطلب عبر الموقع غير مفعّل (مفاتيح الموقع ناقصة)")
 
+    # حظر يدوي من الأدمن لهذا المنتج
+    try:
+        from . import database as _db
+        if _db.is_product_disabled(int(product_id)):
+            raise FastcardWebError("هذا المنتج موقوف مؤقتاً — جرّب لاحقاً أو تواصل مع الدعم.")
+    except FastcardWebError:
+        raise
+    except Exception:
+        pass
+
     url = config.FASTCARD_WEB_BASE.rstrip("/") + "/api/order-handler.php"
     payload = {
         "product_id": int(product_id),

@@ -137,6 +137,37 @@ def get_products(product_ids: Optional[List[int]] = None, base_only: bool = Fals
     return []
 
 
+def check_stock(product_ids: List[int]) -> Dict[int, bool]:
+    """يرجّع dict {product_id: available_bool} لمنتجاتنا المسجّلة بالبوت."""
+    if not product_ids:
+        return {}
+    try:
+        items = get_products(product_ids=product_ids, base_only=False)
+    except FastcardError:
+        return {}
+    out: Dict[int, bool] = {}
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        pid = it.get("id")
+        try:
+            pid_int = int(pid)
+        except (TypeError, ValueError):
+            continue
+        av = it.get("available")
+        # افتراضياً متوفر إلا لو صراحة False/0/"no"
+        if av is None:
+            out[pid_int] = True
+        elif isinstance(av, bool):
+            out[pid_int] = av
+        elif isinstance(av, (int, float)):
+            out[pid_int] = bool(av)
+        else:
+            s = str(av).strip().lower()
+            out[pid_int] = s not in ("0", "false", "no", "off", "غير متوفر")
+    return out
+
+
 def new_order(product_id: int, *, player_id: Optional[str] = None, order_uuid: Optional[str] = None,
               qty=1, extra: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
     """
@@ -155,6 +186,16 @@ def new_order(product_id: int, *, player_id: Optional[str] = None, order_uuid: O
       }
     }
     """
+    # حظر يدوي من الأدمن لهذا المنتج
+    try:
+        from . import database as _db
+        if _db.is_product_disabled(int(product_id)):
+            raise FastcardError("هذا المنتج موقوف مؤقتاً — جرّب لاحقاً أو تواصل مع الدعم.")
+    except FastcardError:
+        raise
+    except Exception:
+        pass
+
     if not order_uuid:
         order_uuid = str(uuid.uuid4())
 

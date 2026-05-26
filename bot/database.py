@@ -159,6 +159,14 @@ def init_db():
                 updated_at TEXT
             )
         """)
+        # جدول المنتجات الموقوفة يدوياً من الأدمن (block placing orders)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS disabled_products (
+                product_id INTEGER PRIMARY KEY,
+                reason TEXT,
+                disabled_at TEXT
+            )
+        """)
         # Migration: ترقية أعمدة INTEGER القديمة إلى BIGINT (Telegram IDs > 2^31)
         _bigint_cols = [
             ("users", "user_id"), ("users", "referrer_id"),
@@ -1131,3 +1139,43 @@ def all_user_ids() -> List[int]:
         cur = conn.cursor()
         cur.execute("SELECT user_id FROM users WHERE is_banned = 0")
         return [int(r["user_id"]) for r in cur.fetchall()]
+
+
+# ===== المنتجات الموقوفة =====
+
+def disable_product(product_id: int, reason: str = "") -> None:
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO disabled_products (product_id, reason, disabled_at) VALUES (?, ?, ?) "
+            "ON CONFLICT(product_id) DO UPDATE SET reason = excluded.reason, disabled_at = excluded.disabled_at",
+            (int(product_id), reason or "", now_iso()),
+        )
+        conn.commit()
+
+
+def enable_product(product_id: int) -> None:
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM disabled_products WHERE product_id = ?", (int(product_id),))
+        conn.commit()
+
+
+def is_product_disabled(product_id: int) -> bool:
+    try:
+        with get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT 1 FROM disabled_products WHERE product_id = ?", (int(product_id),))
+            return cur.fetchone() is not None
+    except sqlite3.Error:
+        return False
+
+
+def list_disabled_products() -> List[int]:
+    try:
+        with get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT product_id FROM disabled_products")
+            return [int(r["product_id"]) for r in cur.fetchall()]
+    except sqlite3.Error:
+        return []

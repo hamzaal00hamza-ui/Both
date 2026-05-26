@@ -5,7 +5,7 @@ import logging
 import asyncio
 from typing import Optional
 
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import (
     ContextTypes,
@@ -899,6 +899,9 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
         return ConversationHandler.END
 
+    if data == "admin:stock" or data.startswith("admin:stock:"):
+        return await _handle_stock(q, data)
+
     if data == "admin:supplier":
         if not fastcard.is_enabled():
             await q.edit_message_text(
@@ -969,6 +972,115 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=kb.back_to_admin(),
             )
         return ConversationHandler.END
+
+
+async def _handle_stock(q, data: str):
+    """عرض/إيقاف/تشغيل المنتجات. data إما 'admin:stock' أو
+    'admin:stock:disable:<pid>' أو 'admin:stock:enable:<pid>' أو 'admin:stock:refresh'."""
+    if not fastcard.is_enabled():
+        await q.edit_message_text(
+            "⚠️ التكامل مع Fastcard غير مفعّل.",
+            reply_markup=kb.back_to_admin(),
+        )
+        return ConversationHandler.END
+
+    # تبديل حالة منتج
+    parts = data.split(":")
+    if len(parts) >= 4 and parts[2] in ("disable", "enable"):
+        try:
+            pid = int(parts[3])
+        except ValueError:
+            await q.answer("ID غير صالح", show_alert=True)
+            return ConversationHandler.END
+        if parts[2] == "disable":
+            db.disable_product(pid, reason="manual")
+            await q.answer("تم إيقاف المنتج")
+        else:
+            db.enable_product(pid)
+            await q.answer("تم تشغيل المنتج")
+        # نكمّل لعرض القائمة المحدّثة
+
+    await q.edit_message_text("⏳ جاري فحص المخزون من Fastcard...")
+
+    offers = config.collect_priced_offers()
+    pids = sorted({o["product_id"] for o in offers if o.get("product_id")})
+    try:
+        stock_map = await asyncio.to_thread(fastcard.check_stock, pids)
+    except Exception as e:
+        await q.edit_message_text(
+            f"❌ فشل جلب المخزون: {e}",
+            reply_markup=kb.back_to_admin(),
+        )
+        return ConversationHandler.END
+
+    disabled = set(db.list_disabled_products())
+    # مفقود من المتجر = ما رجع له Fastcard
+    out_of_stock_pids = []
+    missing_pids = []
+    for o in offers:
+        pid = o["product_id"]
+        if pid not in stock_map:
+            missing_pids.append(pid)
+        elif stock_map.get(pid) is False:
+            out_of_stock_pids.append(pid)
+
+    # خرائط للعرض
+    by_pid = {o["product_id"]: o for o in offers}
+
+    rows = []
+    lines = ["📦 *المنتجات غير المتوفرة / الموقوفة*\n"]
+
+    def _short(label: str, n: int = 28) -> str:
+        return label if len(label) <= n else label[: n - 1] + "…"
+
+    section_added = False
+    if out_of_stock_pids:
+        section_added = True
+        lines.append("\n🔴 *غير متوفرة على فاست كارد:*")
+        for pid in out_of_stock_pids:
+            o = by_pid[pid]
+            mark = "⛔" if pid in disabled else "✅"
+            lines.append(f"  • {_short(o['label'])} | #{pid} {mark}")
+            btn_label = "تشغيل" if pid in disabled else "إيقاف"
+            action = "enable" if pid in disabled else "disable"
+            rows.append([InlineKeyboardButton(
+                f"{mark} {_short(o['label'], 22)} — {btn_label}",
+                callback_data=f"admin:stock:{action}:{pid}",
+            )])
+
+    if missing_pids:
+        section_added = True
+        lines.append("\n❓ *غير موجودة في فاست كارد:*")
+        for pid in missing_pids[:20]:
+            o = by_pid[pid]
+            mark = "⛔" if pid in disabled else "✅"
+            lines.append(f"  • {_short(o['label'])} | #{pid} {mark}")
+
+    # المنتجات الموقوفة يدوياً (حتى لو متوفرة)
+    manual_only = [pid for pid in disabled if pid not in out_of_stock_pids and pid in stock_map]
+    if manual_only:
+        section_added = True
+        lines.append("\n⛔ *موقوفة يدوياً (متوفرة على المتجر):*")
+        for pid in manual_only:
+            o = by_pid.get(pid)
+            label = o["label"] if o else f"#{pid}"
+            lines.append(f"  • {_short(label)} | #{pid}")
+            rows.append([InlineKeyboardButton(
+                f"✅ تشغيل {_short(label, 22)}",
+                callback_data=f"admin:stock:enable:{pid}",
+            )])
+
+    if not section_added:
+        lines.append("\n✅ كل المنتجات متوفرة ومفعّلة.")
+
+    rows.append([InlineKeyboardButton("🔄 تحديث", callback_data="admin:stock:refresh")])
+    rows.append([InlineKeyboardButton("⬅️ رجوع للوحة الأدمن", callback_data="admin:panel")])
+
+    text = "\n".join(lines)
+    if len(text) > 3900:
+        text = text[:3900] + "\n…"
+    await q.edit_message_text(text, reply_markup=InlineKeyboardMarkup(rows), parse_mode=ParseMode.MARKDOWN)
+    return ConversationHandler.END
 
 
 async def msg_search_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
