@@ -1,19 +1,20 @@
 """
-عميل Syriatel Cash API (https://api.melchersman.com/syr-cash/v1)
-حسب التوثيق الرسمي على https://api.melchersman.com/syr-cash/api-docs
+عميل Syriatel Cash API — عبر منصة API SYRIA
+التوثيق: https://apisyria.com/api/docs
 
-نقاط مهمة:
-- الـ Auth: Header `api-token: <TOKEN>`
-- Rate limit: 2 طلبات/دقيقة لكل رقم
-- /IncomingHistory يرجع المعاملات الواردة، نفلتر بـ transaction_no + amount + status="1"
-- transaction_no نص (مثل "TXN123456") — نحوّله لرقم 64-bit عبر hash مستقر
-  مع prefix لتفادي التصادم مع transaction_id العددي لـ ShamCash
-- get_balance() محفوظ بـ cache 60 ثانية لتقليل استهلاك rate limit
+نقاط النهاية المستخدمة:
+  GET  resource=syriatel&action=balance      → رصيد الحساب
+  GET  resource=syriatel&action=history      → سجل العمليات
+  GET  resource=syriatel&action=find_tx      → البحث برقم العملية
+  POST resource=syriatel&action=transfer_cash → تحويل كاش
+  POST resource=syriatel&action=mobile_recharge → شحن رصيد موبايل
+
+المصادقة: Header "X-Api-Key: YOUR_KEY" أو query param api_key
 """
 import hashlib
 import logging
 import time
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Optional, Dict, Any, List
 
 import requests
 
@@ -21,21 +22,25 @@ from . import config
 
 logger = logging.getLogger(__name__)
 
+# Namespace prefix لتمييز IDs سيرياتيل عن شام كاش في consumed_transactions
 SYRIATEL_NAMESPACE_PREFIX = 10 ** 17
-REQUEST_TIMEOUT = 15  # ثانية لكل محاولة — قصيرة لنعيد المحاولة بدلاً من الانتظار طويلاً
-MAX_RETRIES = 3       # عدد المحاولات الإجمالي عند TIMEOUT/NETWORK
-RETRY_BACKOFF = 1.5   # ثانية بين المحاولات
-BALANCE_CACHE_TTL = 60  # ثانية — لتجنّب استهلاك rate limit عند زر الأدمن
 
-_balance_cache: Optional[Tuple[float, float]] = None  # (timestamp, balance)
+REQUEST_TIMEOUT  = 15
+MAX_RETRIES      = 3
+RETRY_BACKOFF    = 1.5
+BALANCE_CACHE_TTL = 60  # ثانية
+
+_balance_cache: Optional[tuple] = None  # (timestamp, balance)
+
+API_BASE = "https://apisyria.com/api/v1"
 
 
 class SyriatelCashError(Exception):
     def __init__(self, code: str, message: str, data: Any = None):
         super().__init__(f"{code}: {message}")
-        self.code = code
+        self.code    = code
         self.message = message
-        self.data = data
+        self.data    = data
 
 
 def _enabled() -> bool:
@@ -50,92 +55,104 @@ def is_enabled() -> bool:
     return _enabled()
 
 
-def _request(method: str, path: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def _request(method: str,
+             params: Optional[Dict[str, Any]] = None,
+             data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
-    يطلب من API مع إعادة محاولة تلقائية عند TIMEOUT/NETWORK.
-    لا يعيد المحاولة عند RATE_LIMIT أو SUBSCRIPTION_EXPIRED (لا فائدة).
+    يرسل طلباً لـ API SYRIA مع إعادة محاولة تلقائية.
+    - GET  → params في query string
+    - POST → data في body (x-www-form-urlencoded)
     """
     if not config.SYRIATEL_CASH_TOKEN:
         raise SyriatelCashError("AUTH_MISSING", "SYRIATEL_CASH_TOKEN غير مضبوط")
-    url = f"{config.SYRIATEL_CASH_API_URL.rstrip('/')}{path}"
+
     headers = {
-        "api-token": config.SYRIATEL_CASH_TOKEN,
-        "Accept": "application/json",
+        "X-Api-Key": config.SYRIATEL_CASH_TOKEN,
+        "Accept":    "application/json",
     }
-    
+
     last_err: Optional[SyriatelCashError] = None
     resp = None
+
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            resp = requests.request(method, url, headers=headers, params=params, timeout=REQUEST_TIMEOUT)
-        except requests.Timeout as e:
-            last_err = SyriatelCashError("SERVICE_DOWN", "خدمة سرياتيل كاش لا تستجيب")
-            logger.warning(f"Syriatel Cash timeout (attempt {attempt}/{MAX_RETRIES}): {e}")
+            if method.upper() == "POST":
+                resp = requests.post(
+                    API_BASE,
+                    headers=headers,
+                    params=params,
+                    data=data,
+                    timeout=REQUEST_TIMEOUT,
+                )
+            else:
+                resp = requests.get(
+                    API_BASE,
+                    headers=headers,
+                    params=params,
+                    timeout=REQUEST_TIMEOUT,
+                )
+        except requests.Timeout:
+            last_err = SyriatelCashError("SERVICE_DOWN", "خدمة سيرياتيل كاش لا تستجيب")
+            logger.warning(f"Syriatel timeout (attempt {attempt}/{MAX_RETRIES})")
             if attempt < MAX_RETRIES:
                 time.sleep(RETRY_BACKOFF)
                 continue
             raise last_err
         except requests.RequestException as e:
             last_err = SyriatelCashError("NETWORK", str(e))
-            logger.warning(f"Syriatel Cash network error (attempt {attempt}/{MAX_RETRIES}): {e}")
+            logger.warning(f"Syriatel network error (attempt {attempt}/{MAX_RETRIES}): {e}")
             if attempt < MAX_RETRIES:
                 time.sleep(RETRY_BACKOFF)
                 continue
             raise last_err
-        
-        # تحقّق من 5xx (سيرفر API ساقط — مثل 502/503/504)
+
         if resp.status_code >= 500:
             last_err = SyriatelCashError(
                 "SERVICE_DOWN",
-                f"خادم سرياتيل كاش معطّل (HTTP {resp.status_code})"
+                f"خادم API SYRIA معطّل (HTTP {resp.status_code})"
             )
-            logger.warning(
-                f"Syriatel Cash server error {resp.status_code} (attempt {attempt}/{MAX_RETRIES})"
-            )
+            logger.warning(f"API SYRIA server error {resp.status_code} (attempt {attempt}/{MAX_RETRIES})")
             if attempt < MAX_RETRIES:
                 time.sleep(RETRY_BACKOFF)
                 continue
             raise last_err
-        
-        # نجح الاتصال — اخرج من اللوب
-        break
-    
+
+        break  # نجح الاتصال
+
     if resp is None:
-        # نظرياً لا يحدث، لكن للسلامة
         raise last_err or SyriatelCashError("UNKNOWN", "خطأ غير معروف")
-    
+
     try:
         body = resp.json()
     except ValueError:
         raise SyriatelCashError("INVALID_JSON", f"Non-JSON response (HTTP {resp.status_code})")
 
-    success = body.get("success")
-    code = body.get("code", "UNKNOWN")
-    data = body.get("data") or {}
-    message = data.get("message", "") if isinstance(data, dict) else ""
+    if not body.get("success"):
+        msg  = body.get("message", "")
+        code = body.get("code", "API_ERROR")
+        logger.warning(f"API SYRIA Syriatel error: {code} — {msg}")
+        raise SyriatelCashError(code, msg or code, body.get("data"))
 
-    if not success:
-        logger.warning(f"Syriatel Cash error {code}: {message}")
-        raise SyriatelCashError(code, message or code, data)
-
-    return data if isinstance(data, dict) else {}
+    return body.get("data") or {}
 
 
-def get_balance(query: Optional[str] = None, use_cache: bool = True) -> float:
-    """
-    رصيد محفظة سرياتيل كاش الحالية.
-    
-    use_cache: لو True (الافتراضي)، يستخدم نتيجة محفوظة لمدة 60 ثانية لتجنّب
-    استهلاك rate limit. مفيد لزر الأدمن لأن الرصيد لا يتغير بسرعة.
-    """
+# ─────────────────────────────────────────
+# Balance
+# ─────────────────────────────────────────
+def get_balance(gsm: Optional[str] = None, use_cache: bool = True) -> float:
+    """رصيد حساب Syriatel Cash (بالليرة السورية)."""
     global _balance_cache
     if use_cache and _balance_cache is not None:
         ts, cached = _balance_cache
         if time.time() - ts < BALANCE_CACHE_TTL:
             return cached
-    
-    q = query or config.SYRIATEL_CASH_NUMBER
-    data = _request("GET", "/Balance", params={"query": q})
+
+    q = gsm or config.SYRIATEL_CASH_NUMBER
+    data = _request("GET", params={
+        "resource": "syriatel",
+        "action":   "balance",
+        "gsm":      q,
+    })
     try:
         balance = float(data.get("balance", 0))
     except (TypeError, ValueError):
@@ -144,90 +161,132 @@ def get_balance(query: Optional[str] = None, use_cache: bool = True) -> float:
     return balance
 
 
-def list_incoming(query: Optional[str] = None,
-                  status: str = "success",
-                  page: int = 1) -> List[Dict[str, Any]]:
+# ─────────────────────────────────────────
+# History
+# ─────────────────────────────────────────
+def list_incoming(gsm: Optional[str] = None, period: str = "7") -> List[Dict[str, Any]]:
     """
-    يرجع لائحة المعاملات الواردة (deposits) من Syriatel Cash.
-    يتعامل مع FETCH_FAILED (no data found) كصفحة فارغة (سلوك طبيعي عند نهاية الصفحات).
+    يرجع سجل عمليات Syriatel Cash.
+    period: '7' | '30' | 'all'
+    كل عنصر: {transaction_no, date, from, to, amount}
     """
-    q = query or config.SYRIATEL_CASH_NUMBER
-    params: Dict[str, Any] = {"query": q, "status": status}
-    if page and page > 1:
-        params["page"] = page
-    try:
-        data = _request("GET", "/IncomingHistory", params=params)
-    except SyriatelCashError as e:
-        # FETCH_FAILED مع "no data" = نهاية الصفحات أو لا معاملات أصلاً، ليس خطأ
-        if e.code == "FETCH_FAILED":
-            return []
-        raise
-    txs = data.get("transactions") if isinstance(data, dict) else None
-    return txs or []
+    q = gsm or config.SYRIATEL_CASH_NUMBER
+    data = _request("GET", params={
+        "resource": "syriatel",
+        "action":   "history",
+        "gsm":      q,
+        "period":   period,
+    })
+    return data.get("items", []) or []
 
 
+# ─────────────────────────────────────────
+# Find transaction
+# ─────────────────────────────────────────
 def find_matching_transaction(tx_code: str,
                                expected_amount: float,
-                               query: Optional[str] = None,
+                               gsm: Optional[str] = None,
                                tolerance: float = 0.5,
-                               max_pages: int = 3) -> Optional[Dict[str, Any]]:
+                               period: str = "7") -> Optional[Dict[str, Any]]:
     """
-    يبحث عن معاملة واردة بنفس رقم العملية tx_code (transaction_no) ومبلغ مطابق
-    عبر صفحات /IncomingHistory. يرجع المعاملة (dict) أو None.
-    
-    ملاحظة: لا نُنهي البحث عند أول mismatch لرقم مكرر — نُكمل لكل
-    السجلات حتى الصفحة الأخيرة لتجنّب false-negatives.
-    
-    tolerance: فرق مسموح به بين amount المرسل والـ expected (نصف ل.س للأمان).
+    يبحث عن عملية واردة برقم العملية tx_code ومبلغ متقارب.
+    يستخدم نقطة find_tx لبحث سريع ودقيق.
+    يرجع dict العملية أو None.
     """
-    target = (tx_code or "").strip().upper()
+    target = (tx_code or "").strip()
     if not target:
         return None
-    
-    last_mismatch_log = None
-    for page in range(1, max_pages + 1):
-        try:
-            txs = list_incoming(query=query, status="success", page=page)
-        except SyriatelCashError:
-            raise
-        if not txs:
-            break
-        
-        for tx in txs:
-            tx_no = str(tx.get("transaction_no", "")).strip().upper()
-            if tx_no != target:
-                continue
-            try:
-                amount = float(tx.get("amount", 0))
-            except (TypeError, ValueError):
-                continue
-            status = str(tx.get("status", "")).strip()
-            if status != "1":
-                last_mismatch_log = f"tx {tx_no} found but status={status}"
-                continue
-            if abs(amount - float(expected_amount)) > tolerance:
-                last_mismatch_log = (
-                    f"tx {tx_no} found but amount mismatch: "
-                    f"got {amount} vs expected {expected_amount}"
-                )
-                continue
-            return tx
-        
-        if len(txs) < 10:
-            break
-    
-    if last_mismatch_log:
-        logger.warning(f"Syriatel Cash search ended unmatched: {last_mismatch_log}")
-    return None
+
+    q = gsm or config.SYRIATEL_CASH_NUMBER
+
+    try:
+        data = _request("GET", params={
+            "resource": "syriatel",
+            "action":   "find_tx",
+            "tx":       target,
+            "gsm":      q,
+            "period":   period,
+        })
+    except SyriatelCashError as e:
+        logger.warning(f"find_tx error: {e}")
+        return None
+
+    if not data.get("found"):
+        return None
+
+    tx = data.get("transaction", {})
+    try:
+        amount = float(tx.get("amount", 0))
+    except (TypeError, ValueError):
+        return None
+
+    if abs(amount - float(expected_amount)) > tolerance:
+        logger.warning(
+            f"Syriatel tx {target} found but amount mismatch: "
+            f"got {amount} vs expected {expected_amount}"
+        )
+        return None
+
+    return tx
 
 
+# ─────────────────────────────────────────
+# Transfer Cash (تحويل كاش)
+# ─────────────────────────────────────────
+def transfer_cash(to_gsm: str,
+                  amount: float,
+                  pin_code: str,
+                  gsm: Optional[str] = None) -> Dict[str, Any]:
+    """
+    يحوّل مبلغ من حساب Syriatel Cash المصدر إلى رقم مستفيد.
+    يرجع بيانات العملية أو يرفع SyriatelCashError.
+    """
+    src = gsm or config.SYRIATEL_CASH_NUMBER
+    data = _request("POST",
+        params={"resource": "syriatel", "action": "transfer_cash"},
+        data={
+            "gsm":      src,
+            "to_gsm":   to_gsm,
+            "amount":   str(int(amount)),
+            "pin_code": pin_code,
+        },
+    )
+    return data
+
+
+# ─────────────────────────────────────────
+# Mobile Recharge (شحن رصيد موبايل)
+# ─────────────────────────────────────────
+def mobile_recharge(target_gsm: str,
+                    category: str,
+                    pin_code: str,
+                    gsm: Optional[str] = None) -> Dict[str, Any]:
+    """
+    يشحن رصيد موبايل Syriatel (مسبق الدفع).
+    category: إحدى القيم المدعومة مثل '9.61', '20.19', ...
+    """
+    src = gsm or config.SYRIATEL_CASH_NUMBER
+    data = _request("POST",
+        params={"resource": "syriatel", "action": "mobile_recharge"},
+        data={
+            "gsm":        src,
+            "target_gsm": target_gsm,
+            "category":   category,
+            "pin_code":   pin_code,
+        },
+    )
+    return data
+
+
+# ─────────────────────────────────────────
+# Stable TX ID (للحفظ في DB)
+# ─────────────────────────────────────────
 def stable_tx_id(transaction_no: str) -> int:
     """
-    يحوّل transaction_no النصي لرقم 64-bit ثابت لتخزينه في consumed_transactions
-    (الجدول transaction_id INTEGER PRIMARY KEY).
-    نضيف prefix لتجنب التصادم مع IDs العددية من شام كاش.
+    يحوّل transaction_no النصي لرقم 64-bit ثابت
+    لتخزينه في consumed_transactions.
     """
-    s = (transaction_no or "").strip().upper().encode("utf-8")
+    s = (transaction_no or "").strip().encode("utf-8")
     h = hashlib.sha256(s).digest()
     base = int.from_bytes(h[:7], "big")
     return SYRIATEL_NAMESPACE_PREFIX + base

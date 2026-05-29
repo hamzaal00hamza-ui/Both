@@ -1879,7 +1879,7 @@ FASTCARD_VERIFY_COST_USD = float(os.environ.get("FASTCARD_VERIFY_COST_USD", "0.0
 # ===== Sham Cash Auto Integration =====
 # توثيق الـ API: https://shamcash-api.com/docs
 SHAMCASH_TOKEN = os.environ.get("SHAMCASH_TOKEN", "")
-SHAMCASH_API_URL = os.environ.get("SHAMCASH_API_URL", "https://api.shamcash-api.com/v1")
+SHAMCASH_API_URL = os.environ.get("SHAMCASH_API_URL", "https://apisyria.com/api/v1")
 SHAMCASH_ACCOUNT_ID = os.environ.get("SHAMCASH_ACCOUNT_ID", "")  # اختياري — لو فاضي بنجيب أول حساب active
 SHAMCASH_AUTO_VERIFY = os.environ.get("SHAMCASH_AUTO_VERIFY", "true").lower() == "true"
 SHAMCASH_VERIFY_WINDOW_MIN = int(os.environ.get("SHAMCASH_VERIFY_WINDOW_MIN", "30"))
@@ -1887,7 +1887,7 @@ SHAMCASH_VERIFY_WINDOW_MIN = int(os.environ.get("SHAMCASH_VERIFY_WINDOW_MIN", "3
 # ===== Syriatel Cash Auto Integration =====
 # توثيق الـ API: https://api.melchersman.com/syr-cash/api-docs
 SYRIATEL_CASH_TOKEN = os.environ.get("SYRIATEL_CASH_TOKEN", "")
-SYRIATEL_CASH_API_URL = os.environ.get("SYRIATEL_CASH_API_URL", "https://api.melchersman.com/syr-cash/v1")
+SYRIATEL_CASH_API_URL = os.environ.get("SYRIATEL_CASH_API_URL", "https://apisyria.com/api/v1")
 SYRIATEL_CASH_AUTO_VERIFY = os.environ.get("SYRIATEL_CASH_AUTO_VERIFY", "true").lower() == "true"
 
 
