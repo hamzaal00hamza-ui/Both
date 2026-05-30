@@ -59,8 +59,28 @@ async def cmd_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not config.ADMIN_ID:
         await update.message.reply_text("⚠️ ADMIN_ID غير مضبوط في الإعدادات.")
         return
+
+    # إحصائيات سريعة
+    try:
+        s = db.get_stats()
+        quick = (
+            f"👤 {s.get('users',0)} مستخدم  |  "
+            f"📦 {s.get('orders',0)} طلب  |  "
+            f"💰 {s.get('total_sold',0):,.0f} ل.س مبيعات"
+        )
+    except Exception:
+        quick = ""
+
+    text = (
+        "🛠 *لوحة الإدارة*\n"
+        "━━━━━━━━━━━━━━━\n"
+    )
+    if quick:
+        text += f"📊 {quick}\n━━━━━━━━━━━━━━━\n"
+    text += "اختر قسماً من الأزرار أدناه:"
+
     await update.message.reply_text(
-        "🛠️ *لوحة الأدمن*\n\nاختر إجراءً:",
+        text,
         reply_markup=kb.admin_panel(),
         parse_mode=ParseMode.MARKDOWN,
     )
@@ -73,6 +93,23 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
 
     data = q.data
+
+    if data == "admin:noop":
+        await q.answer("—", show_alert=False)
+        return ConversationHandler.END
+
+    if data == "admin:panel":
+        try:
+            s = db.get_stats()
+            quick = f"👤 {s.get('users',0)} مستخدم | 📦 {s.get('orders',0)} طلب"
+        except Exception:
+            quick = ""
+        text = "🛠 *لوحة الإدارة*\n━━━━━━━━━━━━━━━\n"
+        if quick:
+            text += f"📊 {quick}\n━━━━━━━━━━━━━━━\n"
+        text += "اختر قسماً:"
+        await q.edit_message_text(text, reply_markup=kb.admin_panel(), parse_mode=ParseMode.MARKDOWN)
+        return ConversationHandler.END
 
     if data == "admin:stats":
         s = db.get_stats()
