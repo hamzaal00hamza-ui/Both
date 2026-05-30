@@ -384,6 +384,23 @@ def insufficient_balance() -> InlineKeyboardMarkup:
     ])
 
 
+
+
+def usdt_deposit_menu(binance_pay: bool = False) -> InlineKeyboardMarkup:
+    """لوحة مفاتيح إيداع USDT — مع أو بدون Binance Pay."""
+    rows = []
+    if binance_pay:
+        rows.append([InlineKeyboardButton(
+            "⚡ دفع عبر Binance Pay (أوتو فوري)",
+            callback_data="usdt:binance_pay"
+        )])
+    rows.append([InlineKeyboardButton(
+        "📋 دفعت يدوياً — أدخل Hash العملية",
+        callback_data="usdt:manual"
+    )])
+    rows.append([InlineKeyboardButton("🔙 رجوع", callback_data="back:main")])
+    return InlineKeyboardMarkup(rows)
+
 def cancel_inline() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("❌ إلغاء", callback_data="menu:main")],

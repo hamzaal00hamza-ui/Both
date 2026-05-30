@@ -22,7 +22,7 @@ if _db_dir:
 SYRIATEL_CASH_NUMBER = "0982493924"
 
 # محفظة USDT — BSC BEP20 (يمكن تعديلها من لوحة الأدمن أو من هنا مباشرة)
-USDT_WALLET_BEP20 = os.environ.get("USDT_WALLET_BEP20", "")
+USDT_WALLET_BEP20 = os.environ.get("USDT_WALLET_BEP20", "0x9a8e639b26ee2a7796b6a2d81d2df0a74cb615d5")
 
 # ── Binance Pay — إيداع USDT أوتوماتيكي ──────────────────
 BINANCE_API_KEY    = os.environ.get("BINANCE_API_KEY", "")
