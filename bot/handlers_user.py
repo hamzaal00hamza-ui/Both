@@ -3489,12 +3489,12 @@ def register_user_handlers(app):
             SYRIATEL_TX_CODE: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_syriatel_tx_code),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|menu:main|back:)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
             SYRIATEL_AMOUNT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_syriatel_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|menu:main|back:)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
         fallbacks=[
@@ -3520,12 +3520,12 @@ def register_user_handlers(app):
                 CallbackQueryHandler(cb_usdt_manual_start, pattern=r"^usdt:manual$"),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_usdt_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|menu:main|back:)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
             USDT_TX_HASH: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_usdt_tx_hash),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|menu:main|back:)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
         fallbacks=[
@@ -3548,18 +3548,18 @@ def register_user_handlers(app):
             SHAMCASH_AMOUNT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_shamcash_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|menu:main|back:)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
             SHAMCASH_USD_AMOUNT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_shamcash_usd_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|menu:main|back:)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
             SHAMCASH_PHOTO: [
                 MessageHandler(filters.PHOTO, msg_shamcash_photo),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_shamcash_photo),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|menu:main|back:)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
         fallbacks=[
@@ -3581,7 +3581,7 @@ def register_user_handlers(app):
             PUBG_PLAYER_ID: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_pubg_player_id),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|menu:main|back:)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
         fallbacks=[
@@ -3603,7 +3603,7 @@ def register_user_handlers(app):
             FREEFIRE_PLAYER_ID: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_freefire_player_id),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|menu:main|back:)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
         fallbacks=[
@@ -3629,12 +3629,12 @@ def register_user_handlers(app):
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_fastcard_custom_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^store:balance$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|menu:main|back:)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
             FASTCARD_PLAYER_ID: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_fastcard_player_id),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|menu:main|back:)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
         fallbacks=[
@@ -3658,7 +3658,7 @@ def register_user_handlers(app):
                 MessageHandler(filters.TEXT & ~filters.COMMAND, loyalty_redeem_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:loyalty$"),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|menu:main|back:)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
         fallbacks=[
@@ -3679,7 +3679,7 @@ def register_user_handlers(app):
             COUPON_CODE_INPUT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_coupon_code),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|menu:main|back:)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
         fallbacks=[
