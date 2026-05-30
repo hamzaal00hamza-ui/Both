@@ -1037,15 +1037,14 @@ def schedule_jobs(app: Application) -> None:
             name="fastcard_followup",
         )
 
-    # Binance Pay — فحص كل دقيقة
-    from .binance_pay import is_enabled as bp_enabled
-    if bp_enabled():
-        jq.run_repeating(
-            check_binance_pay_orders,
-            interval=60,
-            first=15,
-            name="binance_pay_check",
-        )
+    # USDT BscScan — فحص كل دقيقة
+    from .usdt_bsc import check_usdt_deposits
+    jq.run_repeating(
+        check_usdt_deposits,
+        interval=60,
+        first=30,
+        name="usdt_bsc_check",
+    )
 
     # فحص مخزون Fastcard كل 10 دقائق — تنبيه عند نفاد أو رجوع منتج
     if fastcard.is_enabled():

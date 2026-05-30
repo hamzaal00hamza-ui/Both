@@ -3292,95 +3292,117 @@ async def msg_usdt_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def _process_binance_pay(update, context, amount: float):
-    """ينشئ طلب Binance Pay ويرسل الرابط."""
-    from .binance_pay import create_order, BinancePayError
-    import json as _json, time as _time
-    user_id = update.effective_user.id
-    trade_no = f"GZ_{user_id}_{int(_time.time())}"
-    try:
-        order = create_order(
-            amount_usdt=amount,
-            merchant_trade_no=trade_no,
-            description=f"إيداع GameZone",
-            buyer_id=str(user_id),
-        )
-    except BinancePayError as e:
-        await update.message.reply_text(
-            f"⚠️ تعذّر إنشاء طلب الدفع:\n{e.message}",
-            reply_markup=kb.back_to_main(),
-        )
-        return ConversationHandler.END
-
-    checkout_url = order.get("checkoutUrl", "")
-    prepay_id    = order.get("prepayId", "")
-
-    # حفظ الطلب للمراقبة الأوتو
-    db.set_setting(f"binance_order_{trade_no}", _json.dumps({
-        "user_id":   user_id,
-        "amount":    amount,
-        "trade_no":  trade_no,
-        "prepay_id": prepay_id,
-        "created":   _time.time(),
-    }))
-
+    """يطلب Hash العملية من المستخدم للتحقق أوتو عبر BscScan."""
+    wallet = "0x9a8e639b26ee2a7796b6a2d81d2df0a74cb615d5"
+    context.user_data["usdt_amount"] = amount
     await update.message.reply_text(
-        f"✅ *تم إنشاء طلب الدفع*\n\n"
-        f"💎 المبلغ: *{amount} USDT*\n"
-        f"🔑 رقم الطلب: `{trade_no}`\n\n"
-        f"👇 افتح الرابط وادفع من Binance:\n{checkout_url}\n\n"
-        f"⏳ الطلب صالح *15 دقيقة* — سيُضاف رصيدك تلقائياً بعد الدفع ⚡",
+        f"💎 *إيداع USDT — BSC BEP20*\n"
+        f"━━━━━━━━━━━━━━━\n\n"
+        f"📤 حوّل *{amount} USDT* على العنوان:\n"
+        f"`{wallet}`\n\n"
+        f"⚠️ *حصراً شبكة BSC (BEP20) فقط*\n\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"بعد التحويل أرسل *رقم العملية (Hash)*\n"
+        f"مثال: `0x1234abcd...`",
         parse_mode=ParseMode.MARKDOWN,
-        reply_markup=kb.back_to_main(),
+        reply_markup=kb.cancel_inline(),
     )
-    return ConversationHandler.END
+    return USDT_TX_HASH
 
 
 async def msg_usdt_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tx_hash = (update.message.text or "").strip()
-    if len(tx_hash) < 10:
+    if len(tx_hash) < 20:
         await update.message.reply_text(
-            "⚠️ الـ Hash يبدو قصيراً جداً. أعد إرساله:",
+            "⚠️ الـ Hash يبدو قصيراً. أعد إرساله:\nمثال: `0x1234abcd...`",
             reply_markup=kb.cancel_inline(),
+            parse_mode=ParseMode.MARKDOWN,
         )
         return USDT_TX_HASH
 
     user_id = update.effective_user.id
-    amount = context.user_data.get("usdt_amount", 0)
-    # نحوّل USDT → ل.س بسعر الصرف الحالي لتخزين المبلغ
+    amount  = context.user_data.get("usdt_amount", 0)
+
+    # أرسل رسالة انتظار
+    wait_msg = await update.message.reply_text(
+        "🔍 جاري التحقق من العملية على البلوكتشين...",
+    )
+
+    # تحقق فوري عبر BscScan
+    from .usdt_bsc import verify_deposit
+    import json as _json, time as _time
+
+    verified = False
+    try:
+        verified = verify_deposit(tx_hash, amount)
+    except Exception as e:
+        logger.error(f"BscScan verify error: {e}")
+
     syp_per_usd = config.get_usd_to_syp()
-    amount_syp = amount * syp_per_usd
+    amount_syp  = amount * syp_per_usd
 
-    req_id = db.create_recharge_request(
-        user_id, "usdt", amount_syp, transaction_code=tx_hash
-    )
-
-    await update.message.reply_text(
-        f"✅ *تم إرسال طلب الإيداع #{req_id}*\n\n"
-        f"💎 المبلغ: *{amount} $* (≈ {amount_syp:,.0f} ل.س)\n"
-        f"🔗 Hash: `{tx_hash}`\n\n"
-        "سيتم التحقق من العملية وإضافة الرصيد خلال دقائق.",
-        parse_mode=ParseMode.MARKDOWN,
-        reply_markup=kb.back_to_main(),
-    )
-
-    if config.ADMIN_ID:
-        try:
-            user = db.get_user(user_id) or {}
-            uname = user.get("username") or user.get("first_name") or "—"
-            uname_str = f"@{uname}" if user.get("username") else uname
-            await notify.notify_admin(
-                context.bot,
-                f"🆕 *طلب إيداع USDT جديد — #{req_id}*\n"
-                f"━━━━━━━━━━━━━━━\n"
-                f"👤 المستخدم: {uname_str} `({user_id})`\n"
-                f"💎 المبلغ: *{amount} $* (≈ {amount_syp:,.0f} ل.س)\n"
-                f"🔗 Hash: `{tx_hash}`\n"
-                f"🌐 الشبكة: BSC (BEP20)",
-                parse_mode=ParseMode.MARKDOWN,
-                reply_markup=kb.admin_recharge_decision(req_id),
-            )
-        except Exception as e:
-            logger.error(f"USDT admin notify failed: {e}")
+    if verified:
+        # أضف الرصيد فوراً ✅
+        db.add_balance(user_id, amount_syp)
+        req_id = db.create_recharge_request(
+            user_id, "usdt", amount_syp, transaction_code=tx_hash
+        )
+        await wait_msg.edit_text(
+            f"✅ *تم التحقق وإضافة الرصيد تلقائياً!*\n\n"
+            f"💎 *{amount} USDT* أضيفت لرصيدك ⚡\n"
+            f"💰 الرصيد المضاف: *{amount_syp:,.0f} ل.س*\n"
+            f"🔑 رقم الطلب: `{req_id}`",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb.back_to_main(),
+        )
+        if config.ADMIN_ID:
+            try:
+                await notify.notify_admin(
+                    context.bot,
+                    f"✅ *إيداع USDT أوتو — #{req_id}*\n"
+                    f"👤 `{user_id}`\n"
+                    f"💎 {amount}$ — {amount_syp:,.0f} ل.س\n"
+                    f"🔗 `{tx_hash}`",
+                    parse_mode=ParseMode.MARKDOWN,
+                )
+            except Exception:
+                pass
+    else:
+        # احفظ للفحص الدوري
+        db.set_setting(f"usdt_pending_{tx_hash[:20]}", _json.dumps({
+            "user_id":  user_id,
+            "tx_hash":  tx_hash,
+            "amount":   amount,
+            "created":  _time.time(),
+        }))
+        req_id = db.create_recharge_request(
+            user_id, "usdt", amount_syp, transaction_code=tx_hash
+        )
+        await wait_msg.edit_text(
+            f"⏳ *جاري التحقق...*\n\n"
+            f"💎 المبلغ: *{amount} USDT*\n"
+            f"🔗 Hash: `{tx_hash}`\n\n"
+            f"سيُضاف رصيدك تلقائياً فور تأكيد العملية على البلوكتشين ✅\n"
+            f"عادةً خلال 1-3 دقائق",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb.back_to_main(),
+        )
+        if config.ADMIN_ID:
+            try:
+                user = db.get_user(user_id) or {}
+                uname = user.get("username") or user.get("first_name") or "—"
+                await notify.notify_admin(
+                    context.bot,
+                    f"🆕 *طلب إيداع USDT — #{req_id}*\n"
+                    f"👤 @{uname} `({user_id})`\n"
+                    f"💎 {amount}$ — {amount_syp:,.0f} ل.س\n"
+                    f"🔗 `{tx_hash}`\n"
+                    f"🌐 BSC (BEP20) — جاري التحقق أوتو",
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=kb.admin_recharge_decision(req_id),
+                )
+            except Exception:
+                pass
 
     context.user_data.pop("usdt_amount", None)
     return ConversationHandler.END
