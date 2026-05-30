@@ -3169,23 +3169,17 @@ async def cb_usdt_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def cb_usdt_binance_pay(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """ينشئ طلب Binance Pay ويرسل رابط الدفع للمستخدم."""
+    """يطلب المبلغ لإنشاء طلب Binance Pay."""
     q = update.callback_query
     await q.answer()
-
-    from .binance_pay import create_order, poll_until_paid, BinancePayError
-    import asyncio
-
-    user_id = update.effective_user.id
-
-    # اطلب المبلغ أول
+    context.user_data["awaiting_binance_amount"] = True
     await q.edit_message_text(
-        "💎 *إيداع USDT عبر Binance Pay*\n\n"
-        "أرسل المبلغ الذي تريد إيداعه بالدولار (مثال: `10` أو `25`):",
+        "⚡ *Binance Pay — إيداع أوتوماتيكي*\n\n"
+        "أرسل المبلغ الذي تريد إيداعه بالدولار\n"
+        "مثال: `10` أو `25` أو `50`:",
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=kb.cancel_inline(),
     )
-    context.user_data["awaiting_binance_amount"] = True
     return USDT_AMOUNT_USD
 
 
@@ -3256,6 +3250,19 @@ async def msg_usdt_binance_amount(update: Update, context: ContextTypes.DEFAULT_
     return ConversationHandler.END
 
 
+async def cb_usdt_manual_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يطلب من المستخدم إدخال المبلغ للدفع اليدوي."""
+    q = update.callback_query
+    await q.answer()
+    await q.edit_message_text(
+        "💎 *إيداع USDT يدوي*\n\n"
+        "أرسل المبلغ الذي حوّلته (بالدولار $):",
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=kb.cancel_inline(),
+    )
+    return USDT_AMOUNT_USD
+
+
 async def msg_usdt_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (update.message.text or "").strip().replace(",", ".")
     try:
@@ -3270,6 +3277,10 @@ async def msg_usdt_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return USDT_AMOUNT_USD
 
+    # لو Binance Pay مختار
+    if context.user_data.pop("awaiting_binance_amount", False):
+        return await _process_binance_pay(update, context, amount)
+
     context.user_data["usdt_amount"] = amount
     await update.message.reply_text(
         f"✅ المبلغ: *{amount} $*\n\n"
@@ -3278,6 +3289,50 @@ async def msg_usdt_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=kb.cancel_inline(),
     )
     return USDT_TX_HASH
+
+
+async def _process_binance_pay(update, context, amount: float):
+    """ينشئ طلب Binance Pay ويرسل الرابط."""
+    from .binance_pay import create_order, BinancePayError
+    import json as _json, time as _time
+    user_id = update.effective_user.id
+    trade_no = f"GZ_{user_id}_{int(_time.time())}"
+    try:
+        order = create_order(
+            amount_usdt=amount,
+            merchant_trade_no=trade_no,
+            description=f"إيداع GameZone",
+            buyer_id=str(user_id),
+        )
+    except BinancePayError as e:
+        await update.message.reply_text(
+            f"⚠️ تعذّر إنشاء طلب الدفع:\n{e.message}",
+            reply_markup=kb.back_to_main(),
+        )
+        return ConversationHandler.END
+
+    checkout_url = order.get("checkoutUrl", "")
+    prepay_id    = order.get("prepayId", "")
+
+    # حفظ الطلب للمراقبة الأوتو
+    db.set_setting(f"binance_order_{trade_no}", _json.dumps({
+        "user_id":   user_id,
+        "amount":    amount,
+        "trade_no":  trade_no,
+        "prepay_id": prepay_id,
+        "created":   _time.time(),
+    }))
+
+    await update.message.reply_text(
+        f"✅ *تم إنشاء طلب الدفع*\n\n"
+        f"💎 المبلغ: *{amount} USDT*\n"
+        f"🔑 رقم الطلب: `{trade_no}`\n\n"
+        f"👇 افتح الرابط وادفع من Binance:\n{checkout_url}\n\n"
+        f"⏳ الطلب صالح *15 دقيقة* — سيُضاف رصيدك تلقائياً بعد الدفع ⚡",
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=kb.back_to_main(),
+    )
+    return ConversationHandler.END
 
 
 async def msg_usdt_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3371,6 +3426,10 @@ def register_user_handlers(app):
         entry_points=[CallbackQueryHandler(cb_usdt_start, pattern=r"^recharge:usdt$")],
         states={
             USDT_AMOUNT_USD: [
+                # زر Binance Pay الأوتو
+                CallbackQueryHandler(cb_usdt_binance_pay, pattern=r"^usdt:binance_pay$"),
+                # دفع يدوي
+                CallbackQueryHandler(cb_usdt_manual_start, pattern=r"^usdt:manual$"),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_usdt_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             ],
