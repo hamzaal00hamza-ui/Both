@@ -3503,7 +3503,6 @@ def register_user_handlers(app):
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
         ],
-        allow_reentry=True,
         per_message=False,
         allow_reentry=True,
     )
@@ -3532,7 +3531,6 @@ def register_user_handlers(app):
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
         ],
-        allow_reentry=True,
         per_message=False,
         allow_reentry=True,
     )
@@ -3563,7 +3561,6 @@ def register_user_handlers(app):
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
         ],
-        allow_reentry=True,
         per_message=False,
         allow_reentry=True,
     )
@@ -3584,7 +3581,6 @@ def register_user_handlers(app):
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
         ],
-        allow_reentry=True,
         per_message=False,
         allow_reentry=True,
     )
@@ -3605,7 +3601,6 @@ def register_user_handlers(app):
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
         ],
-        allow_reentry=True,
         per_message=False,
         allow_reentry=True,
     )
@@ -3634,7 +3629,6 @@ def register_user_handlers(app):
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
         ],
-        allow_reentry=True,
         per_message=False,
         allow_reentry=True,
     )
@@ -3657,7 +3651,6 @@ def register_user_handlers(app):
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
         ],
-        allow_reentry=True,
         per_message=False,
         allow_reentry=True,
     )
@@ -3677,7 +3670,6 @@ def register_user_handlers(app):
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
         ],
-        allow_reentry=True,
         per_message=False,
         allow_reentry=True,
     )
