@@ -2364,7 +2364,7 @@ async def cb_syriatel_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "📱 *سيرياتيل كاش*\n\n"
         f"الرقم: `{config.SYRIATEL_CASH_NUMBER}`\n\n"
         "اشحن الرصيد المطلوب على الرقم التالي عبر التحويل اليدوي حصراً، "
-        "ومن ثم أدخل رقم عملية التحويل المكون من 12 رمز."
+        "ومن ثم أدخل رقم العملية (Transaction ID) من التطبيق."
     )
     await q.edit_message_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=kb.cancel_inline())
     return SYRIATEL_TX_CODE
@@ -2372,9 +2372,9 @@ async def cb_syriatel_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def msg_syriatel_tx_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
     code = (update.message.text or "").strip()
-    if len(code) != 12 or not re.match(r"^[A-Za-z0-9]+$", code):
+    if len(code) < 4:
         await update.message.reply_text(
-            "⚠️ رقم العملية يجب أن يكون 12 رمز (أحرف وأرقام). أعد المحاولة:",
+            "⚠️ رقم العملية قصير جداً. أعد المحاولة:",
             reply_markup=kb.cancel_inline(),
         )
         return SYRIATEL_TX_CODE
@@ -3502,6 +3502,7 @@ def register_user_handlers(app):
         fallbacks=[
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
         ],
         per_message=False,
         allow_reentry=True,
@@ -3530,6 +3531,7 @@ def register_user_handlers(app):
         fallbacks=[
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
         ],
         per_message=False,
         allow_reentry=True,
@@ -3560,6 +3562,7 @@ def register_user_handlers(app):
         fallbacks=[
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
         ],
         per_message=False,
         allow_reentry=True,
@@ -3580,6 +3583,7 @@ def register_user_handlers(app):
         fallbacks=[
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
         ],
         per_message=False,
         allow_reentry=True,
@@ -3600,6 +3604,7 @@ def register_user_handlers(app):
         fallbacks=[
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
         ],
         per_message=False,
         allow_reentry=True,
@@ -3628,6 +3633,7 @@ def register_user_handlers(app):
         fallbacks=[
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
         ],
         per_message=False,
         allow_reentry=True,
@@ -3650,6 +3656,7 @@ def register_user_handlers(app):
         fallbacks=[
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
         ],
         per_message=False,
         allow_reentry=True,
@@ -3669,6 +3676,7 @@ def register_user_handlers(app):
         fallbacks=[
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
         ],
         per_message=False,
         allow_reentry=True,
