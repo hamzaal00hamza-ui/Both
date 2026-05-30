@@ -3484,7 +3484,8 @@ def register_user_handlers(app):
     app.add_handler(CommandHandler("start", cmd_start))
 
     syriatel_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(cb_syriatel_start, pattern=r"^recharge:syriatel$")],
+        entry_points=[
+            CommandHandler("start", cancel_conversation),CallbackQueryHandler(cb_syriatel_start, pattern=r"^recharge:syriatel$")],
         states={
             SYRIATEL_TX_CODE: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_syriatel_tx_code),
@@ -3511,7 +3512,8 @@ def register_user_handlers(app):
     app.add_handler(CallbackQueryHandler(cb_syriatel_manual, pattern=r"^syr_manual:"))
 
     usdt_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(cb_usdt_start, pattern=r"^recharge:usdt$")],
+        entry_points=[
+            CommandHandler("start", cancel_conversation),CallbackQueryHandler(cb_usdt_start, pattern=r"^recharge:usdt$")],
         states={
             USDT_AMOUNT_USD: [
                 # زر Binance Pay الأوتو
@@ -3540,6 +3542,7 @@ def register_user_handlers(app):
 
     shamcash_conv = ConversationHandler(
         entry_points=[
+            CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cb_shamcash_start, pattern=r"^recharge:shamcash$"),
             CallbackQueryHandler(cb_shamcash_usd_start, pattern=r"^recharge:shamcash_usd$"),
             CallbackQueryHandler(cb_shamcash_manual, pattern=r"^sc_manual:"),
@@ -3576,7 +3579,8 @@ def register_user_handlers(app):
     app.add_handler(CallbackQueryHandler(cb_shamcash_usd_verify, pattern=r"^sc_verify_usd:"))
 
     pubg_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(cb_pubg_uc_select, pattern=r"^pubg_uc:")],
+        entry_points=[
+            CommandHandler("start", cancel_conversation),CallbackQueryHandler(cb_pubg_uc_select, pattern=r"^pubg_uc:")],
         states={
             PUBG_PLAYER_ID: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_pubg_player_id),
@@ -3598,7 +3602,8 @@ def register_user_handlers(app):
     app.add_handler(CallbackQueryHandler(cb_pubg_uc_verify, pattern=r"^pubg_uc_verify:"))
 
     freefire_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(cb_freefire_diamond_select, pattern=r"^ff_dia:")],
+        entry_points=[
+            CommandHandler("start", cancel_conversation),CallbackQueryHandler(cb_freefire_diamond_select, pattern=r"^ff_dia:")],
         states={
             FREEFIRE_PLAYER_ID: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_freefire_player_id),
@@ -3621,6 +3626,7 @@ def register_user_handlers(app):
     # ===== Generic Fastcard auto-delivery (memberships + codes + custom-amount balance) =====
     fastcard_conv = ConversationHandler(
         entry_points=[
+            CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cb_fastcard_buy_select, pattern=r"^fcbuy:"),
             CallbackQueryHandler(cb_fastcard_amount_start, pattern=r"^fcamt:"),
         ],
@@ -3652,7 +3658,8 @@ def register_user_handlers(app):
 
     # ===== Loyalty Points =====
     loyalty_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(cb_loyalty, pattern=r"^loyalty:redeem_custom$")],
+        entry_points=[
+            CommandHandler("start", cancel_conversation),CallbackQueryHandler(cb_loyalty, pattern=r"^loyalty:redeem_custom$")],
         states={
             LOYALTY_REDEEM_AMOUNT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, loyalty_redeem_amount),
@@ -3674,7 +3681,8 @@ def register_user_handlers(app):
 
     # ===== Discount Coupon =====
     coupon_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(cb_coupon_entry, pattern=r"^menu:coupon$")],
+        entry_points=[
+            CommandHandler("start", cancel_conversation),CallbackQueryHandler(cb_coupon_entry, pattern=r"^menu:coupon$")],
         states={
             COUPON_CODE_INPUT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_coupon_code),
