@@ -386,6 +386,15 @@ def insufficient_balance() -> InlineKeyboardMarkup:
 
 
 
+def usdt_retry_markup(amount: float = 0) -> InlineKeyboardMarkup:
+    """أزرار إعادة المحاولة عند فشل التحقق."""
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔄 أعد إرسال الـ Hash", callback_data=f"usdt:retry_{amount}")],
+        [InlineKeyboardButton("💬 تواصل مع الدعم", callback_data="menu:support")],
+        [InlineKeyboardButton("🔙 القائمة الرئيسية", callback_data="back:main")],
+    ])
+
+
 def usdt_deposit_menu(binance_pay: bool = False) -> InlineKeyboardMarkup:
     """لوحة مفاتيح إيداع USDT — مع أو بدون Binance Pay."""
     rows = []
