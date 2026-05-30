@@ -24,6 +24,13 @@ SYRIATEL_CASH_NUMBER = "0982493924"
 # محفظة USDT — BSC BEP20 (يمكن تعديلها من لوحة الأدمن أو من هنا مباشرة)
 USDT_WALLET_BEP20 = os.environ.get("USDT_WALLET_BEP20", "")
 
+# ── Binance Pay — إيداع USDT أوتوماتيكي ──────────────────
+BINANCE_API_KEY    = os.environ.get("BINANCE_API_KEY", "")
+BINANCE_SECRET_KEY = os.environ.get("BINANCE_SECRET_KEY", "")
+BINANCE_PAY_AUTO   = os.environ.get("BINANCE_PAY_AUTO", "1") == "1"
+BINANCE_ORDER_EXPIRE_MINUTES = int(os.environ.get("BINANCE_ORDER_EXPIRE_MINUTES", "15"))
+
+
 SHAMCASH_WALLET_CODE = "2ddc70bf6636ab6fc783f957e2fa5d81"
 SHAMCASH_WALLET_NAME = "قيس ربيع جمول"
 
@@ -1879,7 +1886,7 @@ FASTCARD_VERIFY_COST_USD = float(os.environ.get("FASTCARD_VERIFY_COST_USD", "0.0
 # ===== Sham Cash Auto Integration =====
 # توثيق الـ API: https://shamcash-api.com/docs
 SHAMCASH_TOKEN = os.environ.get("SHAMCASH_TOKEN", "")
-SHAMCASH_API_URL = os.environ.get("SHAMCASH_API_URL", "https://apisyria.com/api/v1")
+SHAMCASH_API_URL = os.environ.get("SHAMCASH_API_URL", "https://api.shamcash-api.com/v1")
 SHAMCASH_ACCOUNT_ID = os.environ.get("SHAMCASH_ACCOUNT_ID", "")  # اختياري — لو فاضي بنجيب أول حساب active
 SHAMCASH_AUTO_VERIFY = os.environ.get("SHAMCASH_AUTO_VERIFY", "true").lower() == "true"
 SHAMCASH_VERIFY_WINDOW_MIN = int(os.environ.get("SHAMCASH_VERIFY_WINDOW_MIN", "30"))
@@ -1887,7 +1894,7 @@ SHAMCASH_VERIFY_WINDOW_MIN = int(os.environ.get("SHAMCASH_VERIFY_WINDOW_MIN", "3
 # ===== Syriatel Cash Auto Integration =====
 # توثيق الـ API: https://api.melchersman.com/syr-cash/api-docs
 SYRIATEL_CASH_TOKEN = os.environ.get("SYRIATEL_CASH_TOKEN", "")
-SYRIATEL_CASH_API_URL = os.environ.get("SYRIATEL_CASH_API_URL", "https://apisyria.com/api/v1")
+SYRIATEL_CASH_API_URL = os.environ.get("SYRIATEL_CASH_API_URL", "https://api.melchersman.com/syr-cash/v1")
 SYRIATEL_CASH_AUTO_VERIFY = os.environ.get("SYRIATEL_CASH_AUTO_VERIFY", "true").lower() == "true"
 
 
