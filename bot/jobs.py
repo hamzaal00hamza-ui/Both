@@ -920,6 +920,83 @@ async def stock_check_job(context: ContextTypes.DEFAULT_TYPE) -> None:
         logger.warning(f"stock_check_job failed: {e}")
 
 
+
+
+# ─────────────────────────────────────────
+# Binance Pay — فحص أوتوماتيكي كل دقيقة
+# ─────────────────────────────────────────
+async def check_binance_pay_orders(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """يفحص طلبات Binance Pay المعلقة ويضيف الرصيد تلقائياً عند الدفع."""
+    from .binance_pay import is_paid, BinancePayError
+    import json as _json, time as _time
+
+    try:
+        pending = db.get_settings_like("binance_order_%")
+    except Exception:
+        return
+
+    for key, val in (pending or {}).items():
+        try:
+            order = _json.loads(val)
+        except Exception:
+            continue
+
+        trade_no = order.get("trade_no", "")
+        user_id  = order.get("user_id")
+        amount   = float(order.get("amount", 0))
+        created  = float(order.get("created", 0))
+
+        # انتهت المهلة 15 دقيقة
+        if _time.time() - created > 900:
+            db.delete_setting(key)
+            try:
+                await context.bot.send_message(
+                    chat_id=user_id,
+                    text="⏰ انتهت مهلة طلب Binance Pay.\nلو دفعت تواصل مع الدعم.",
+                )
+            except Exception:
+                pass
+            continue
+
+        try:
+            paid = is_paid(trade_no)
+        except BinancePayError:
+            continue
+
+        if paid:
+            db.delete_setting(key)
+            syp_per_usd = config.get_usd_to_syp()
+            amount_syp  = amount * syp_per_usd
+            try:
+                db.add_balance(user_id, amount_syp)
+                req_id = db.create_recharge_request(
+                    user_id, "usdt_binance", amount_syp,
+                    transaction_code=trade_no,
+                )
+                await context.bot.send_message(
+                    chat_id=user_id,
+                    text=(
+                        f"🎉 *تم استلام دفعتك!*\n\n"
+                        f"💎 *{amount} USDT* أضيفت لرصيدك تلقائياً ⚡\n"
+                        f"💰 الرصيد: *{amount_syp:,.0f} ل.س*\n"
+                        f"🔑 رقم الطلب: `{req_id}`"
+                    ),
+                    parse_mode="Markdown",
+                )
+                if config.ADMIN_ID:
+                    await context.bot.send_message(
+                        chat_id=config.ADMIN_ID,
+                        text=(
+                            f"✅ *Binance Pay أوتو — #{req_id}*\n"
+                            f"👤 `{user_id}`\n"
+                            f"💎 {amount}$ — {amount_syp:,.0f} ل.س"
+                        ),
+                        parse_mode="Markdown",
+                    )
+            except Exception as e:
+                logger.error(f"Binance credit error: {e}")
+
+
 def schedule_jobs(app: Application) -> None:
     """يُسجّل المهام المجدولة على JobQueue الخاص بالتطبيق."""
     jq = app.job_queue
@@ -958,6 +1035,16 @@ def schedule_jobs(app: Application) -> None:
             interval=60,
             first=30,
             name="fastcard_followup",
+        )
+
+    # Binance Pay — فحص كل دقيقة
+    from .binance_pay import is_enabled as bp_enabled
+    if bp_enabled():
+        jq.run_repeating(
+            check_binance_pay_orders,
+            interval=60,
+            first=15,
+            name="binance_pay_check",
         )
 
     # فحص مخزون Fastcard كل 10 دقائق — تنبيه عند نفاد أو رجوع منتج

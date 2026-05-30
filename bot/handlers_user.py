@@ -1,3 +1,4 @@
+import json
 """
 معالجات أوامر وأزرار المستخدمين العاديين
 """
@@ -3138,24 +3139,121 @@ async def cb_usdt_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if await is_banned(update):
         return ConversationHandler.END
 
-    wallet = config.USDT_WALLET_BEP20 or db.get_setting("usdt_wallet_bep20") or ""
-    if not wallet:
-        await q.edit_message_text(
-            "⚠️ خيار USDT غير مفعّل حالياً. تواصل مع الدعم.",
+    # رمز المحفظة الثابت
+    wallet = "0x9a8e639b26ee2a7796b6a2d81d2df0a74cb615d5"
+
+    # زر Binance Pay أوتو إذا مفعّل
+    from .binance_pay import is_enabled as bp_enabled
+    bp_active = bp_enabled()
+
+    text = (
+        "💎 *إيداع USDT — BSC BEP20 فقط*\n"
+        "━━━━━━━━━━━━━━━━━\n\n"
+        "📤 *عنوان المحفظة:*\n"
+        f"`{wallet}`\n\n"
+        "⚠️ *تنبيه مهم:* التحويل يجب أن يكون حصراً على شبكة\n"
+        "👉 *BSC (BEP20)* فقط — أي شبكة أخرى يضيع المبلغ\n\n"
+        "━━━━━━━━━━━━━━━━━\n"
+    )
+
+    if bp_active:
+        text += "✅ *الإيداع أوتوماتيكي عبر Binance Pay*\n"
+        text += "اضغط الزر أدناه لإنشاء طلب دفع فوري من حساب Binance:"
+        markup = kb.usdt_deposit_menu(binance_pay=True)
+    else:
+        text += "2️⃣ أرسل *المبلغ* الذي حوّلته (بالدولار $):"
+        markup = kb.cancel_inline()
+
+    await q.edit_message_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=markup)
+    return USDT_AMOUNT_USD
+
+
+async def cb_usdt_binance_pay(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """ينشئ طلب Binance Pay ويرسل رابط الدفع للمستخدم."""
+    q = update.callback_query
+    await q.answer()
+
+    from .binance_pay import create_order, poll_until_paid, BinancePayError
+    import asyncio
+
+    user_id = update.effective_user.id
+
+    # اطلب المبلغ أول
+    await q.edit_message_text(
+        "💎 *إيداع USDT عبر Binance Pay*\n\n"
+        "أرسل المبلغ الذي تريد إيداعه بالدولار (مثال: `10` أو `25`):",
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=kb.cancel_inline(),
+    )
+    context.user_data["awaiting_binance_amount"] = True
+    return USDT_AMOUNT_USD
+
+
+async def msg_usdt_binance_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يستقبل المبلغ وينشئ طلب Binance Pay."""
+    from .binance_pay import create_order, BinancePayError
+    import asyncio
+
+    if not context.user_data.get("awaiting_binance_amount"):
+        return await msg_usdt_amount(update, context)
+
+    text = (update.message.text or "").strip().replace(",", ".")
+    try:
+        amount = float(text)
+        if amount < 1:
+            raise ValueError()
+    except ValueError:
+        await update.message.reply_text(
+            "⚠️ أدخل مبلغاً صحيحاً (الحد الأدنى 1$):",
+            reply_markup=kb.cancel_inline(),
+        )
+        return USDT_AMOUNT_USD
+
+    user_id = update.effective_user.id
+    trade_no = f"GZ_{user_id}_{int(time.time())}"
+
+    try:
+        order = create_order(
+            amount_usdt=amount,
+            merchant_trade_no=trade_no,
+            description=f"إيداع GameZone — {user_id}",
+            buyer_id=str(user_id),
+        )
+    except BinancePayError as e:
+        await update.message.reply_text(
+            f"⚠️ تعذّر إنشاء طلب الدفع: {e.message}",
             reply_markup=kb.back_to_main(),
         )
         return ConversationHandler.END
 
-    text = (
-        "💎 *إيداع USDT — BSC (BEP20)*\n"
-        "━━━━━━━━━━━━━━━━━\n\n"
-        "1️⃣ حوّل مبلغ USDT على العنوان التالي:\n\n"
-        f"`{wallet}`\n\n"
-        "2️⃣ أرسل *المبلغ* الذي أرسلته (بالدولار $):\n\n"
-        "⚠️ _تأكد من اختيار شبكة BSC (BEP20) فقط_"
+    checkout_url = order.get("checkoutUrl", "")
+    prepay_id    = order.get("prepayId", "")
+    qr_link      = order.get("qrcodeLink", "")
+
+    msg = await update.message.reply_text(
+        f"✅ *تم إنشاء طلب الدفع*\n\n"
+        f"💎 المبلغ: *{amount} USDT*\n"
+        f"🔑 رقم الطلب: `{trade_no}`\n\n"
+        f"👇 افتح الرابط وادفع من حساب Binance:\n{checkout_url}\n\n"
+        f"⏳ الطلب صالح لمدة *15 دقيقة*\n"
+        f"سيُضاف رصيدك تلقائياً فور الدفع ✅",
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=kb.back_to_main(),
     )
-    await q.edit_message_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=kb.cancel_inline())
-    return USDT_AMOUNT_USD
+
+    # Poll في background
+    context.user_data.pop("awaiting_binance_amount", None)
+
+    # حفظ الطلب في DB لمراقبته عبر job دوري
+    db.set_setting(f"binance_order_{trade_no}", json.dumps({
+        "user_id":  user_id,
+        "amount":   amount,
+        "trade_no": trade_no,
+        "prepay_id": prepay_id,
+        "created":  time.time(),
+    }))
+
+    return ConversationHandler.END
 
 
 async def msg_usdt_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
