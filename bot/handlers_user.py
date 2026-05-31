@@ -445,6 +445,29 @@ async def msg_coupon_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # تحقق صلاحية + تكرار + سقف الاستخدام
     # نستخدم order_amount = min_order أو 1 (لتجاوز فحص الحد الأدنى) لأن الخصم سيضاف للرصيد مباشرة
     base_amount = float(coupon.get("min_order") or 0) or 100000  # افتراضي 100k لحساب الـ percent
+    # كوبون بونص على الإيداع — يتعرف عليه بالاسم
+    _bonus_prefixes = ("BONUS5_", "BONUS10_", "VIP")
+    if any(code.startswith(p) for p in _bonus_prefixes):
+        if not int(coupon.get("active") or 0):
+            await update.message.reply_text("❌ هذا الكود معطّل.", reply_markup=kb.back_to_main())
+            return ConversationHandler.END
+        pct = float(coupon.get("discount_value", 0))
+        ok = await asyncio.to_thread(db.consume_coupon, int(coupon["id"]), user_id, None, 0)
+        if not ok:
+            await update.message.reply_text("⚠️ الكود استُخدم مسبقاً أو انتهت صلاحيته.", reply_markup=kb.back_to_main())
+            return ConversationHandler.END
+        await asyncio.to_thread(db.set_setting, "deposit_bonus_" + str(user_id), str(int(pct)))
+        await update.message.reply_text(
+            "*تم تفعيل كوبون البونص!*" + chr(10) +
+            "━━━━━━━━━━━━━━━━━" + chr(10) + chr(10) +
+            "الكود: `" + str(coupon["code"]) + "`" + chr(10) +
+            "بونص " + str(int(pct)) + "% سيُضاف على إيداعك القادم تلقائياً!" + chr(10) + chr(10) +
+            "اشحن رصيدك الآن واستمتع بالبونص!",
+            reply_markup=kb.back_to_main(),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return ConversationHandler.END
+
     result = await asyncio.to_thread(db.validate_coupon_for_user, code, user_id, base_amount)
     if not result["ok"]:
         await update.message.reply_text(
@@ -458,10 +481,9 @@ async def msg_coupon_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
     coupon = result["coupon"]
     discount = float(result["discount"])
     if coupon["discount_type"] == "percent":
-        # في وضع "إضافة للرصيد"، الـ percent يُحسب على min_order (لو محدد) فقط لتجنب الاستغلال
         if float(coupon.get("min_order") or 0) <= 0:
             await update.message.reply_text(
-                "❌ هذا الكود لا يمكن استخدامه حالياً (يحتاج إعداد إضافي من الإدارة).",
+                "❌ هذا الكود لا يمكن استخدامه حالياً.",
                 reply_markup=kb.back_to_main(),
             )
             return ConversationHandler.END
