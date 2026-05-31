@@ -451,6 +451,17 @@ async def msg_coupon_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not int(coupon.get("active") or 0):
             await update.message.reply_text("❌ هذا الكود معطّل.", reply_markup=kb.back_to_main())
             return ConversationHandler.END
+        # فحص التكرار — هل استخدم هذا الشخص الكود قبل؟
+        already_used = await asyncio.to_thread(db.has_user_used_coupon, int(coupon["id"]), user_id)
+        if already_used:
+            await update.message.reply_text("❌ لقد استخدمت هذا الكود مسبقاً.", reply_markup=kb.back_to_main())
+            return ConversationHandler.END
+        # فحص سقف الاستخدام — هل وصل الكود لحده الأقصى؟
+        used = int(coupon.get("used_count") or 0)
+        max_uses = int(coupon.get("max_uses") or 0)
+        if max_uses > 0 and used >= max_uses:
+            await update.message.reply_text("❌ انتهت صلاحية هذا الكود (وصل للحد الأقصى من المستخدمين).", reply_markup=kb.back_to_main())
+            return ConversationHandler.END
         pct = float(coupon.get("discount_value", 0))
         ok = await asyncio.to_thread(db.consume_coupon, int(coupon["id"]), user_id, None, 0)
         if not ok:
