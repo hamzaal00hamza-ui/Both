@@ -634,7 +634,11 @@ def rating_keyboard(order_id: int) -> InlineKeyboardMarkup:
 
 def admin_coupons_panel(coupons: list) -> InlineKeyboardMarkup:
     """قائمة الكوبونات للأدمن. كل كوبون → زر تعطيل."""
-    rows = [[InlineKeyboardButton("➕ إنشاء كوبون جديد", callback_data="admin:coupon:new")]]
+    rows = [
+        [InlineKeyboardButton("⚡ كود 5000 ل.س — 10 أشخاص", callback_data="admin:coupon:quick_5k")],
+        [InlineKeyboardButton("🎁 كود بونص 5% — 10 أشخاص", callback_data="admin:coupon:quick_5pct")],
+        [InlineKeyboardButton("➕ كود مخصص", callback_data="admin:coupon:new")],
+    ]
     for c in coupons[:15]:
         active = int(c.get("active") or 0)
         status = "✅" if active else "🚫"
@@ -655,6 +659,14 @@ def admin_coupon_type_picker() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("💯 نسبة مئوية (%)", callback_data="admin:coupon:type:percent")],
         [InlineKeyboardButton("💵 مبلغ ثابت (ل.س)", callback_data="admin:coupon:type:fixed")],
         [InlineKeyboardButton("❌ إلغاء", callback_data="admin:coupons")],
+    ])
+
+
+def admin_quick_coupon_done(code: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("📋 نسخ الكود", switch_inline_query=code)],
+        [InlineKeyboardButton("🎟 إدارة الكوبونات", callback_data="admin:coupons")],
+        [InlineKeyboardButton("⬅️ لوحة الأدمن", callback_data="admin:panel")],
     ])
 
 

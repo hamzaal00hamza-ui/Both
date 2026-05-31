@@ -59,28 +59,8 @@ async def cmd_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not config.ADMIN_ID:
         await update.message.reply_text("⚠️ ADMIN_ID غير مضبوط في الإعدادات.")
         return
-
-    # إحصائيات سريعة
-    try:
-        s = db.get_stats()
-        quick = (
-            f"👤 {s.get('users',0)} مستخدم  |  "
-            f"📦 {s.get('orders',0)} طلب  |  "
-            f"💰 {s.get('total_sold',0):,.0f} ل.س مبيعات"
-        )
-    except Exception:
-        quick = ""
-
-    text = (
-        "🛠 *لوحة الإدارة*\n"
-        "━━━━━━━━━━━━━━━\n"
-    )
-    if quick:
-        text += f"📊 {quick}\n━━━━━━━━━━━━━━━\n"
-    text += "اختر قسماً من الأزرار أدناه:"
-
     await update.message.reply_text(
-        text,
+        "🛠️ *لوحة الأدمن*\n\nاختر إجراءً:",
         reply_markup=kb.admin_panel(),
         parse_mode=ParseMode.MARKDOWN,
     )
@@ -93,23 +73,6 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
 
     data = q.data
-
-    if data == "admin:noop":
-        await q.answer("—", show_alert=False)
-        return ConversationHandler.END
-
-    if data == "admin:panel":
-        try:
-            s = db.get_stats()
-            quick = f"👤 {s.get('users',0)} مستخدم | 📦 {s.get('orders',0)} طلب"
-        except Exception:
-            quick = ""
-        text = "🛠 *لوحة الإدارة*\n━━━━━━━━━━━━━━━\n"
-        if quick:
-            text += f"📊 {quick}\n━━━━━━━━━━━━━━━\n"
-        text += "اختر قسماً:"
-        await q.edit_message_text(text, reply_markup=kb.admin_panel(), parse_mode=ParseMode.MARKDOWN)
-        return ConversationHandler.END
 
     if data == "admin:stats":
         s = db.get_stats()
@@ -642,6 +605,28 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 lines.append(f"`{c['code']}` — {val_txt} — {uses_txt}{min_txt}\n   {status}")
         text = "\n".join(lines)
         await q.edit_message_text(text, reply_markup=kb.admin_coupons_panel(coupons), parse_mode=ParseMode.MARKDOWN)
+        return ConversationHandler.END
+
+    if data == "admin:coupon:quick_5k" or data == "admin:coupon:quick_5pct":
+        import random, string
+        is_fixed = (data == "admin:coupon:quick_5k")
+        prefix = "BONUS" if is_fixed else "VIP"
+        code = prefix + "".join(random.choices(string.ascii_uppercase + string.digits, k=5))
+        dtype = "fixed" if is_fixed else "percent"
+        dval = 5000 if is_fixed else 5
+        label = ("5,000 ل.س مجانا" if is_fixed else "بونص 5% على الايداع")
+        try:
+            ok = await asyncio.to_thread(db.create_coupon, code, dtype, dval, 0, 10, None)
+            if ok:
+                text = ("*تم انشاء الكود*" + chr(10) +
+                        "الكود: `" + code + "`" + chr(10) +
+                        "القيمة: " + label + chr(10) +
+                        "صالح لـ 10 اشخاص فقط")
+                await q.edit_message_text(text, reply_markup=kb.admin_quick_coupon_done(code), parse_mode=ParseMode.MARKDOWN)
+            else:
+                await q.answer("حاول مرة اخرى", show_alert=True)
+        except Exception as e:
+            await q.answer(str(e), show_alert=True)
         return ConversationHandler.END
 
     if data == "admin:coupon:new":
