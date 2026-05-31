@@ -1,3 +1,4 @@
+import json
 """
 معالجات أوامر وأزرار المستخدمين العاديين
 """
@@ -53,9 +54,10 @@ logger = logging.getLogger(__name__)
 
 
 WELCOME = (
-    "✨ *أهلاً بك في متجرك المتكامل*\n"
-    "⚡ تسليم فوري · 🔒 آمن · 💬 دعم 24/7\n\n"
-    "👇 اختر أحد الأزرار التالية:"
+    "🎮 *GameZone — متجرك للألعاب الرقمية*\n"
+    "━━━━━━━━━━━━━━━━━━━━\n\n"
+    "⚡ شحن فوري · 🔒 آمن 100% · 💬 دعم 24/7\n\n"
+    "👇 اختر من القائمة:"
 )
 
 
@@ -133,9 +135,13 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         _greeting = "🌙 *GOOD NIGHT* 🌙"
 
+    name = update.effective_user.first_name or "صديقنا"
     welcome_caption = (
-        f"{_greeting}\n\n"
-        "🚀 *أختر احد الأوامر في الاسفل* 🚀"
+        f"{_greeting}\n"
+        f"👋 *أهلاً {name}!*\n\n"
+        "🎮 *GameZone* — شحن العاب رقمية فوري وآمن\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        "⚡ تسليم فوري · 🛡 100% آمن · 🌟 دعم 24/7"
         + bonus_msg
     )
     try:
@@ -439,6 +445,29 @@ async def msg_coupon_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # تحقق صلاحية + تكرار + سقف الاستخدام
     # نستخدم order_amount = min_order أو 1 (لتجاوز فحص الحد الأدنى) لأن الخصم سيضاف للرصيد مباشرة
     base_amount = float(coupon.get("min_order") or 0) or 100000  # افتراضي 100k لحساب الـ percent
+    # كوبون بونص على الإيداع — يتعرف عليه بالاسم
+    _bonus_prefixes = ("BONUS5_", "BONUS10_", "VIP")
+    if any(code.startswith(p) for p in _bonus_prefixes):
+        if not int(coupon.get("active") or 0):
+            await update.message.reply_text("❌ هذا الكود معطّل.", reply_markup=kb.back_to_main())
+            return ConversationHandler.END
+        pct = float(coupon.get("discount_value", 0))
+        ok = await asyncio.to_thread(db.consume_coupon, int(coupon["id"]), user_id, None, 0)
+        if not ok:
+            await update.message.reply_text("⚠️ الكود استُخدم مسبقاً أو انتهت صلاحيته.", reply_markup=kb.back_to_main())
+            return ConversationHandler.END
+        await asyncio.to_thread(db.set_setting, "deposit_bonus_" + str(user_id), str(int(pct)))
+        await update.message.reply_text(
+            "*تم تفعيل كوبون البونص!*" + chr(10) +
+            "━━━━━━━━━━━━━━━━━" + chr(10) + chr(10) +
+            "الكود: `" + str(coupon["code"]) + "`" + chr(10) +
+            "بونص " + str(int(pct)) + "% سيُضاف على إيداعك القادم تلقائياً!" + chr(10) + chr(10) +
+            "اشحن رصيدك الآن واستمتع بالبونص!",
+            reply_markup=kb.back_to_main(),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return ConversationHandler.END
+
     result = await asyncio.to_thread(db.validate_coupon_for_user, code, user_id, base_amount)
     if not result["ok"]:
         await update.message.reply_text(
@@ -452,10 +481,9 @@ async def msg_coupon_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
     coupon = result["coupon"]
     discount = float(result["discount"])
     if coupon["discount_type"] == "percent":
-        # في وضع "إضافة للرصيد"، الـ percent يُحسب على min_order (لو محدد) فقط لتجنب الاستغلال
         if float(coupon.get("min_order") or 0) <= 0:
             await update.message.reply_text(
-                "❌ هذا الكود لا يمكن استخدامه حالياً (يحتاج إعداد إضافي من الإدارة).",
+                "❌ هذا الكود لا يمكن استخدامه حالياً.",
                 reply_markup=kb.back_to_main(),
             )
             return ConversationHandler.END
@@ -612,38 +640,42 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(msg, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
 
 
-    if text == "🎮 قسم الألعاب":
+    if text in ["🔥 الألعاب 🎮", "🎮 الألعاب 🔥", "🎮 قسم الألعاب"]:
         await update.message.reply_text(
-            "🎮 *قسم الألعاب*\n\nاختر اللعبة اللي بدّك تشحنها 👇",
+            "🎮 *قسم الألعاب* 🔥\n""━━━━━━━━━━━━━━━━━\n\n""🏆 PUBG · Free Fire · COD · وأكثر\n""⚡ شحن فوري أوتوماتيكي 100%\n\n""👇 اختر اللعبة:",
             reply_markup=kb.games_menu(),
             parse_mode=ParseMode.MARKDOWN,
         )
 
-    elif text == "📱 قسم التطبيقات":
+    elif text in ["💫 التطبيقات 📱", "📱 التطبيقات ✨", "📱 قسم التطبيقات"]:
         await send(
-            "📱 *اشتراكات التطبيقات*\n\nاختر التطبيق اللي تبي تفعّل اشتراكه 👇",
+            "📱 *التطبيقات والاشتراكات* ✨\n""━━━━━━━━━━━━━━━━━\n\n""🎵 Spotify · Netflix · Shahid · وأكثر\n""💎 أسعار منافسة وتسليم فوري\n\n""👇 اختر التطبيق:",
             kb.subs_menu(),
         )
 
-    elif text == "🃏 قسم البطاقات والأكواد":
-        await send("🃏 *البطاقات والأكواد*\n\nاختر المنصة 👇", kb.cards_menu())
+    elif text in ["💳 بطاقات وأكواد 🃏", "🃏 بطاقات وأكواد 💳", "🃏 قسم البطاقات والأكواد"]:
+        await send("🃏 *بطاقات هدايا وأكواد* 💳\n""━━━━━━━━━━━━━━━━━\n\n""🍎 iTunes · 🎮 PSN · Steam · Xbox\n""✅ أكواد أصلية مضمونة 100%\n\n""👇 اختر المنصة:", kb.cards_menu())
 
-    elif text == "📈 قسم الرشق":
+    elif text in ["⚡ الرشق 📈", "📈 الرشق ⚡", "📈 قسم الرشق"]:
         await send(
-            "📈 *خدمات الرشق*\n\nمتابعين · لايكات · مشاهدات 👇",
+            "📈 *خدمات الرشق* ⚡\n""━━━━━━━━━━━━━━━━━\n\n""📸 Instagram · TikTok · YouTube · وأكثر\n""🚀 نمو حقيقي وسريع\n\n""👇 اختر المنصة:",
             kb.smm_menu(),
         )
 
-    elif text == "📲 قسم الأرقام":
-        await send("📲 *شحن الأرقام والأرصدة*\n\nاختر الخدمة 👇", kb.balance_menu())
+    elif text in ["🌐 الأرقام 📲", "📲 أرقام 🌐", "📲 قسم الأرقام"]:
+        await send("📲 *الأرقام والأرصدة* 🌐\n""━━━━━━━━━━━━━━━━━\n\n""📱 أرقام واتساب · تيليغرام · وأكثر\n""⚡ تسليم فوري وآمن\n\n""👇 اختر الخدمة:", kb.balance_menu())
 
-    elif text == "💰 شحن رصيد الحساب":
+    elif text in ["💰 شحن الرصيد ⚡", "💰 شحن الرصيد ⚡", "💰 شحن رصيد الحساب"]:
         await send(
-            "💰 *شحن رصيد الحساب*\n\nاختر طريقة الدفع 👇\n\n⚡ التحقق التلقائي يضيف الرصيد فوراً",
+            "💰 *شحن رصيد الحساب* ⚡\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "🔄 التحقق التلقائي يضيف الرصيد فوراً\n"
+            "🔒 آمن 100% · دعم 24/7\n\n"
+            "👇 اختر طريقة الشحن:",
             kb.recharge_methods(),
         )
 
-    elif text == "👤 معلومات حسابي":
+    elif text in ["📊 حسابي 👤", "👤 حسابي 📊", "👤 معلومات حسابي"]:
         user = db.get_user(update.effective_user.id)
         orders_count = db.count_user_orders(update.effective_user.id)
         loyalty_pts = int(user.get("loyalty_points") or 0)
@@ -663,7 +695,7 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode=ParseMode.MARKDOWN,
         )
 
-    elif text == "💎 نقاط الولاء":
+    elif text in ["👑 نقاط الولاء 💎", "💎 نقاط الولاء 🏆", "💎 نقاط الولاء"]:
         user_id = update.effective_user.id
         pts = await asyncio.to_thread(db.get_loyalty_points, user_id)
         min_redeem = config.LOYALTY_MIN_REDEEM
@@ -692,7 +724,7 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode=ParseMode.MARKDOWN,
         )
 
-    elif text == "🎟 كود الخصم":
+    elif text in ["🎁 كود خصم 🎟", "🎟 كود خصم 🎁", "🎟 كود الخصم"]:
         await update.message.reply_text(
             "🎟 *كود الخصم*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
@@ -701,10 +733,12 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode=ParseMode.MARKDOWN,
         )
 
-    elif text == "📞 التواصل مع الأدمن":
+    elif text in ["💬 الدعم 📞", "📞 الدعم 💬", "📞 التواصل مع الأدمن"]:
         await update.message.reply_text(
-            "📞 *التواصل مع الدعم*\n"
+            "💬 *الدعم والمساعدة* 🌟\n"
             "━━━━━━━━━━━━━━━━━\n\n"
+            "⚡ وقت الاستجابة: أقل من 5 دقائق\n"
+            "🕐 متاح 24/7 طوال اليوم\n\n"
             "💬 فريقنا جاهز لمساعدتك على مدار الساعة.\n\n"
             f"📩 راسلنا الآن عبر: {config.SUPPORT_USERNAME}\n\n"
             "⏱️ متوسط الرد: أقل من 10 دقائق",
@@ -785,8 +819,10 @@ async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == "menu:support":
         await _safe_edit(
             q,
-            "📞 *التواصل مع الدعم*\n"
+            "💬 *الدعم والمساعدة* 🌟\n"
             "━━━━━━━━━━━━━━━━━\n\n"
+            "⚡ وقت الاستجابة: أقل من 5 دقائق\n"
+            "🕐 متاح 24/7 طوال اليوم\n\n"
             "💬 فريقنا جاهز لمساعدتك على مدار الساعة.\n\n"
             f"📩 راسلنا الآن عبر: {config.SUPPORT_USERNAME}\n\n"
             "⏱️ متوسط الرد: أقل من 10 دقائق",
@@ -867,23 +903,31 @@ async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == "store:pubg":
         await _safe_edit(
             q,
-            "🎮 *ببجي موبايل — PUBG Mobile*\n\n"
-            "اختر القسم 👇",
+            "🎯 *PUBG MOBILE* 🏆\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "🥇 اللعبة الأكثر شعبية في العالم\n"
+            "⚡ شحن فوري · 🔒 مضمون\n\n"
+            "👇 اختر القسم:",
             reply_markup=kb.pubg_sections(),
         )
     elif data == "store:freefire":
         await _safe_edit(
             q,
-            "🔥 *فري فاير — Free Fire*\n\n"
-            "اختر القسم 👇",
+            "🔥 *FREE FIRE* 💎\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "💫 شحن ماسات فوري وآمن\n"
+            "⚡ تسليم خلال ثوانٍ معدودة\n\n"
+            "👇 اختر القسم:",
             reply_markup=kb.freefire_sections(),
         )
     elif data == "store:supercell":
         await _safe_edit(
             q,
-            "🏰 *ألعاب Supercell*\n\n"
-            "اختر اللعبة 👇\n\n"
-            "📌 الشحن مباشر بإيميل وكلمة مرور Supercell ID",
+            "🏰 *ألعاب Supercell* ⚔️\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "🪄 Clash of Clans · Clash Royale · Brawl Stars\n"
+            "📌 الشحن بإيميل Supercell ID\n\n"
+            "👇 اختر اللعبة:",
             reply_markup=kb.supercell_sections(),
         )
     elif data == "store:cod":
@@ -921,8 +965,11 @@ async def cb_pubg_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == "pubg:uc":
         await _safe_edit(
             q,
-            "🪙 *شدات ببجي — شحن تلقائي مباشر*\n\n"
-            "اختر الباقة، ثم ادخل Player ID وستصلك الشدات على حسابك خلال ثوانٍ:",
+            "🎯 *PUBG MOBILE — شدات*\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "⚡ شحن تلقائي فوري خلال ثوانٍ\n"
+            "🔒 آمن 100% · مضمون أو يُرد المبلغ\n\n"
+            "👇 اختر الباقة المناسبة:",
             reply_markup=kb.pubg_uc_offers(),
         )
     elif data == "pubg:membership":
@@ -1123,7 +1170,10 @@ async def cb_pubg_uc_select(update: Update, context: ContextTypes.DEFAULT_TYPE):
         q,
         f"💎 *{offer['label']} — {config.get_offer_price(offer)} ل.س*\n\n"
         f"رصيدك: {user['balance']:.0f} ل.س\n\n"
-        "📝 ابعت الـ *Player ID* تبعك (الرقم الموجود بحسابك ببجي):",
+        "🎮 *أدخل Player ID*\n"
+        "━━━━━━━━━━━━━\n\n"
+        "📍 تجده في ببجي: الملف الشخصي → الزاوية اليسرى\n\n"
+        "👇 أرسل الرقم الآن:",
         reply_markup=kb.cancel_inline(),
     )
     return PUBG_PLAYER_ID
@@ -2353,6 +2403,38 @@ async def cb_fastcard_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 # ============= Recharge: Syriatel =============
+
+
+async def _apply_deposit_bonus(context, user_id: int, deposited_syp: float) -> float:
+    """يفحص إذا عند المستخدم كوبون بونص على الإيداع ويطبّقه. يرجع مبلغ البونص."""
+    try:
+        pct_str = await asyncio.to_thread(db.get_setting, f"deposit_bonus_{user_id}", "")
+        if not pct_str:
+            return 0.0
+        pct = float(pct_str)
+        if pct <= 0:
+            return 0.0
+        bonus = round(deposited_syp * pct / 100.0 / 100) * 100
+        if bonus > 0:
+            await asyncio.to_thread(db.add_balance, user_id, bonus)
+            await asyncio.to_thread(db.delete_setting, f"deposit_bonus_{user_id}")
+            try:
+                await context.bot.send_message(
+                    chat_id=user_id,
+                    text=(
+                        "🎁 *تم تطبيق بونص الإيداع!*\n"
+                        "━━━━━━━━━━━━━━━━━\n\n"
+                        f"💰 إيداعك: *{deposited_syp:,.0f} ل.س*\n".replace(",","،") +
+                        f"🎉 بونص {int(pct)}%: *+{bonus:,.0f} ل.س* أضيفت لرصيدك!".replace(",","،")
+                    ),
+                    parse_mode=ParseMode.MARKDOWN,
+                )
+            except Exception:
+                pass
+        return bonus
+    except Exception:
+        return 0.0
+
 async def cb_syriatel_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
@@ -2363,7 +2445,7 @@ async def cb_syriatel_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "📱 *سيرياتيل كاش*\n\n"
         f"الرقم: `{config.SYRIATEL_CASH_NUMBER}`\n\n"
         "اشحن الرصيد المطلوب على الرقم التالي عبر التحويل اليدوي حصراً، "
-        "ومن ثم أدخل رقم عملية التحويل المكون من 12 رمز."
+        "ومن ثم أدخل رقم العملية (Transaction ID) من التطبيق."
     )
     await q.edit_message_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=kb.cancel_inline())
     return SYRIATEL_TX_CODE
@@ -2371,9 +2453,9 @@ async def cb_syriatel_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def msg_syriatel_tx_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
     code = (update.message.text or "").strip()
-    if len(code) != 12 or not re.match(r"^[A-Za-z0-9]+$", code):
+    if len(code) < 4:
         await update.message.reply_text(
-            "⚠️ رقم العملية يجب أن يكون 12 رمز (أحرف وأرقام). أعد المحاولة:",
+            "⚠️ رقم العملية قصير جداً. أعد المحاولة:",
             reply_markup=kb.cancel_inline(),
         )
         return SYRIATEL_TX_CODE
@@ -3168,23 +3250,17 @@ async def cb_usdt_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def cb_usdt_binance_pay(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """ينشئ طلب Binance Pay ويرسل رابط الدفع للمستخدم."""
+    """يطلب المبلغ لإنشاء طلب Binance Pay."""
     q = update.callback_query
     await q.answer()
-
-    from .binance_pay import create_order, poll_until_paid, BinancePayError
-    import asyncio
-
-    user_id = update.effective_user.id
-
-    # اطلب المبلغ أول
+    context.user_data["awaiting_binance_amount"] = True
     await q.edit_message_text(
-        "💎 *إيداع USDT عبر Binance Pay*\n\n"
-        "أرسل المبلغ الذي تريد إيداعه بالدولار (مثال: `10` أو `25`):",
+        "⚡ *Binance Pay — إيداع أوتوماتيكي*\n\n"
+        "أرسل المبلغ الذي تريد إيداعه بالدولار\n"
+        "مثال: `10` أو `25` أو `50`:",
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=kb.cancel_inline(),
     )
-    context.user_data["awaiting_binance_amount"] = True
     return USDT_AMOUNT_USD
 
 
@@ -3243,54 +3319,29 @@ async def msg_usdt_binance_amount(update: Update, context: ContextTypes.DEFAULT_
     # Poll في background
     context.user_data.pop("awaiting_binance_amount", None)
 
-    async def _poll():
-        from .binance_pay import is_paid
-        import asyncio
-        deadline = time.time() + 900  # 15 دقيقة
-        while time.time() < deadline:
-            try:
-                if is_paid(trade_no):
-                    # أضف الرصيد
-                    syp_per_usd = config.get_usd_to_syp()
-                    amount_syp  = amount * syp_per_usd
-                    db.add_balance(user_id, amount_syp)
-                    req_id = db.create_recharge_request(
-                        user_id, "usdt_binance", amount_syp,
-                        transaction_code=prepay_id,
-                    )
-                    await context.bot.send_message(
-                        chat_id=user_id,
-                        text=(
-                            f"🎉 *تم استلام دفعتك!*\n\n"
-                            f"💎 *{amount} USDT* تمت إضافتها لرصيدك\n"
-                            f"💰 الرصيد المضاف: *{amount_syp:,.0f} ل.س*\n"
-                            f"🔑 رقم العملية: `{req_id}`"
-                        ),
-                        parse_mode=ParseMode.MARKDOWN,
-                    )
-                    # إشعار الأدمن
-                    if config.ADMIN_ID:
-                        await notify.notify_admin(
-                            context.bot,
-                            f"✅ *إيداع Binance Pay تلقائي — #{req_id}*\n"
-                            f"👤 المستخدم: `{user_id}`\n"
-                            f"💎 {amount} USDT — {amount_syp:,.0f} ل.س",
-                            parse_mode=ParseMode.MARKDOWN,
-                        )
-                    return
-            except Exception as e:
-                logger.warning(f"Binance poll error: {e}")
-            await asyncio.sleep(8)
+    # حفظ الطلب في DB لمراقبته عبر job دوري
+    db.set_setting(f"binance_order_{trade_no}", json.dumps({
+        "user_id":  user_id,
+        "amount":   amount,
+        "trade_no": trade_no,
+        "prepay_id": prepay_id,
+        "created":  time.time(),
+    }))
 
-        # انتهى الوقت
-        await context.bot.send_message(
-            chat_id=user_id,
-            text="⏰ انتهت مهلة طلب الدفع. لو دفعت تواصل مع الدعم.",
-            reply_markup=kb.back_to_main(),
-        )
-
-    asyncio.create_task(_poll())
     return ConversationHandler.END
+
+
+async def cb_usdt_manual_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يطلب من المستخدم إدخال المبلغ للدفع اليدوي."""
+    q = update.callback_query
+    await q.answer()
+    await q.edit_message_text(
+        "💎 *إيداع USDT يدوي*\n\n"
+        "أرسل المبلغ الذي حوّلته (بالدولار $):",
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=kb.cancel_inline(),
+    )
+    return USDT_AMOUNT_USD
 
 
 async def msg_usdt_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3307,6 +3358,10 @@ async def msg_usdt_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return USDT_AMOUNT_USD
 
+    # لو Binance Pay مختار
+    if context.user_data.pop("awaiting_binance_amount", False):
+        return await _process_binance_pay(update, context, amount)
+
     context.user_data["usdt_amount"] = amount
     await update.message.reply_text(
         f"✅ المبلغ: *{amount} $*\n\n"
@@ -3317,52 +3372,182 @@ async def msg_usdt_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return USDT_TX_HASH
 
 
+async def _process_binance_pay(update, context, amount: float):
+    """يطلب Hash العملية من المستخدم للتحقق أوتو عبر BscScan."""
+    wallet = "0x9a8e639b26ee2a7796b6a2d81d2df0a74cb615d5"
+    context.user_data["usdt_amount"] = amount
+    await update.message.reply_text(
+        f"💎 *إيداع USDT — BSC BEP20*\n"
+        f"━━━━━━━━━━━━━━━\n\n"
+        f"📤 حوّل *{amount} USDT* على العنوان:\n"
+        f"`{wallet}`\n\n"
+        f"⚠️ *حصراً شبكة BSC (BEP20) فقط*\n\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"بعد التحويل أرسل *رقم العملية (Hash)*\n"
+        f"مثال: `0x1234abcd...`",
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=kb.cancel_inline(),
+    )
+    return USDT_TX_HASH
+
+
 async def msg_usdt_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tx_hash = (update.message.text or "").strip()
-    if len(tx_hash) < 10:
+    if len(tx_hash) < 20:
         await update.message.reply_text(
-            "⚠️ الـ Hash يبدو قصيراً جداً. أعد إرساله:",
+            "⚠️ الـ Hash يبدو قصيراً. أعد إرساله:\nمثال: `0x1234abcd...`",
             reply_markup=kb.cancel_inline(),
+            parse_mode=ParseMode.MARKDOWN,
         )
         return USDT_TX_HASH
 
     user_id = update.effective_user.id
-    amount = context.user_data.get("usdt_amount", 0)
-    # نحوّل USDT → ل.س بسعر الصرف الحالي لتخزين المبلغ
+    amount  = context.user_data.get("usdt_amount", 0)
+
+    # أرسل رسالة انتظار
+    wait_msg = await update.message.reply_text(
+        "🔍 جاري التحقق من العملية على البلوكتشين...",
+    )
+
+    # تحقق فوري عبر BscScan
+    from .usdt_bsc import verify_deposit
+    import json as _json, time as _time
+
+    # تحقق من صحة الـ Hash أولاً
+    if not tx_hash.startswith("0x") or len(tx_hash) != 66:
+        await wait_msg.edit_text(
+            "❌ *الـ Hash غير صحيح*\n\n"
+            "الـ Hash يجب أن يبدأ بـ `0x` ويتكون من 66 حرف\n"
+            "مثال: `0x1234abcd...`\n\n"
+            "تأكد من نسخه كاملاً من محفظتك وأعد الإرسال:",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb.cancel_inline(),
+        )
+        return USDT_TX_HASH
+
+    verified = False
+    verify_error = None
+    try:
+        from .usdt_bsc import verify_deposit, find_tx_by_hash
+        # أولاً تحقق إن العملية موجودة أصلاً
+        tx_data = find_tx_by_hash(tx_hash)
+        if tx_data is None:
+            verify_error = "not_found"
+        else:
+            verified = verify_deposit(tx_hash, amount)
+            if not verified:
+                verify_error = "wrong_amount"
+    except Exception as e:
+        logger.error(f"BscScan verify error: {e}")
+        verify_error = "api_error"
+
     syp_per_usd = config.get_usd_to_syp()
-    amount_syp = amount * syp_per_usd
+    amount_syp  = amount * syp_per_usd
 
-    req_id = db.create_recharge_request(
-        user_id, "usdt", amount_syp, transaction_code=tx_hash
-    )
+    if verified:
+        # ✅ أضف الرصيد فوراً
+        db.add_balance(user_id, amount_syp)
+        req_id = db.create_recharge_request(
+            user_id, "usdt", amount_syp, transaction_code=tx_hash
+        )
+        await wait_msg.edit_text(
+            f"✅ *تم التحقق وإضافة الرصيد!*\n\n"
+            f"💎 *{amount} USDT* أضيفت لرصيدك ⚡\n"
+            f"💰 الرصيد المضاف: *{amount_syp:,.0f} ل.س*\n"
+            f"🔑 رقم الطلب: `{req_id}`",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb.back_to_main(),
+        )
+        if config.ADMIN_ID:
+            try:
+                await notify.notify_admin(
+                    context.bot,
+                    f"✅ *إيداع USDT أوتو — #{req_id}*\n"
+                    f"👤 `{user_id}`\n"
+                    f"💎 {amount}$ — {amount_syp:,.0f} ل.س\n"
+                    f"🔗 `{tx_hash}`",
+                    parse_mode=ParseMode.MARKDOWN,
+                )
+            except Exception:
+                pass
 
-    await update.message.reply_text(
-        f"✅ *تم إرسال طلب الإيداع #{req_id}*\n\n"
-        f"💎 المبلغ: *{amount} $* (≈ {amount_syp:,.0f} ل.س)\n"
-        f"🔗 Hash: `{tx_hash}`\n\n"
-        "سيتم التحقق من العملية وإضافة الرصيد خلال دقائق.",
-        parse_mode=ParseMode.MARKDOWN,
-        reply_markup=kb.back_to_main(),
-    )
+    elif verify_error == "not_found":
+        # ❌ العملية مش موجودة على BSC
+        await wait_msg.edit_text(
+            f"❌ *العملية غير موجودة على شبكة BSC*\n\n"
+            f"🔗 Hash: `{tx_hash}`\n\n"
+            "⚠️ *الأسباب المحتملة:*\n"
+            "• العملية على شبكة أخرى (TRC20، ERC20، ...)\n"
+            "• الـ Hash غير صحيح\n"
+            "• العملية لم تُؤكَّد بعد (انتظر دقيقة وحاول ثانية)\n\n"
+            "تأكد أن التحويل تم على شبكة *BSC (BEP20) فقط* ✅",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb.usdt_retry_markup(amount),
+        )
+        context.user_data["usdt_amount"] = amount
 
-    if config.ADMIN_ID:
-        try:
-            user = db.get_user(user_id) or {}
-            uname = user.get("username") or user.get("first_name") or "—"
-            uname_str = f"@{uname}" if user.get("username") else uname
-            await notify.notify_admin(
-                context.bot,
-                f"🆕 *طلب إيداع USDT جديد — #{req_id}*\n"
-                f"━━━━━━━━━━━━━━━\n"
-                f"👤 المستخدم: {uname_str} `({user_id})`\n"
-                f"💎 المبلغ: *{amount} $* (≈ {amount_syp:,.0f} ل.س)\n"
-                f"🔗 Hash: `{tx_hash}`\n"
-                f"🌐 الشبكة: BSC (BEP20)",
-                parse_mode=ParseMode.MARKDOWN,
-                reply_markup=kb.admin_recharge_decision(req_id),
-            )
-        except Exception as e:
-            logger.error(f"USDT admin notify failed: {e}")
+    elif verify_error == "wrong_amount":
+        # ❌ المبلغ غير مطابق
+        await wait_msg.edit_text(
+            f"⚠️ *المبلغ غير مطابق*\n\n"
+            f"العملية موجودة لكن المبلغ المحوَّل لا يطابق *{amount} USDT*\n\n"
+            f"تواصل مع الدعم إذا كنت متأكداً من التحويل.",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb.back_to_main(),
+        )
+
+    else:
+        # ⏳ خطأ في API — احفظ للفحص الدوري
+        db.set_setting(f"usdt_pending_{tx_hash[:20]}", _json.dumps({
+            "user_id":  user_id,
+            "tx_hash":  tx_hash,
+            "amount":   amount,
+            "created":  _time.time(),
+        }))
+        req_id = db.create_recharge_request(
+            user_id, "usdt", amount_syp, transaction_code=tx_hash
+        )
+        await wait_msg.edit_text(
+            f"⏳ *جاري التحقق...*\n\n"
+            f"💎 المبلغ: *{amount} USDT*\n"
+            f"🔗 Hash: `{tx_hash}`\n\n"
+            f"سيُضاف رصيدك تلقائياً فور تأكيد العملية ✅\n"
+            f"عادةً خلال 1-3 دقائق",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb.back_to_main(),
+        )
+        if config.ADMIN_ID:
+            try:
+                user_obj = db.get_user(user_id) or {}
+                uname = user_obj.get("username") or user_obj.get("first_name") or "—"
+                await notify.notify_admin(
+                    context.bot,
+                    f"🆕 *طلب إيداع USDT — #{req_id}*\n"
+                    f"👤 @{uname} `({user_id})`\n"
+                    f"💎 {amount}$ — {amount_syp:,.0f} ل.س\n"
+                    f"🔗 `{tx_hash}`\n"
+                    f"🌐 BSC (BEP20) — جاري التحقق",
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=kb.admin_recharge_decision(req_id),
+                )
+            except Exception:
+                pass
+        if config.ADMIN_ID:
+            try:
+                user = db.get_user(user_id) or {}
+                uname = user.get("username") or user.get("first_name") or "—"
+                await notify.notify_admin(
+                    context.bot,
+                    f"🆕 *طلب إيداع USDT — #{req_id}*\n"
+                    f"👤 @{uname} `({user_id})`\n"
+                    f"💎 {amount}$ — {amount_syp:,.0f} ل.س\n"
+                    f"🔗 `{tx_hash}`\n"
+                    f"🌐 BSC (BEP20) — جاري التحقق أوتو",
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=kb.admin_recharge_decision(req_id),
+                )
+            except Exception:
+                pass
 
     context.user_data.pop("usdt_amount", None)
     return ConversationHandler.END
@@ -3373,10 +3558,6 @@ async def cancel_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE
     if q:
         await q.answer()
         await q.edit_message_text(WELCOME, reply_markup=kb.main_menu(), parse_mode=ParseMode.MARKDOWN)
-    else:
-        context.user_data.clear()
-        return await cmd_start(update, context)
-    context.user_data.clear()
     return ConversationHandler.END
 
 
@@ -3384,18 +3565,25 @@ def register_user_handlers(app):
     app.add_handler(CommandHandler("start", cmd_start))
 
     syriatel_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(cb_syriatel_start, pattern=r"^recharge:syriatel$")],
+        entry_points=[
+            CommandHandler("start", cancel_conversation),CallbackQueryHandler(cb_syriatel_start, pattern=r"^recharge:syriatel$")],
         states={
             SYRIATEL_TX_CODE: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_syriatel_tx_code),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
             SYRIATEL_AMOUNT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_syriatel_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
-        fallbacks=[CommandHandler("start", cancel_conversation)],
+        fallbacks=[
+            CommandHandler("start", cancel_conversation),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
+        ],
         per_message=False,
         allow_reentry=True,
     )
@@ -3405,18 +3593,29 @@ def register_user_handlers(app):
     app.add_handler(CallbackQueryHandler(cb_syriatel_manual, pattern=r"^syr_manual:"))
 
     usdt_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(cb_usdt_start, pattern=r"^recharge:usdt$")],
+        entry_points=[
+            CommandHandler("start", cancel_conversation),CallbackQueryHandler(cb_usdt_start, pattern=r"^recharge:usdt$")],
         states={
             USDT_AMOUNT_USD: [
+                # زر Binance Pay الأوتو
+                CallbackQueryHandler(cb_usdt_binance_pay, pattern=r"^usdt:binance_pay$"),
+                # دفع يدوي
+                CallbackQueryHandler(cb_usdt_manual_start, pattern=r"^usdt:manual$"),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_usdt_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
             USDT_TX_HASH: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_usdt_tx_hash),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
-        fallbacks=[CommandHandler("start", cancel_conversation)],
+        fallbacks=[
+            CommandHandler("start", cancel_conversation),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
+        ],
         per_message=False,
         allow_reentry=True,
     )
@@ -3424,6 +3623,7 @@ def register_user_handlers(app):
 
     shamcash_conv = ConversationHandler(
         entry_points=[
+            CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cb_shamcash_start, pattern=r"^recharge:shamcash$"),
             CallbackQueryHandler(cb_shamcash_usd_start, pattern=r"^recharge:shamcash_usd$"),
             CallbackQueryHandler(cb_shamcash_manual, pattern=r"^sc_manual:"),
@@ -3432,18 +3632,25 @@ def register_user_handlers(app):
             SHAMCASH_AMOUNT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_shamcash_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
             SHAMCASH_USD_AMOUNT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_shamcash_usd_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
             SHAMCASH_PHOTO: [
                 MessageHandler(filters.PHOTO, msg_shamcash_photo),
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_shamcash_photo),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
-        fallbacks=[CommandHandler("start", cancel_conversation)],
+        fallbacks=[
+            CommandHandler("start", cancel_conversation),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
+        ],
         per_message=False,
         allow_reentry=True,
     )
@@ -3453,14 +3660,20 @@ def register_user_handlers(app):
     app.add_handler(CallbackQueryHandler(cb_shamcash_usd_verify, pattern=r"^sc_verify_usd:"))
 
     pubg_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(cb_pubg_uc_select, pattern=r"^pubg_uc:")],
+        entry_points=[
+            CommandHandler("start", cancel_conversation),CallbackQueryHandler(cb_pubg_uc_select, pattern=r"^pubg_uc:")],
         states={
             PUBG_PLAYER_ID: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_pubg_player_id),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
-        fallbacks=[CommandHandler("start", cancel_conversation)],
+        fallbacks=[
+            CommandHandler("start", cancel_conversation),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
+        ],
         per_message=False,
         allow_reentry=True,
     )
@@ -3470,14 +3683,20 @@ def register_user_handlers(app):
     app.add_handler(CallbackQueryHandler(cb_pubg_uc_verify, pattern=r"^pubg_uc_verify:"))
 
     freefire_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(cb_freefire_diamond_select, pattern=r"^ff_dia:")],
+        entry_points=[
+            CommandHandler("start", cancel_conversation),CallbackQueryHandler(cb_freefire_diamond_select, pattern=r"^ff_dia:")],
         states={
             FREEFIRE_PLAYER_ID: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_freefire_player_id),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
-        fallbacks=[CommandHandler("start", cancel_conversation)],
+        fallbacks=[
+            CommandHandler("start", cancel_conversation),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
+        ],
         per_message=False,
         allow_reentry=True,
     )
@@ -3488,6 +3707,7 @@ def register_user_handlers(app):
     # ===== Generic Fastcard auto-delivery (memberships + codes + custom-amount balance) =====
     fastcard_conv = ConversationHandler(
         entry_points=[
+            CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cb_fastcard_buy_select, pattern=r"^fcbuy:"),
             CallbackQueryHandler(cb_fastcard_amount_start, pattern=r"^fcamt:"),
         ],
@@ -3496,13 +3716,19 @@ def register_user_handlers(app):
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_fastcard_custom_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^store:balance$"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
             FASTCARD_PLAYER_ID: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_fastcard_player_id),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
-        fallbacks=[CommandHandler("start", cancel_conversation)],
+        fallbacks=[
+            CommandHandler("start", cancel_conversation),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
+        ],
         per_message=False,
         allow_reentry=True,
     )
@@ -3513,15 +3739,21 @@ def register_user_handlers(app):
 
     # ===== Loyalty Points =====
     loyalty_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(cb_loyalty, pattern=r"^loyalty:redeem_custom$")],
+        entry_points=[
+            CommandHandler("start", cancel_conversation),CallbackQueryHandler(cb_loyalty, pattern=r"^loyalty:redeem_custom$")],
         states={
             LOYALTY_REDEEM_AMOUNT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, loyalty_redeem_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:loyalty$"),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
-        fallbacks=[CommandHandler("start", cancel_conversation)],
+        fallbacks=[
+            CommandHandler("start", cancel_conversation),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
+        ],
         per_message=False,
         allow_reentry=True,
     )
@@ -3530,14 +3762,20 @@ def register_user_handlers(app):
 
     # ===== Discount Coupon =====
     coupon_conv = ConversationHandler(
-        entry_points=[CallbackQueryHandler(cb_coupon_entry, pattern=r"^menu:coupon$")],
+        entry_points=[
+            CommandHandler("start", cancel_conversation),CallbackQueryHandler(cb_coupon_entry, pattern=r"^menu:coupon$")],
         states={
             COUPON_CODE_INPUT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_coupon_code),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
             ],
         },
-        fallbacks=[CommandHandler("start", cancel_conversation)],
+        fallbacks=[
+            CommandHandler("start", cancel_conversation),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
+        ],
         per_message=False,
         allow_reentry=True,
     )
@@ -3545,6 +3783,10 @@ def register_user_handlers(app):
 
     # Reply Keyboard nav — group=-1 يضمن الأولوية على ConversationHandlers
     _REPLY_KB_TEXTS = {
+        "🔥 الألعاب 🎮", "💫 التطبيقات 📱",
+        "💳 بطاقات وأكواد 🃏", "⚡ الرشق 📈", "🌐 الأرقام 📲",
+        "💰 شحن الرصيد ⚡", "📊 حسابي 👤",
+        "👑 نقاط الولاء 💎", "🎁 كود خصم 🎟", "💬 الدعم 📞",
         "🎮 قسم الألعاب", "📱 قسم التطبيقات", "🃏 قسم البطاقات والأكواد",
         "📈 قسم الرشق", "📲 قسم الأرقام",
         "💎 نقاط الولاء", "🎟 كود الخصم",
