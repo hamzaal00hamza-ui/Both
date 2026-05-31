@@ -31,13 +31,19 @@ def user_reply_keyboard() -> ReplyKeyboardMarkup:
 
 def main_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("👤 حسابي", callback_data="menu:account")],
-        [InlineKeyboardButton("💰 شحن رصيد الحساب", callback_data="menu:recharge")],
-        [InlineKeyboardButton("🛒 المتجر", callback_data="menu:store")],
-        [InlineKeyboardButton("💎 نقاطي", callback_data="menu:loyalty"),
-         InlineKeyboardButton("🎟 كود خصم", callback_data="menu:coupon")],
-        [InlineKeyboardButton("👥 دعوة الأصدقاء", callback_data="menu:referral")],
-        [InlineKeyboardButton("📞 التواصل مع الدعم", callback_data="menu:support")],
+        [InlineKeyboardButton("🛒 تسوّق الآن", callback_data="menu:store")],
+        [
+            InlineKeyboardButton("💳 شحن الرصيد ⚡", callback_data="menu:recharge"),
+            InlineKeyboardButton("👤 حسابي", callback_data="menu:account"),
+        ],
+        [
+            InlineKeyboardButton("💎 نقاطي", callback_data="menu:loyalty"),
+            InlineKeyboardButton("🎟 كود خصم", callback_data="menu:coupon"),
+        ],
+        [
+            InlineKeyboardButton("👥 ادعُ صديقاً 🎁", callback_data="menu:referral"),
+            InlineKeyboardButton("💬 الدعم", callback_data="menu:support"),
+        ],
     ])
 
 
@@ -93,11 +99,12 @@ def referral_menu(referral_link: str, share_text: str) -> InlineKeyboardMarkup:
 
 def recharge_methods() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📱 سيرياتيل كاش", callback_data="recharge:syriatel")],
-        [InlineKeyboardButton("💳 شام كاش (ل.س)", callback_data="recharge:shamcash")],
-        [InlineKeyboardButton("💵 شام كاش (دولار)", callback_data="recharge:shamcash_usd")],
-        [InlineKeyboardButton("💎 USDT (BEP20 / BSC)", callback_data="recharge:usdt")],
-        [InlineKeyboardButton("⬅️ القائمة الرئيسية", callback_data="menu:main")],
+        [InlineKeyboardButton("━━━ اختر طريقة الشحن ━━━", callback_data="admin:noop")],
+        [InlineKeyboardButton("📱 سيرياتيل كاش ⚡ أوتو", callback_data="recharge:syriatel")],
+        [InlineKeyboardButton("💚 شام كاش (ل.س) ⚡ أوتو", callback_data="recharge:shamcash")],
+        [InlineKeyboardButton("💵 شام كاش (دولار) ⚡ أوتو", callback_data="recharge:shamcash_usd")],
+        [InlineKeyboardButton("💎 USDT BEP20 / BSC", callback_data="recharge:usdt")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="menu:main")],
     ])
 
 
@@ -457,83 +464,31 @@ def admin_order_decision(order_id: int) -> InlineKeyboardMarkup:
 
 
 def admin_panel() -> InlineKeyboardMarkup:
-    """لوحة الأدمن الرئيسية — مقسّمة لأقسام واضحة."""
     return InlineKeyboardMarkup([
-        # ── المالية ──
-        [InlineKeyboardButton("━━━ 💰 المالية ━━━", callback_data="admin:noop")],
+        [InlineKeyboardButton("📊 إحصائيات", callback_data="admin:stats")],
+        [InlineKeyboardButton("⏳ الطلبات المعلقة", callback_data="admin:pending")],
+        [InlineKeyboardButton("💼 حالة المتجر (API)", callback_data="admin:supplier")],
         [
-            InlineKeyboardButton("📊 إحصائيات", callback_data="admin:stats"),
-            InlineKeyboardButton("📈 تقرير اليوم", callback_data="admin:today_report"),
+            InlineKeyboardButton("📱 رصيد سرياتيل كاش", callback_data="admin:syriatel_balance"),
+            InlineKeyboardButton("💰 رصيد شام كاش", callback_data="admin:shamcash_balance"),
         ],
-        [
-            InlineKeyboardButton("💵 الأرباح", callback_data="admin:profit"),
-            InlineKeyboardButton("💱 سعر الصرف", callback_data="admin:rates"),
-        ],
-        [
-            InlineKeyboardButton("📱 رصيد سيرياتيل", callback_data="admin:syriatel_balance"),
-            InlineKeyboardButton("💚 رصيد شام كاش", callback_data="admin:shamcash_balance"),
-        ],
-        # ── الطلبات ──
-        [InlineKeyboardButton("━━━ 📦 الطلبات ━━━", callback_data="admin:noop")],
-        [
-            InlineKeyboardButton("⏳ طلبات معلقة", callback_data="admin:pending"),
-            InlineKeyboardButton("📦 مخزون المنتجات", callback_data="admin:stock"),
-        ],
-        [InlineKeyboardButton("💼 حالة Fastcard API", callback_data="admin:supplier")],
-        # ── المنتجات والأسعار ──
-        [InlineKeyboardButton("━━━ 🏷 الأسعار ━━━", callback_data="admin:noop")],
-        [
-            InlineKeyboardButton("📊 هامش الربح %", callback_data="admin:profit_margin"),
-            InlineKeyboardButton("💲 تعديل الأسعار", callback_data="admin:prices"),
-        ],
-        [InlineKeyboardButton("🔍 فحص أسعار Fastcard", callback_data="admin:price_check")],
-        # ── المستخدمون ──
-        [InlineKeyboardButton("━━━ 👥 المستخدمون ━━━", callback_data="admin:noop")],
-        [
-            InlineKeyboardButton("🔍 بحث عن مستخدم", callback_data="admin:search_user"),
-            InlineKeyboardButton("✏️ تعديل رصيد", callback_data="admin:edit_balance"),
-        ],
-        [
-            InlineKeyboardButton("🚫 حظر/فك حظر", callback_data="admin:toggle_ban"),
-            InlineKeyboardButton("🏆 أفضل الزبائن", callback_data="admin:top_users"),
-        ],
-        [
-            InlineKeyboardButton("⭐ تقييمات الزبائن", callback_data="admin:ratings"),
-            InlineKeyboardButton("🎟 الكوبونات", callback_data="admin:coupons"),
-        ],
-        # ── الإعدادات ──
-        [InlineKeyboardButton("━━━ ⚙️ الإعدادات ━━━", callback_data="admin:noop")],
-        [
-            InlineKeyboardButton("📢 إشعار جماعي", callback_data="admin:broadcast"),
-            InlineKeyboardButton("📡 قناة التوثيق", callback_data="admin:channel"),
-        ],
+        [InlineKeyboardButton("🔍 فحص أسعار Fastcard الآن", callback_data="admin:price_check")],
+        [InlineKeyboardButton("📦 المنتجات غير المتوفرة", callback_data="admin:stock")],
+        [InlineKeyboardButton("📈 تقرير اليوم", callback_data="admin:today_report")],
+        [InlineKeyboardButton("💵 الأرباح", callback_data="admin:profit")],
+        [InlineKeyboardButton("🏆 أفضل الزبائن", callback_data="admin:top_users")],
+        [InlineKeyboardButton("⭐ تقييمات الزبائن", callback_data="admin:ratings")],
+        [InlineKeyboardButton("🎟 الكوبونات", callback_data="admin:coupons")],
+        [InlineKeyboardButton("💱 سعر الصرف", callback_data="admin:rates")],
+        [InlineKeyboardButton("📊 هامش الربح", callback_data="admin:profit_margin")],
+        [InlineKeyboardButton("💲 تعديل أسعار المنتجات", callback_data="admin:prices")],
+        [InlineKeyboardButton("🔍 بحث عن مستخدم", callback_data="admin:search_user")],
+        [InlineKeyboardButton("✏️ تعديل رصيد", callback_data="admin:edit_balance")],
+        [InlineKeyboardButton("🚫 حظر/فك حظر", callback_data="admin:toggle_ban")],
+        [InlineKeyboardButton("📢 إشعار جماعي", callback_data="admin:broadcast")],
+        [InlineKeyboardButton("📡 قناة توثيق الطلبات", callback_data="admin:channel")],
         [InlineKeyboardButton("⬅️ القائمة الرئيسية", callback_data="menu:main")],
     ])
-
-
-def admin_section_panel(section: str) -> InlineKeyboardMarkup:
-    """لوحة قسم محدد — للتنقل السريع."""
-    sections = {
-        "finance": [
-            [InlineKeyboardButton("📊 إحصائيات", callback_data="admin:stats"),
-             InlineKeyboardButton("📈 تقرير اليوم", callback_data="admin:today_report")],
-            [InlineKeyboardButton("💵 الأرباح", callback_data="admin:profit"),
-             InlineKeyboardButton("💱 سعر الصرف", callback_data="admin:rates")],
-        ],
-        "orders": [
-            [InlineKeyboardButton("⏳ طلبات معلقة", callback_data="admin:pending"),
-             InlineKeyboardButton("📦 المخزون", callback_data="admin:stock")],
-        ],
-        "users": [
-            [InlineKeyboardButton("🔍 بحث", callback_data="admin:search_user"),
-             InlineKeyboardButton("✏️ تعديل رصيد", callback_data="admin:edit_balance")],
-            [InlineKeyboardButton("🚫 حظر/فك حظر", callback_data="admin:toggle_ban"),
-             InlineKeyboardButton("🏆 أفضل الزبائن", callback_data="admin:top_users")],
-        ],
-    }
-    rows = sections.get(section, [])
-    rows.append([InlineKeyboardButton("⬅️ لوحة الأدمن", callback_data="admin:panel")])
-    return InlineKeyboardMarkup(rows)
 
 
 def admin_price_categories(page: int = 0, per_page: int = 10) -> InlineKeyboardMarkup:

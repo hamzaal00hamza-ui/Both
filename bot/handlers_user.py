@@ -54,9 +54,10 @@ logger = logging.getLogger(__name__)
 
 
 WELCOME = (
-    "✨ *أهلاً بك في متجرك المتكامل*\n"
-    "⚡ تسليم فوري · 🔒 آمن · 💬 دعم 24/7\n\n"
-    "👇 اختر أحد الأزرار التالية:"
+    "🎮 *GameZone — متجرك للألعاب الرقمية*\n"
+    "━━━━━━━━━━━━━━━━━━━━\n\n"
+    "⚡ شحن فوري · 🔒 آمن 100% · 💬 دعم 24/7\n\n"
+    "👇 اختر من القائمة:"
 )
 
 
@@ -134,9 +135,13 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         _greeting = "🌙 *GOOD NIGHT* 🌙"
 
+    name = update.effective_user.first_name or "صديقنا"
     welcome_caption = (
-        f"{_greeting}\n\n"
-        "🚀 *أختر احد الأوامر في الاسفل* 🚀"
+        f"{_greeting}\n"
+        f"👋 *أهلاً {name}!*\n\n"
+        "🎮 *GameZone* — شحن العاب رقمية فوري وآمن\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        "⚡ تسليم فوري · 🛡 100% آمن · 🌟 دعم 24/7"
         + bonus_msg
     )
     try:
