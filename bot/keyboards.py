@@ -182,11 +182,11 @@ def games_menu() -> InlineKeyboardMarkup:
 def cards_menu() -> InlineKeyboardMarkup:
     """قائمة البطاقات الرئيسية."""
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🎮 PlayStation (PSN)", callback_data="cards:psn")],
-        [InlineKeyboardButton("🚂 Steam", callback_data="cards:steam")],
-        [InlineKeyboardButton("🍎 iTunes", callback_data="cards:itunes")],
-        [InlineKeyboardButton("📱 Google Play", callback_data="cards:gplay")],
-        [InlineKeyboardButton("🎮 Xbox", callback_data="cards:xbox")],
+        [InlineKeyboardButton("🎮 PlayStation (PSN) 🔵", callback_data="cards:psn")],
+        [InlineKeyboardButton("🎯 Steam 🖥", callback_data="cards:steam")],
+        [InlineKeyboardButton("🍎 iTunes / App Store 💳", callback_data="cards:itunes")],
+        [InlineKeyboardButton("▶️ Google Play 🟢", callback_data="cards:gplay")],
+        [InlineKeyboardButton("🟢 Xbox Gift Card 🎮", callback_data="cards:xbox")],
         [InlineKeyboardButton("🟢 Razer Gold", callback_data="cards:razer")],
         [InlineKeyboardButton("🎮 Nintendo", callback_data="fclist:nt_us")],
         [InlineKeyboardButton("📺 Netflix (اشتراكات)", callback_data="fclist:nflx")],
@@ -288,28 +288,29 @@ def ludo_sections() -> InlineKeyboardMarkup:
 
 def pubg_sections() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("💎 شدات — سيرفر 1", callback_data="pubg:uc")],
-        [InlineKeyboardButton("👑 عضويات ببجي", callback_data="pubg:membership")],
-        [InlineKeyboardButton("🎟️ أكواد شدات", callback_data="pubg:codes")],
-        [InlineKeyboardButton("⬅️ رجوع", callback_data="store:games")],
+        [InlineKeyboardButton("💎 شدات UC ⚡ أوتو فوري", callback_data="pubg:uc")],
+        [InlineKeyboardButton("👑 عضويات ببجي 🏆", callback_data="pubg:membership")],
+        [InlineKeyboardButton("🎟 أكواد شدات 🎁", callback_data="pubg:codes")],
+        [InlineKeyboardButton("⬅️ رجوع للألعاب", callback_data="store:games")],
     ])
 
 
 def pubg_uc_offers(stock: dict = None) -> InlineKeyboardMarkup:
     rows = []
     for offer in config.PUBG_UC_OFFERS:
+        price = config.get_offer_price(offer)
         rows.append([InlineKeyboardButton(
-            f"🪙 {offer['label']} - {config.get_offer_price(offer)} ل.س",
+            f"🎯 {offer['label']} — {price:,.0f} ل.س",
             callback_data=f"pubg_uc:{offer['id']}"
         )])
-    rows.append([InlineKeyboardButton("⬅️ ببجي موبايل", callback_data="store:pubg")])
+    rows.append([InlineKeyboardButton("⬅️ رجوع", callback_data="store:pubg")])
     return InlineKeyboardMarkup(rows)
 
 
 def pubg_uc_confirm(offer_id: str, price: float) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton(f"✅ تأكيد الشراء ({price:.0f} ل.س)", callback_data=f"pubg_uc_confirm:{offer_id}")],
-        [InlineKeyboardButton("⬅️ رجوع", callback_data="pubg:uc")],
+        [InlineKeyboardButton(f"✅ تأكيد الشراء — {price:,.0f} ل.س 💰", callback_data=f"pubg_uc_confirm:{offer_id}")],
+        [InlineKeyboardButton("❌ إلغاء", callback_data="pubg:uc")],
     ])
 
 

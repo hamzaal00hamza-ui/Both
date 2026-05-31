@@ -645,7 +645,11 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif text in ["💰 شحن الرصيد ⚡", "💰 شحن الرصيد ⚡", "💰 شحن رصيد الحساب"]:
         await send(
-            "💰 *شحن رصيد الحساب*\n\nاختر طريقة الدفع 👇\n\n⚡ التحقق التلقائي يضيف الرصيد فوراً",
+            "💰 *شحن رصيد الحساب* ⚡\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "🔄 التحقق التلقائي يضيف الرصيد فوراً\n"
+            "🔒 آمن 100% · دعم 24/7\n\n"
+            "👇 اختر طريقة الشحن:",
             kb.recharge_methods(),
         )
 
@@ -709,8 +713,10 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif text in ["💬 الدعم 📞", "📞 الدعم 💬", "📞 التواصل مع الأدمن"]:
         await update.message.reply_text(
-            "📞 *التواصل مع الدعم*\n"
+            "💬 *الدعم والمساعدة* 🌟\n"
             "━━━━━━━━━━━━━━━━━\n\n"
+            "⚡ وقت الاستجابة: أقل من 5 دقائق\n"
+            "🕐 متاح 24/7 طوال اليوم\n\n"
             "💬 فريقنا جاهز لمساعدتك على مدار الساعة.\n\n"
             f"📩 راسلنا الآن عبر: {config.SUPPORT_USERNAME}\n\n"
             "⏱️ متوسط الرد: أقل من 10 دقائق",
@@ -791,8 +797,10 @@ async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == "menu:support":
         await _safe_edit(
             q,
-            "📞 *التواصل مع الدعم*\n"
+            "💬 *الدعم والمساعدة* 🌟\n"
             "━━━━━━━━━━━━━━━━━\n\n"
+            "⚡ وقت الاستجابة: أقل من 5 دقائق\n"
+            "🕐 متاح 24/7 طوال اليوم\n\n"
             "💬 فريقنا جاهز لمساعدتك على مدار الساعة.\n\n"
             f"📩 راسلنا الآن عبر: {config.SUPPORT_USERNAME}\n\n"
             "⏱️ متوسط الرد: أقل من 10 دقائق",
@@ -873,23 +881,31 @@ async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == "store:pubg":
         await _safe_edit(
             q,
-            "🎮 *ببجي موبايل — PUBG Mobile*\n\n"
-            "اختر القسم 👇",
+            "🎯 *PUBG MOBILE* 🏆\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "🥇 اللعبة الأكثر شعبية في العالم\n"
+            "⚡ شحن فوري · 🔒 مضمون\n\n"
+            "👇 اختر القسم:",
             reply_markup=kb.pubg_sections(),
         )
     elif data == "store:freefire":
         await _safe_edit(
             q,
-            "🔥 *فري فاير — Free Fire*\n\n"
-            "اختر القسم 👇",
+            "🔥 *FREE FIRE* 💎\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "💫 شحن ماسات فوري وآمن\n"
+            "⚡ تسليم خلال ثوانٍ معدودة\n\n"
+            "👇 اختر القسم:",
             reply_markup=kb.freefire_sections(),
         )
     elif data == "store:supercell":
         await _safe_edit(
             q,
-            "🏰 *ألعاب Supercell*\n\n"
-            "اختر اللعبة 👇\n\n"
-            "📌 الشحن مباشر بإيميل وكلمة مرور Supercell ID",
+            "🏰 *ألعاب Supercell* ⚔️\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "🪄 Clash of Clans · Clash Royale · Brawl Stars\n"
+            "📌 الشحن بإيميل Supercell ID\n\n"
+            "👇 اختر اللعبة:",
             reply_markup=kb.supercell_sections(),
         )
     elif data == "store:cod":
@@ -927,8 +943,11 @@ async def cb_pubg_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == "pubg:uc":
         await _safe_edit(
             q,
-            "🪙 *شدات ببجي — شحن تلقائي مباشر*\n\n"
-            "اختر الباقة، ثم ادخل Player ID وستصلك الشدات على حسابك خلال ثوانٍ:",
+            "🎯 *PUBG MOBILE — شدات*\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "⚡ شحن تلقائي فوري خلال ثوانٍ\n"
+            "🔒 آمن 100% · مضمون أو يُرد المبلغ\n\n"
+            "👇 اختر الباقة المناسبة:",
             reply_markup=kb.pubg_uc_offers(),
         )
     elif data == "pubg:membership":
@@ -1129,7 +1148,10 @@ async def cb_pubg_uc_select(update: Update, context: ContextTypes.DEFAULT_TYPE):
         q,
         f"💎 *{offer['label']} — {config.get_offer_price(offer)} ل.س*\n\n"
         f"رصيدك: {user['balance']:.0f} ل.س\n\n"
-        "📝 ابعت الـ *Player ID* تبعك (الرقم الموجود بحسابك ببجي):",
+        "🎮 *أدخل Player ID*\n"
+        "━━━━━━━━━━━━━\n\n"
+        "📍 تجده في ببجي: الملف الشخصي → الزاوية اليسرى\n\n"
+        "👇 أرسل الرقم الآن:",
         reply_markup=kb.cancel_inline(),
     )
     return PUBG_PLAYER_ID
