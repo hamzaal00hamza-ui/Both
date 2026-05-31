@@ -618,38 +618,38 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(msg, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
 
 
-    if text == "🎮 قسم الألعاب":
+    if text in ["🔥 الألعاب 🎮", "🎮 الألعاب 🔥", "🎮 قسم الألعاب"]:
         await update.message.reply_text(
-            "🎮 *قسم الألعاب*\n\nاختر اللعبة اللي بدّك تشحنها 👇",
+            "🎮 *قسم الألعاب* 🔥\n""━━━━━━━━━━━━━━━━━\n\n""🏆 PUBG · Free Fire · COD · وأكثر\n""⚡ شحن فوري أوتوماتيكي 100%\n\n""👇 اختر اللعبة:",
             reply_markup=kb.games_menu(),
             parse_mode=ParseMode.MARKDOWN,
         )
 
-    elif text == "📱 قسم التطبيقات":
+    elif text in ["💫 التطبيقات 📱", "📱 التطبيقات ✨", "📱 قسم التطبيقات"]:
         await send(
-            "📱 *اشتراكات التطبيقات*\n\nاختر التطبيق اللي تبي تفعّل اشتراكه 👇",
+            "📱 *التطبيقات والاشتراكات* ✨\n""━━━━━━━━━━━━━━━━━\n\n""🎵 Spotify · Netflix · Shahid · وأكثر\n""💎 أسعار منافسة وتسليم فوري\n\n""👇 اختر التطبيق:",
             kb.subs_menu(),
         )
 
-    elif text == "🃏 قسم البطاقات والأكواد":
-        await send("🃏 *البطاقات والأكواد*\n\nاختر المنصة 👇", kb.cards_menu())
+    elif text in ["💳 بطاقات وأكواد 🃏", "🃏 بطاقات وأكواد 💳", "🃏 قسم البطاقات والأكواد"]:
+        await send("🃏 *بطاقات هدايا وأكواد* 💳\n""━━━━━━━━━━━━━━━━━\n\n""🍎 iTunes · 🎮 PSN · Steam · Xbox\n""✅ أكواد أصلية مضمونة 100%\n\n""👇 اختر المنصة:", kb.cards_menu())
 
-    elif text == "📈 قسم الرشق":
+    elif text in ["⚡ الرشق 📈", "📈 الرشق ⚡", "📈 قسم الرشق"]:
         await send(
-            "📈 *خدمات الرشق*\n\nمتابعين · لايكات · مشاهدات 👇",
+            "📈 *خدمات الرشق* ⚡\n""━━━━━━━━━━━━━━━━━\n\n""📸 Instagram · TikTok · YouTube · وأكثر\n""🚀 نمو حقيقي وسريع\n\n""👇 اختر المنصة:",
             kb.smm_menu(),
         )
 
-    elif text == "📲 قسم الأرقام":
-        await send("📲 *شحن الأرقام والأرصدة*\n\nاختر الخدمة 👇", kb.balance_menu())
+    elif text in ["🌐 الأرقام 📲", "📲 أرقام 🌐", "📲 قسم الأرقام"]:
+        await send("📲 *الأرقام والأرصدة* 🌐\n""━━━━━━━━━━━━━━━━━\n\n""📱 أرقام واتساب · تيليغرام · وأكثر\n""⚡ تسليم فوري وآمن\n\n""👇 اختر الخدمة:", kb.balance_menu())
 
-    elif text == "💰 شحن رصيد الحساب":
+    elif text in ["💰 شحن الرصيد ⚡", "💰 شحن الرصيد ⚡", "💰 شحن رصيد الحساب"]:
         await send(
             "💰 *شحن رصيد الحساب*\n\nاختر طريقة الدفع 👇\n\n⚡ التحقق التلقائي يضيف الرصيد فوراً",
             kb.recharge_methods(),
         )
 
-    elif text == "👤 معلومات حسابي":
+    elif text in ["📊 حسابي 👤", "👤 حسابي 📊", "👤 معلومات حسابي"]:
         user = db.get_user(update.effective_user.id)
         orders_count = db.count_user_orders(update.effective_user.id)
         loyalty_pts = int(user.get("loyalty_points") or 0)
@@ -669,7 +669,7 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode=ParseMode.MARKDOWN,
         )
 
-    elif text == "💎 نقاط الولاء":
+    elif text in ["👑 نقاط الولاء 💎", "💎 نقاط الولاء 🏆", "💎 نقاط الولاء"]:
         user_id = update.effective_user.id
         pts = await asyncio.to_thread(db.get_loyalty_points, user_id)
         min_redeem = config.LOYALTY_MIN_REDEEM
@@ -698,7 +698,7 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode=ParseMode.MARKDOWN,
         )
 
-    elif text == "🎟 كود الخصم":
+    elif text in ["🎁 كود خصم 🎟", "🎟 كود خصم 🎁", "🎟 كود الخصم"]:
         await update.message.reply_text(
             "🎟 *كود الخصم*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
@@ -707,7 +707,7 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode=ParseMode.MARKDOWN,
         )
 
-    elif text == "📞 التواصل مع الأدمن":
+    elif text in ["💬 الدعم 📞", "📞 الدعم 💬", "📞 التواصل مع الأدمن"]:
         await update.message.reply_text(
             "📞 *التواصل مع الدعم*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
@@ -3707,6 +3707,8 @@ def register_user_handlers(app):
 
     # Reply Keyboard nav — group=-1 يضمن الأولوية على ConversationHandlers
     _REPLY_KB_TEXTS = {
+        "🔥 الألعاب 🎮", "💫 التطبيقات 📱",
+        "💳 بطاقات وأكواد 🃏", "⚡ الرشق 📈", "🌐 الأرقام 📲",
         "🎮 قسم الألعاب", "📱 قسم التطبيقات", "🃏 قسم البطاقات والأكواد",
         "📈 قسم الرشق", "📲 قسم الأرقام",
         "💎 نقاط الولاء", "🎟 كود الخصم",
