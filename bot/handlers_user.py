@@ -2381,6 +2381,38 @@ async def cb_fastcard_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 # ============= Recharge: Syriatel =============
+
+
+async def _apply_deposit_bonus(context, user_id: int, deposited_syp: float) -> float:
+    """يفحص إذا عند المستخدم كوبون بونص على الإيداع ويطبّقه. يرجع مبلغ البونص."""
+    try:
+        pct_str = await asyncio.to_thread(db.get_setting, f"deposit_bonus_{user_id}", "")
+        if not pct_str:
+            return 0.0
+        pct = float(pct_str)
+        if pct <= 0:
+            return 0.0
+        bonus = round(deposited_syp * pct / 100.0 / 100) * 100
+        if bonus > 0:
+            await asyncio.to_thread(db.add_balance, user_id, bonus)
+            await asyncio.to_thread(db.delete_setting, f"deposit_bonus_{user_id}")
+            try:
+                await context.bot.send_message(
+                    chat_id=user_id,
+                    text=(
+                        "🎁 *تم تطبيق بونص الإيداع!*\n"
+                        "━━━━━━━━━━━━━━━━━\n\n"
+                        f"💰 إيداعك: *{deposited_syp:,.0f} ل.س*\n".replace(",","،") +
+                        f"🎉 بونص {int(pct)}%: *+{bonus:,.0f} ل.س* أضيفت لرصيدك!".replace(",","،")
+                    ),
+                    parse_mode=ParseMode.MARKDOWN,
+                )
+            except Exception:
+                pass
+        return bonus
+    except Exception:
+        return 0.0
+
 async def cb_syriatel_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()

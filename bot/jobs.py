@@ -166,7 +166,8 @@ def _generate_coupon_code() -> str:
 
 
 async def auto_coupon_check(context: ContextTypes.DEFAULT_TYPE) -> None:
-    """يفحص كل 24 ساعة: لو فات AUTO_COUPON_INTERVAL_DAYS منذ آخر توليد → ينشئ كوبون جديد."""
+    """يفحص كل 24 ساعة: لو فات AUTO_COUPON_INTERVAL_DAYS → ينشئ كوبونين:
+       ① بونص 5% على الإيداع   ② بونص 10% على الإيداع — كل واحد لـ 10 أشخاص."""
     if not config.AUTO_COUPON_ENABLED:
         return
     try:
@@ -186,26 +187,35 @@ async def auto_coupon_check(context: ContextTypes.DEFAULT_TYPE) -> None:
         if not should_create:
             return
 
-        code = await asyncio.to_thread(_generate_coupon_code)
-        value = float(config.AUTO_COUPON_VALUE_SYP)
         max_uses = int(config.AUTO_COUPON_MAX_USES)
 
-        cid = await asyncio.to_thread(
-            db.create_coupon, code, "fixed", value, 0, max_uses, None
-        )
-        await asyncio.to_thread(db.set_setting, "last_auto_coupon_at", now.isoformat())
-        logger.info("Auto-coupon created: %s id=%s value=%s uses=%s", code, cid, value, max_uses)
+        # ── كوبون ١: بونص 5% على الإيداع ──
+        import random, string as _str
+        code5  = "BONUS5_"  + "".join(random.choices(_str.ascii_uppercase + _str.digits, k=5))
+        # ── كوبون ٢: بونص 10% على الإيداع ──
+        code10 = "BONUS10_" + "".join(random.choices(_str.ascii_uppercase + _str.digits, k=5))
 
-        val_txt = f"{value:,.0f} ل.س".replace(",", "،")
+        cid5  = await asyncio.to_thread(db.create_coupon, code5,  "deposit_pct",  5,  0, max_uses, None)
+        cid10 = await asyncio.to_thread(db.create_coupon, code10, "deposit_pct", 10,  0, max_uses, None)
+
+        await asyncio.to_thread(db.set_setting, "last_auto_coupon_at", now.isoformat())
+        logger.info("Auto-coupons created: %s %s", code5, code10)
+
+        val_txt = f"بونص على الإيداع"
 
         # 1) إخطار الأدمن
         admin_msg = (
-            "🎟 *تم توليد كوبون دوري جديد!*\n"
+            "🎟 *تم توليد كوبونات البونص الدورية!*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
-            f"🔑 الكود: `{code}`\n"
-            f"💰 القيمة: *{val_txt}*\n"
-            f"👥 صالح لـ: *{max_uses} زبائن* (أول من يستخدمه)\n"
-            f"⏰ التوليد القادم بعد: *{config.AUTO_COUPON_INTERVAL_DAYS} يوم*"
+            "🟡 *كوبون بونص 5%:*\n"
+            "   🔑 الكود: `" + code5 + "`\n"
+            "   💰 بونص 5% على كل إيداع\n"
+            "   👥 صالح لـ " + str(max_uses) + " أشخاص\n\n"
+            "🟠 *كوبون بونص 10%:*\n"
+            "   🔑 الكود: `" + code10 + "`\n"
+            "   💰 بونص 10% على كل إيداع\n"
+            "   👥 صالح لـ " + str(max_uses) + " أشخاص\n\n"
+            "⏰ التوليد القادم بعد: *" + str(config.AUTO_COUPON_INTERVAL_DAYS) + " يوم*"
         )
         await _send_admin(context.application, admin_msg)
 
@@ -213,13 +223,14 @@ async def auto_coupon_check(context: ContextTypes.DEFAULT_TYPE) -> None:
         if config.AUTO_COUPON_BROADCAST:
             user_ids = await asyncio.to_thread(db.all_user_ids)
             customer_msg = (
-                "🎁 *عرض حصري — كوبون مجاني!*\n"
+                "🎁 *عرض حصري — كوبونات بونص!*\n"
                 "━━━━━━━━━━━━━━━━━\n\n"
-                f"🔑 الكود: `{code}`\n"
-                f"💰 رصيد مجاني: *{val_txt}*\n"
-                f"⚡ صالح لأول *{max_uses} زبائن* فقط — اللي يسبق يستفيد!\n\n"
-                "👈 ادخل من القائمة الرئيسية → *🎟 كود خصم* وادخل الكود.\n\n"
-                "_بالتوفيق!_ 🍀"
+                "⚡ كوبون بونص 5%: `" + code5 + "`\n"
+                "🔥 كوبون بونص 10%: `" + code10 + "`\n\n"
+                "💰 البونص يُضاف تلقائياً على إيداعك!\n"
+                "👥 كل كوبون صالح لأول " + str(max_uses) + " أشخاص فقط\n\n"
+                "👈 من القائمة: *🎁 كود خصم* ← أدخل الكود\n\n"
+                "_اللي يسبق يستفيد!_ 🏆"
             )
             sent = 0
             failed = 0
@@ -920,83 +931,6 @@ async def stock_check_job(context: ContextTypes.DEFAULT_TYPE) -> None:
         logger.warning(f"stock_check_job failed: {e}")
 
 
-
-
-# ─────────────────────────────────────────
-# Binance Pay — فحص أوتوماتيكي كل دقيقة
-# ─────────────────────────────────────────
-async def check_binance_pay_orders(context: ContextTypes.DEFAULT_TYPE) -> None:
-    """يفحص طلبات Binance Pay المعلقة ويضيف الرصيد تلقائياً عند الدفع."""
-    from .binance_pay import is_paid, BinancePayError
-    import json as _json, time as _time
-
-    try:
-        pending = db.get_settings_like("binance_order_%")
-    except Exception:
-        return
-
-    for key, val in (pending or {}).items():
-        try:
-            order = _json.loads(val)
-        except Exception:
-            continue
-
-        trade_no = order.get("trade_no", "")
-        user_id  = order.get("user_id")
-        amount   = float(order.get("amount", 0))
-        created  = float(order.get("created", 0))
-
-        # انتهت المهلة 15 دقيقة
-        if _time.time() - created > 900:
-            db.delete_setting(key)
-            try:
-                await context.bot.send_message(
-                    chat_id=user_id,
-                    text="⏰ انتهت مهلة طلب Binance Pay.\nلو دفعت تواصل مع الدعم.",
-                )
-            except Exception:
-                pass
-            continue
-
-        try:
-            paid = is_paid(trade_no)
-        except BinancePayError:
-            continue
-
-        if paid:
-            db.delete_setting(key)
-            syp_per_usd = config.get_usd_to_syp()
-            amount_syp  = amount * syp_per_usd
-            try:
-                db.add_balance(user_id, amount_syp)
-                req_id = db.create_recharge_request(
-                    user_id, "usdt_binance", amount_syp,
-                    transaction_code=trade_no,
-                )
-                await context.bot.send_message(
-                    chat_id=user_id,
-                    text=(
-                        f"🎉 *تم استلام دفعتك!*\n\n"
-                        f"💎 *{amount} USDT* أضيفت لرصيدك تلقائياً ⚡\n"
-                        f"💰 الرصيد: *{amount_syp:,.0f} ل.س*\n"
-                        f"🔑 رقم الطلب: `{req_id}`"
-                    ),
-                    parse_mode="Markdown",
-                )
-                if config.ADMIN_ID:
-                    await context.bot.send_message(
-                        chat_id=config.ADMIN_ID,
-                        text=(
-                            f"✅ *Binance Pay أوتو — #{req_id}*\n"
-                            f"👤 `{user_id}`\n"
-                            f"💎 {amount}$ — {amount_syp:,.0f} ل.س"
-                        ),
-                        parse_mode="Markdown",
-                    )
-            except Exception as e:
-                logger.error(f"Binance credit error: {e}")
-
-
 def schedule_jobs(app: Application) -> None:
     """يُسجّل المهام المجدولة على JobQueue الخاص بالتطبيق."""
     jq = app.job_queue
@@ -1036,15 +970,6 @@ def schedule_jobs(app: Application) -> None:
             first=30,
             name="fastcard_followup",
         )
-
-    # USDT BscScan — فحص كل دقيقة
-    from .usdt_bsc import check_usdt_deposits
-    jq.run_repeating(
-        check_usdt_deposits,
-        interval=60,
-        first=30,
-        name="usdt_bsc_check",
-    )
 
     # فحص مخزون Fastcard كل 10 دقائق — تنبيه عند نفاد أو رجوع منتج
     if fastcard.is_enabled():
