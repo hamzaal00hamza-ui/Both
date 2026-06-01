@@ -2541,33 +2541,20 @@ async def msg_syriatel_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
             except Exception:
                 pass
     else:
-        # ❌ ما تحقق — سجّل الطلب وأشعر الأدمن
-        req_id = db.create_recharge_request(user_id, "syriatel", amount, transaction_code=tx)
+        # ❌ العملية غير موجودة
         await wait_msg.edit_text(
-            "⏳ *جاري مراجعة العملية...*\n"
+            "❌ *لم يتم العثور على العملية*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
             f"🔢 رقم العملية: `{tx}`\n"
             f"💰 المبلغ: *{amount:,.0f} ل.س*\n\n".replace(",","،") +
-            "سيتم التحقق والإضافة خلال دقائق ⚡\n"
-            "لو تأخر التحقق تواصل مع الدعم.",
+            "⚠️ *الأسباب المحتملة:*\n"
+            "• رقم العملية غير صحيح\n"
+            "• التحويل لم يتم بعد\n"
+            "• المبلغ غير مطابق\n\n"
+            "تأكد من رقم العملية والمبلغ وأعد المحاولة:",
             parse_mode=ParseMode.MARKDOWN,
-            reply_markup=kb.back_to_main(),
+            reply_markup=kb.syriatel_retry_markup(),
         )
-        if config.ADMIN_ID:
-            try:
-                user = db.get_user(user_id) or {}
-                uname = user.get("username") or user.get("first_name") or "—"
-                await notify.notify_admin(
-                    context.bot,
-                    f"🆕 *طلب شحن سيرياتيل* #{req_id}\n"
-                    f"👤 @{uname} ({user_id})\n"
-                    f"💰 {amount:,.0f} ل.س\n".replace(",","،") +
-                    f"🔢 `{tx}`",
-                    parse_mode=ParseMode.MARKDOWN,
-                    reply_markup=kb.admin_recharge_decision(req_id),
-                )
-            except Exception:
-                pass
 
     context.user_data.pop("syriatel_tx", None)
     return ConversationHandler.END
@@ -2889,31 +2876,19 @@ async def msg_shamcash_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
             except Exception:
                 pass
     else:
-        req_id = db.create_recharge_request(user_id, "shamcash", amount, transaction_code=tx)
         await wait_msg.edit_text(
-            "⏳ *جاري مراجعة العملية...*\n"
+            "❌ *لم يتم العثور على العملية*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
             f"🔢 رقم العملية: `{tx}`\n"
             f"💰 المبلغ: *{amount:,.0f} ل.س*\n\n".replace(",","،") +
-            "سيتم التحقق والإضافة خلال دقائق ⚡",
+            "⚠️ *الأسباب المحتملة:*\n"
+            "• رقم العملية غير صحيح\n"
+            "• التحويل لم يتم بعد\n"
+            "• المبلغ غير مطابق\n\n"
+            "تأكد من رقم العملية والمبلغ وأعد المحاولة:",
             parse_mode=ParseMode.MARKDOWN,
-            reply_markup=kb.back_to_main(),
+            reply_markup=kb.shamcash_retry_markup(),
         )
-        if config.ADMIN_ID:
-            try:
-                user = db.get_user(user_id) or {}
-                uname = user.get("username") or user.get("first_name") or "—"
-                await notify.notify_admin(
-                    context.bot,
-                    f"🆕 *طلب شحن شام كاش* #{req_id}\n"
-                    f"👤 @{uname} ({user_id})\n"
-                    f"💰 {amount:,.0f} ل.س\n".replace(",","،") +
-                    f"🔢 `{tx}`",
-                    parse_mode=ParseMode.MARKDOWN,
-                    reply_markup=kb.admin_recharge_decision(req_id),
-                )
-            except Exception:
-                pass
 
     context.user_data.pop("shamcash_tx", None)
     return ConversationHandler.END
@@ -3921,6 +3896,9 @@ def register_user_handlers(app):
         group=-1,
     )
 
+    # Safety net — لو shamcash/syriatel ما اشتغل من ConversationHandler
+    app.add_handler(CallbackQueryHandler(cb_shamcash_start, pattern=r"^recharge:shamcash$"), group=1)
+    app.add_handler(CallbackQueryHandler(cb_syriatel_start, pattern=r"^recharge:syriatel$"), group=1)
     app.add_handler(CallbackQueryHandler(cb_main_menu, pattern=r"^menu:"))
     app.add_handler(CallbackQueryHandler(cb_store, pattern=r"^store:"))
     app.add_handler(CallbackQueryHandler(cb_pubg_section, pattern=r"^pubg:"))

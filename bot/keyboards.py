@@ -391,6 +391,24 @@ def insufficient_balance() -> InlineKeyboardMarkup:
     ])
 
 
+
+def syriatel_retry_markup() -> InlineKeyboardMarkup:
+    """أزرار إعادة المحاولة لسيرياتيل كاش."""
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔄 أعد المحاولة", callback_data="recharge:syriatel")],
+        [InlineKeyboardButton("💬 تواصل مع الدعم", callback_data="menu:support")],
+        [InlineKeyboardButton("⬅️ القائمة الرئيسية", callback_data="menu:main")],
+    ])
+
+
+def shamcash_retry_markup() -> InlineKeyboardMarkup:
+    """أزرار إعادة المحاولة لشام كاش."""
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔄 أعد المحاولة", callback_data="recharge:shamcash")],
+        [InlineKeyboardButton("💬 تواصل مع الدعم", callback_data="menu:support")],
+        [InlineKeyboardButton("⬅️ القائمة الرئيسية", callback_data="menu:main")],
+    ])
+
 def cancel_inline() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("❌ إلغاء", callback_data="menu:main")],
