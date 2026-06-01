@@ -2465,10 +2465,13 @@ async def cb_syriatel_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def msg_syriatel_tx_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
     code = (update.message.text or "").strip()
-    if len(code) < 4:
+    if len(code) != 12 or not code.isdigit():
         await update.message.reply_text(
-            "⚠️ رقم العملية قصير جداً. أعد المحاولة:",
+            "⚠️ رقم العملية يجب أن يكون *12 رقماً* بالضبط\n"
+            "مثال: `123456789012`\n\n"
+            "أعد إدخال الرقم:",
             reply_markup=kb.cancel_inline(),
+            parse_mode=ParseMode.MARKDOWN,
         )
         return SYRIATEL_TX_CODE
     context.user_data["syriatel_tx"] = code
@@ -2499,11 +2502,13 @@ async def msg_syriatel_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
     wait_msg = await update.message.reply_text("🔍 جاري التحقق من العملية تلقائياً...")
 
     verified = False
+    tx_data = None
     try:
         tx_data = await asyncio.to_thread(
             syriatel_cash.find_matching_transaction, tx, amount
         )
         verified = tx_data is not None
+        logger.info(f"Syriatel verify: tx={tx} amount={amount} result={tx_data}")
     except Exception as e:
         logger.error(f"Syriatel auto-verify error: {e}")
 
@@ -2807,10 +2812,13 @@ async def cb_shamcash_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def msg_shamcash_tx(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يستقبل رقم العملية من شام كاش."""
     tx = (update.message.text or "").strip()
-    if len(tx) < 3:
+    if len(tx) != 12 or not tx.isdigit():
         await update.message.reply_text(
-            "⚠️ رقم العملية قصير. أعد المحاولة:",
+            "⚠️ رقم العملية يجب أن يكون *12 رقماً* بالضبط\n"
+            "مثال: `987654321098`\n\n"
+            "أعد إدخال الرقم:",
             reply_markup=kb.cancel_inline(),
+            parse_mode=ParseMode.MARKDOWN,
         )
         return SHAMCASH_TX_STATE
     context.user_data["shamcash_tx"] = tx
