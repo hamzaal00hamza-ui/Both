@@ -22,16 +22,7 @@ if _db_dir:
 SYRIATEL_CASH_NUMBER = "0982493924"
 
 # محفظة USDT — BSC BEP20 (يمكن تعديلها من لوحة الأدمن أو من هنا مباشرة)
-USDT_WALLET_BEP20 = os.environ.get("USDT_WALLET_BEP20", "0x9a8e639b26ee2a7796b6a2d81d2df0a74cb615d5")
-
-BSCSCAN_API_KEY = os.environ.get("BSCSCAN_API_KEY", "J3GJFY11ZEUJQUB2DAZ6IMWGVAWYWYMXGU")
-
-# ── Binance Pay — إيداع USDT أوتوماتيكي ──────────────────
-BINANCE_API_KEY    = os.environ.get("BINANCE_API_KEY", "")
-BINANCE_SECRET_KEY = os.environ.get("BINANCE_SECRET_KEY", "")
-BINANCE_PAY_AUTO   = os.environ.get("BINANCE_PAY_AUTO", "1") == "1"
-BINANCE_ORDER_EXPIRE_MINUTES = int(os.environ.get("BINANCE_ORDER_EXPIRE_MINUTES", "15"))
-
+USDT_WALLET_BEP20 = os.environ.get("USDT_WALLET_BEP20", "")
 
 SHAMCASH_WALLET_CODE = "2ddc70bf6636ab6fc783f957e2fa5d81"
 SHAMCASH_WALLET_NAME = "قيس ربيع جمول"
@@ -416,7 +407,8 @@ USD_TO_SYP = DEFAULT_USD_TO_SYP
 
 PUBG_UC_OFFERS = [
     {"id": "uc_60",    "label": "60 شدة",                "uc": 60,   "price": 15000,  "product_id": 2832, "cost_usd": 0.902466, "manual_price": True},
-    {"id": "uc_60v",   "label": "60 شدة (تحقق من الاسم)", "uc": 60,   "price": 15500,  "product_id": 7806, "cost_usd": 0.85,     "manual_price": True, "verify": True},
+    {"id": "uc_60v",   "label": "60 شدة (تحقق من الاسم) 🔒", "uc": 60,   "price": 15500,  "product_id": 2832, "cost_usd": 0.82,    "manual_price": True, "verify": True},
+    {"id": "uc_60a",   "label": "60 UC AUTO ⚡",              "uc": 60,   "price": 15500,  "product_id": 7806, "cost_usd": 0.886,   "manual_price": True},
     {"id": "uc_325",  "label": "325 شدة",  "uc": 325,  "price": 73500,  "product_id": 2833, "cost_usd": 4.43372, "manual_price": True},
     {"id": "uc_660",  "label": "660 شدة",  "uc": 660,  "price": 146500, "product_id": 2834, "cost_usd": 8.86744, "manual_price": True},
     {"id": "uc_1800", "label": "1800 شدة", "uc": 1800, "price": 365500, "product_id": 2835, "cost_usd": 22.1686, "manual_price": True},
@@ -1887,7 +1879,7 @@ FASTCARD_VERIFY_COST_USD = float(os.environ.get("FASTCARD_VERIFY_COST_USD", "0.0
 
 # ===== Sham Cash Auto Integration =====
 # توثيق الـ API: https://shamcash-api.com/docs
-SHAMCASH_TOKEN = os.environ.get("SHAMCASH_TOKEN", "a84b025e4b7e09ad38450aaa555ee83b0ae6ff8b17ec0d92e5a41e0f3ce39913")
+SHAMCASH_TOKEN = os.environ.get("SHAMCASH_TOKEN", "")
 SHAMCASH_API_URL = os.environ.get("SHAMCASH_API_URL", "https://api.shamcash-api.com/v1")
 SHAMCASH_ACCOUNT_ID = os.environ.get("SHAMCASH_ACCOUNT_ID", "")  # اختياري — لو فاضي بنجيب أول حساب active
 SHAMCASH_AUTO_VERIFY = os.environ.get("SHAMCASH_AUTO_VERIFY", "true").lower() == "true"
@@ -1895,7 +1887,7 @@ SHAMCASH_VERIFY_WINDOW_MIN = int(os.environ.get("SHAMCASH_VERIFY_WINDOW_MIN", "3
 
 # ===== Syriatel Cash Auto Integration =====
 # توثيق الـ API: https://api.melchersman.com/syr-cash/api-docs
-SYRIATEL_CASH_TOKEN = os.environ.get("SYRIATEL_CASH_TOKEN", "a84b025e4b7e09ad38450aaa555ee83b0ae6ff8b17ec0d92e5a41e0f3ce39913")
+SYRIATEL_CASH_TOKEN = os.environ.get("SYRIATEL_CASH_TOKEN", "")
 SYRIATEL_CASH_API_URL = os.environ.get("SYRIATEL_CASH_API_URL", "https://api.melchersman.com/syr-cash/v1")
 SYRIATEL_CASH_AUTO_VERIFY = os.environ.get("SYRIATEL_CASH_AUTO_VERIFY", "true").lower() == "true"
 
