@@ -482,29 +482,56 @@ def admin_order_decision(order_id: int) -> InlineKeyboardMarkup:
 
 
 def admin_panel() -> InlineKeyboardMarkup:
+    """لوحة الأدمن — مقسّمة لأقسام واضحة."""
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📊 إحصائيات", callback_data="admin:stats")],
-        [InlineKeyboardButton("⏳ الطلبات المعلقة", callback_data="admin:pending")],
-        [InlineKeyboardButton("💼 حالة المتجر (API)", callback_data="admin:supplier")],
+        # ── 💰 المالية ──
+        [InlineKeyboardButton("━━━━ 💰 المالية ━━━━", callback_data="admin:noop")],
         [
-            InlineKeyboardButton("📱 رصيد سرياتيل كاش", callback_data="admin:syriatel_balance"),
-            InlineKeyboardButton("💰 رصيد شام كاش", callback_data="admin:shamcash_balance"),
+            InlineKeyboardButton("📊 إحصائيات", callback_data="admin:stats"),
+            InlineKeyboardButton("📈 تقرير اليوم", callback_data="admin:today_report"),
         ],
-        [InlineKeyboardButton("🔍 فحص أسعار Fastcard الآن", callback_data="admin:price_check")],
-        [InlineKeyboardButton("📦 المنتجات غير المتوفرة", callback_data="admin:stock")],
-        [InlineKeyboardButton("📈 تقرير اليوم", callback_data="admin:today_report")],
-        [InlineKeyboardButton("💵 الأرباح", callback_data="admin:profit")],
-        [InlineKeyboardButton("🏆 أفضل الزبائن", callback_data="admin:top_users")],
-        [InlineKeyboardButton("⭐ تقييمات الزبائن", callback_data="admin:ratings")],
-        [InlineKeyboardButton("🎟 الكوبونات", callback_data="admin:coupons")],
-        [InlineKeyboardButton("💱 سعر الصرف", callback_data="admin:rates")],
-        [InlineKeyboardButton("📊 هامش الربح", callback_data="admin:profit_margin")],
-        [InlineKeyboardButton("💲 تعديل أسعار المنتجات", callback_data="admin:prices")],
-        [InlineKeyboardButton("🔍 بحث عن مستخدم", callback_data="admin:search_user")],
-        [InlineKeyboardButton("✏️ تعديل رصيد", callback_data="admin:edit_balance")],
-        [InlineKeyboardButton("🚫 حظر/فك حظر", callback_data="admin:toggle_ban")],
-        [InlineKeyboardButton("📢 إشعار جماعي", callback_data="admin:broadcast")],
-        [InlineKeyboardButton("📡 قناة توثيق الطلبات", callback_data="admin:channel")],
+        [
+            InlineKeyboardButton("💵 الأرباح", callback_data="admin:profit"),
+            InlineKeyboardButton("💱 سعر الصرف", callback_data="admin:rates"),
+        ],
+        [
+            InlineKeyboardButton("📱 رصيد سيرياتيل", callback_data="admin:syriatel_balance"),
+            InlineKeyboardButton("💚 رصيد شام كاش", callback_data="admin:shamcash_balance"),
+        ],
+        # ── 📦 الطلبات ──
+        [InlineKeyboardButton("━━━━ 📦 الطلبات ━━━━", callback_data="admin:noop")],
+        [
+            InlineKeyboardButton("⏳ طلبات معلقة", callback_data="admin:pending"),
+            InlineKeyboardButton("📦 المخزون", callback_data="admin:stock"),
+        ],
+        [InlineKeyboardButton("💼 حالة FastCard API", callback_data="admin:supplier")],
+        # ── 🏷 الأسعار ──
+        [InlineKeyboardButton("━━━━ 🏷 الأسعار ━━━━", callback_data="admin:noop")],
+        [
+            InlineKeyboardButton("📊 هامش الربح %", callback_data="admin:profit_margin"),
+            InlineKeyboardButton("💲 تعديل الأسعار", callback_data="admin:prices"),
+        ],
+        [InlineKeyboardButton("🔍 فحص أسعار FastCard", callback_data="admin:price_check")],
+        # ── 👥 المستخدمون ──
+        [InlineKeyboardButton("━━━━ 👥 المستخدمون ━━━━", callback_data="admin:noop")],
+        [
+            InlineKeyboardButton("🔍 بحث مستخدم", callback_data="admin:search_user"),
+            InlineKeyboardButton("✏️ تعديل رصيد", callback_data="admin:edit_balance"),
+        ],
+        [
+            InlineKeyboardButton("🚫 حظر/فك حظر", callback_data="admin:toggle_ban"),
+            InlineKeyboardButton("🏆 أفضل الزبائن", callback_data="admin:top_users"),
+        ],
+        [
+            InlineKeyboardButton("⭐ التقييمات", callback_data="admin:ratings"),
+            InlineKeyboardButton("🎟 الكوبونات", callback_data="admin:coupons"),
+        ],
+        # ── ⚙️ الإعدادات ──
+        [InlineKeyboardButton("━━━━ ⚙️ الإعدادات ━━━━", callback_data="admin:noop")],
+        [
+            InlineKeyboardButton("📢 إشعار جماعي", callback_data="admin:broadcast"),
+            InlineKeyboardButton("📡 قناة التوثيق", callback_data="admin:channel"),
+        ],
         [InlineKeyboardButton("⬅️ القائمة الرئيسية", callback_data="menu:main")],
     ])
 
