@@ -40,6 +40,7 @@ logger = logging.getLogger(__name__)
     SYRIATEL_TX_CODE,
     SYRIATEL_AMOUNT,
     SHAMCASH_AMOUNT,
+    SHAMCASH_TX_STATE,
     SHAMCASH_PHOTO,
     PUBG_PLAYER_ID,
     SHAMCASH_USD_AMOUNT,
@@ -50,7 +51,7 @@ logger = logging.getLogger(__name__)
     FASTCARD_CUSTOM_AMOUNT,
     USDT_AMOUNT_USD,
     USDT_TX_HASH,
-) = range(13)
+) = range(14)
 
 
 WELCOME = (
@@ -2492,45 +2493,76 @@ async def msg_syriatel_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
         return SYRIATEL_AMOUNT
 
     user_id = update.effective_user.id
-    tx = context.user_data.get("syriatel_tx", "")
-    req_id = db.create_recharge_request(user_id, "syriatel", amount, transaction_code=tx)
-    context.user_data["syriatel_req_id"] = req_id
+    tx      = context.user_data.get("syriatel_tx", "")
 
-    if syriatel_cash.is_enabled():
-        msg = (
-            f"📱 *طلب شحن سيرياتيل كاش*\n\n"
-            f"💰 المبلغ: *{amount:,.0f}* ل.س\n"
-            f"🔢 رقم العملية: `{tx}`\n"
-            f"📞 الرقم المستلم: `{config.SYRIATEL_CASH_NUMBER}`\n\n"
-            "✅ بعد إتمام التحويل اضغط *«تحقق تلقائي»* وسيُضاف الرصيد فوراً."
+    # ── تحقق تلقائي فوري ──
+    wait_msg = await update.message.reply_text("🔍 جاري التحقق من العملية تلقائياً...")
+
+    verified = False
+    try:
+        tx_data = await asyncio.to_thread(
+            syriatel_cash.find_matching_transaction, tx, amount
         )
-        await update.message.reply_text(
-            msg,
+        verified = tx_data is not None
+    except Exception as e:
+        logger.error(f"Syriatel auto-verify error: {e}")
+
+    if verified:
+        # ✅ أضف الرصيد فوراً
+        db.add_balance(user_id, amount)
+        req_id = db.create_recharge_request(user_id, "syriatel", amount, transaction_code=tx)
+        bonus  = await _apply_deposit_bonus(context, user_id, amount)
+        bonus_txt = f"\n🎁 بونص: *+{bonus:,.0f} ل.س*".replace(",","،") if bonus > 0 else ""
+        await wait_msg.edit_text(
+            "✅ *تم التحقق وإضافة الرصيد تلقائياً!*\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            f"💰 الرصيد المضاف: *{amount:,.0f} ل.س*\n".replace(",","،") +
+            bonus_txt +
+            f"\n🔑 رقم الطلب: #{req_id}",
             parse_mode=ParseMode.MARKDOWN,
-            reply_markup=kb.syriatel_after_amount(req_id),
-        )
-    else:
-        await update.message.reply_text(
-            "✅ تم إرسال الطلب، سيتم التحقق منه قريباً.",
             reply_markup=kb.back_to_main(),
         )
-
-    if config.ADMIN_ID:
-        try:
-            user = db.get_user(user_id)
-            uname = user.get("username") or user.get("first_name") or "—"
-            await notify.notify_admin(
-                context.bot,
-                f"🆕 *طلب شحن جديد* #{req_id}\n\n"
-                f"المستخدم: @{uname} ({user_id})\n"
-                f"الطريقة: سيرياتيل كاش 📱\n"
-                f"المبلغ: *{amount:.0f}* ل.س\n"
-                f"رقم العملية: `{tx}`",
-                parse_mode=ParseMode.MARKDOWN,
-                reply_markup=kb.admin_recharge_decision(req_id),
-            )
-        except Exception as e:
-            logger.error(f"Failed to notify admin: {e}")
+        if config.ADMIN_ID:
+            try:
+                user = db.get_user(user_id) or {}
+                uname = user.get("username") or user.get("first_name") or "—"
+                await notify.notify_admin(
+                    context.bot,
+                    f"✅ *شحن سيرياتيل أوتو* #{req_id}\n"
+                    f"👤 @{uname} ({user_id})\n"
+                    f"💰 {amount:,.0f} ل.س".replace(",","،"),
+                    parse_mode=ParseMode.MARKDOWN,
+                )
+            except Exception:
+                pass
+    else:
+        # ❌ ما تحقق — سجّل الطلب وأشعر الأدمن
+        req_id = db.create_recharge_request(user_id, "syriatel", amount, transaction_code=tx)
+        await wait_msg.edit_text(
+            "⏳ *جاري مراجعة العملية...*\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            f"🔢 رقم العملية: `{tx}`\n"
+            f"💰 المبلغ: *{amount:,.0f} ل.س*\n\n".replace(",","،") +
+            "سيتم التحقق والإضافة خلال دقائق ⚡\n"
+            "لو تأخر التحقق تواصل مع الدعم.",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb.back_to_main(),
+        )
+        if config.ADMIN_ID:
+            try:
+                user = db.get_user(user_id) or {}
+                uname = user.get("username") or user.get("first_name") or "—"
+                await notify.notify_admin(
+                    context.bot,
+                    f"🆕 *طلب شحن سيرياتيل* #{req_id}\n"
+                    f"👤 @{uname} ({user_id})\n"
+                    f"💰 {amount:,.0f} ل.س\n".replace(",","،") +
+                    f"🔢 `{tx}`",
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=kb.admin_recharge_decision(req_id),
+                )
+            except Exception:
+                pass
 
     context.user_data.pop("syriatel_tx", None)
     return ConversationHandler.END
@@ -2760,12 +2792,32 @@ async def cb_shamcash_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
 
     text = (
-        "💳 *شام كاش*\n\n"
-        f"رمز التحويل: `{config.SHAMCASH_WALLET_CODE}`\n"
-        f"اسم المحفظة: *{config.SHAMCASH_WALLET_NAME}*\n\n"
-        "أدخل المبلغ الذي تريد شحنه (بالليرة السورية):"
+        "💳 *شام كاش — إيداع*\n"
+        "━━━━━━━━━━━━━━━━━\n\n"
+        f"📤 حوّل المبلغ إلى:\n"
+        f"🔢 الرمز: `{config.SHAMCASH_WALLET_CODE}`\n"
+        f"👤 الاسم: *{config.SHAMCASH_WALLET_NAME}*\n\n"
+        "━━━━━━━━━━━━━━━━━\n"
+        "بعد التحويل أرسل *رقم العملية* (tran_id) من تطبيق شام كاش:"
     )
     await q.edit_message_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=kb.cancel_inline())
+    return SHAMCASH_TX_STATE
+
+
+async def msg_shamcash_tx(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يستقبل رقم العملية من شام كاش."""
+    tx = (update.message.text or "").strip()
+    if len(tx) < 3:
+        await update.message.reply_text(
+            "⚠️ رقم العملية قصير. أعد المحاولة:",
+            reply_markup=kb.cancel_inline(),
+        )
+        return SHAMCASH_TX_STATE
+    context.user_data["shamcash_tx"] = tx
+    await update.message.reply_text(
+        "💰 أدخل المبلغ الذي حوّلته (بالليرة السورية):",
+        reply_markup=kb.cancel_inline(),
+    )
     return SHAMCASH_AMOUNT
 
 
@@ -2782,34 +2834,81 @@ async def msg_shamcash_amount(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         return SHAMCASH_AMOUNT
 
-    user_id = update.effective_user.id
-    req_id = db.create_recharge_request(user_id, "shamcash", amount)
-    context.user_data["shamcash_req_id"] = req_id
-    context.user_data["shamcash_amount"] = amount
+    user_id  = update.effective_user.id
+    tx       = context.user_data.get("shamcash_tx", "")
 
-    if shamcash_enabled():
-        msg = (
-            f"💳 *المبلغ المطلوب: {amount:,.0f} ل.س*\n\n"
-            "━━━━━━━━━━━━━━━━━\n"
-            f"📍 حوّل المبلغ إلى محفظة شام كاش:\n\n"
-            f"🔢 الرمز: `{config.SHAMCASH_WALLET_CODE}`\n"
-            f"👤 الاسم: *{config.SHAMCASH_WALLET_NAME}*\n"
+    # ── تحقق تلقائي فوري ──
+    wait_msg = await update.message.reply_text("🔍 جاري التحقق من العملية تلقائياً...")
+
+    verified = False
+    try:
+        account_id = get_active_account_id()
+        tx_data = await asyncio.to_thread(
+            find_matching_transaction,
+            account_id=tx,
+            expected_amount=amount,
+            account_address=account_id,
+        )
+        verified = tx_data is not None
+    except Exception as e:
+        logger.error(f"ShamCash auto-verify error: {e}")
+
+    if verified:
+        db.add_balance(user_id, amount)
+        req_id = db.create_recharge_request(user_id, "shamcash", amount, transaction_code=tx)
+        bonus  = await _apply_deposit_bonus(context, user_id, amount)
+        bonus_txt = f"\n🎁 بونص: *+{bonus:,.0f} ل.س*".replace(",","،") if bonus > 0 else ""
+        await wait_msg.edit_text(
+            "✅ *تم التحقق وإضافة الرصيد تلقائياً!*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
-            "✅ بعد التحويل اضغط *«تحقق تلقائي»* وسيُضاف الرصيد فوراً.\n"
-            "📸 أو ارسل صورة عملية التحويل لمراجعتها يدوياً."
-        )
-        await update.message.reply_text(
-            msg,
+            f"💰 الرصيد المضاف: *{amount:,.0f} ل.س*\n".replace(",","،") +
+            bonus_txt +
+            f"\n🔑 رقم الطلب: #{req_id}",
             parse_mode=ParseMode.MARKDOWN,
-            reply_markup=kb.shamcash_after_amount(req_id),
+            reply_markup=kb.back_to_main(),
         )
-        return ConversationHandler.END
+        if config.ADMIN_ID:
+            try:
+                user = db.get_user(user_id) or {}
+                uname = user.get("username") or user.get("first_name") or "—"
+                await notify.notify_admin(
+                    context.bot,
+                    f"✅ *شحن شام كاش أوتو* #{req_id}\n"
+                    f"👤 @{uname} ({user_id})\n"
+                    f"💰 {amount:,.0f} ل.س".replace(",","،"),
+                    parse_mode=ParseMode.MARKDOWN,
+                )
+            except Exception:
+                pass
     else:
-        await update.message.reply_text(
-            "بعد التحويل أرسل صورة عملية التحويل 📸",
-            reply_markup=kb.cancel_inline(),
+        req_id = db.create_recharge_request(user_id, "shamcash", amount, transaction_code=tx)
+        await wait_msg.edit_text(
+            "⏳ *جاري مراجعة العملية...*\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            f"🔢 رقم العملية: `{tx}`\n"
+            f"💰 المبلغ: *{amount:,.0f} ل.س*\n\n".replace(",","،") +
+            "سيتم التحقق والإضافة خلال دقائق ⚡",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb.back_to_main(),
         )
-        return SHAMCASH_PHOTO
+        if config.ADMIN_ID:
+            try:
+                user = db.get_user(user_id) or {}
+                uname = user.get("username") or user.get("first_name") or "—"
+                await notify.notify_admin(
+                    context.bot,
+                    f"🆕 *طلب شحن شام كاش* #{req_id}\n"
+                    f"👤 @{uname} ({user_id})\n"
+                    f"💰 {amount:,.0f} ل.س\n".replace(",","،") +
+                    f"🔢 `{tx}`",
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=kb.admin_recharge_decision(req_id),
+                )
+            except Exception:
+                pass
+
+    context.user_data.pop("shamcash_tx", None)
+    return ConversationHandler.END
 
 
 async def cb_shamcash_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3640,6 +3739,10 @@ def register_user_handlers(app):
             CallbackQueryHandler(cb_shamcash_manual, pattern=r"^sc_manual:"),
         ],
         states={
+            SHAMCASH_TX_STATE: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, msg_shamcash_tx),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
+            ],
             SHAMCASH_AMOUNT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_shamcash_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
