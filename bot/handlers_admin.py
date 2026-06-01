@@ -1025,18 +1025,21 @@ async def _handle_stock(q, data: str):
     await q.edit_message_text("⏳ جاري فحص المخزون من Fastcard...")
 
     offers = config.collect_priced_offers()
-    pids = sorted({o["product_id"] for o in offers if o.get("product_id")})
-    try:
-        stock_map = await asyncio.to_thread(fastcard.check_stock, pids)
-    except Exception as e:
+    if not offers:
         await q.edit_message_text(
-            f"❌ فشل جلب المخزون: {e}",
+            "⚠️ لا توجد منتجات مضبوطة.",
             reply_markup=kb.back_to_admin(),
         )
         return ConversationHandler.END
 
+    pids = sorted({o["product_id"] for o in offers if o.get("product_id")})
+    stock_map = {}
+    try:
+        stock_map = await asyncio.to_thread(fastcard.check_stock, pids)
+    except Exception as e:
+        logger.error("check_stock error: %s", e)
+
     disabled = set(db.list_disabled_products())
-    # مفقود من المتجر = ما رجع له Fastcard
     out_of_stock_pids = []
     missing_pids = []
     for o in offers:
