@@ -931,6 +931,45 @@ async def stock_check_job(context: ContextTypes.DEFAULT_TYPE) -> None:
         logger.warning(f"stock_check_job failed: {e}")
 
 
+
+
+# ─────────────────────────────────────────
+# فحص المخزون التلقائي
+# ─────────────────────────────────────────
+async def auto_stock_check(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """يفحص مخزون FastCard تلقائياً ويعطّل/يشغّل المنتجات."""
+    try:
+        offers = config.collect_priced_offers()
+        pids = sorted({o["product_id"] for o in offers if o.get("product_id")})
+        if not pids:
+            return
+        stock_map = await asyncio.to_thread(fastcard.check_stock, pids)
+        disabled_set = set(db.list_disabled_products())
+        newly_disabled = []
+        newly_enabled  = []
+        for o in offers:
+            pid = o.get("product_id")
+            if not pid:
+                continue
+            available = stock_map.get(pid)
+            if available is False and pid not in disabled_set:
+                db.disable_product(pid, reason="auto_stock")
+                newly_disabled.append(str(pid) + " " + o["label"][:20])
+            elif available is True and pid in disabled_set:
+                db.enable_product(pid)
+                newly_enabled.append(str(pid) + " " + o["label"][:20])
+        if (newly_disabled or newly_enabled) and config.ADMIN_ID:
+            msg = "*تحديث مخزون تلقائي*" + chr(10)
+            if newly_disabled:
+                msg += "تم تعطيل:" + chr(10) + chr(10).join(newly_disabled) + chr(10)
+            if newly_enabled:
+                msg += "تم تشغيل:" + chr(10) + chr(10).join(newly_enabled)
+            await _send_admin(context.application, msg)
+        logger.info("Auto stock: disabled=%d enabled=%d", len(newly_disabled), len(newly_enabled))
+    except Exception as e:
+        logger.error("auto_stock_check error: %s", e)
+
+
 def schedule_jobs(app: Application) -> None:
     """يُسجّل المهام المجدولة على JobQueue الخاص بالتطبيق."""
     jq = app.job_queue

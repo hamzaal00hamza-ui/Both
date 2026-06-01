@@ -505,6 +505,11 @@ def admin_panel() -> InlineKeyboardMarkup:
             InlineKeyboardButton("📦 المخزون", callback_data="admin:stock"),
         ],
         [InlineKeyboardButton("💼 حالة FastCard API", callback_data="admin:supplier")],
+        [
+            InlineKeyboardButton("🔴 تعطيل منتج", callback_data="admin:stock:disable_menu"),
+            InlineKeyboardButton("✅ تشغيل منتج", callback_data="admin:stock:enable_menu"),
+        ],
+        [InlineKeyboardButton("🔄 فحص وتحديث المخزون الآن", callback_data="admin:stock:refresh")],
         # ── 🏷 الأسعار ──
         [InlineKeyboardButton("━━━━ 🏷 الأسعار ━━━━", callback_data="admin:noop")],
         [
