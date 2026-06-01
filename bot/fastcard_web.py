@@ -104,8 +104,9 @@ def check_player(player_id: str, product_id: int) -> Dict[str, Any]:
             continue
 
         msg = str(data.get("message") or "")
+        import logging as _log
+        _log.getLogger(__name__).info(f"check_player response: {data}")
         if not data.get("success") and ("تسجيل الدخول" in msg or "login" in msg.lower()):
-            # session منتهية → أعِد المحاولة بعد إعادة الدخول
             if attempt == 1:
                 continue
         return data
