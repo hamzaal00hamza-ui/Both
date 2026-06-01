@@ -2783,16 +2783,18 @@ async def cb_shamcash_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if await is_banned(update):
         return ConversationHandler.END
 
+    wallet = config.SHAMCASH_WALLET_CODE or ""
+    name   = config.SHAMCASH_WALLET_NAME or ""
     text = (
-        "💳 *شام كاش — إيداع*\n"
+        "💳 شام كاش — إيداع\n"
         "━━━━━━━━━━━━━━━━━\n\n"
-        f"📤 حوّل المبلغ إلى:\n"
-        f"🔢 الرمز: `{config.SHAMCASH_WALLET_CODE}`\n"
-        f"👤 الاسم: *{config.SHAMCASH_WALLET_NAME}*\n\n"
+        "📤 حوّل المبلغ إلى:\n"
+        "🔢 الرمز: " + wallet + "\n"
+        "👤 الاسم: " + name + "\n\n"
         "━━━━━━━━━━━━━━━━━\n"
-        "بعد التحويل أرسل *رقم العملية* (tran_id) من تطبيق شام كاش:"
+        "بعد التحويل أرسل رقم العملية من تطبيق شام كاش:"
     )
-    await q.edit_message_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=kb.cancel_inline())
+    await q.edit_message_text(text, reply_markup=kb.cancel_inline())
     return SHAMCASH_TX_STATE
 
 
