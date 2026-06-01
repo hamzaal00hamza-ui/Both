@@ -1035,9 +1035,16 @@ async def _handle_stock(q, data: str):
     pids = sorted({o["product_id"] for o in offers if o.get("product_id")})
     stock_map = {}
     try:
+        logger.info("Checking stock for %d products: %s", len(pids), pids[:5])
         stock_map = await asyncio.to_thread(fastcard.check_stock, pids)
+        logger.info("Stock result: %d items returned", len(stock_map))
     except Exception as e:
         logger.error("check_stock error: %s", e)
+        await q.edit_message_text(
+            "❌ خطأ في الاتصال بـ FastCard: " + str(e)[:100],
+            reply_markup=kb.back_to_admin(),
+        )
+        return ConversationHandler.END
 
     disabled = set(db.list_disabled_products())
     out_of_stock_pids = []
