@@ -1060,16 +1060,17 @@ async def _handle_stock(q, data: str):
     by_pid = {o["product_id"]: o for o in offers}
 
     rows = []
-    lines = ["📦 *المنتجات غير المتوفرة / الموقوفة*\n"]
+    lines = ["📦 *فحص المخزون*\n"]
+    MAX_BTN = 12
 
-    def _short(label: str, n: int = 28) -> str:
+    def _short(label: str, n: int = 22) -> str:
         return label if len(label) <= n else label[: n - 1] + "…"
 
     section_added = False
     if out_of_stock_pids:
         section_added = True
-        lines.append("\n🔴 *غير متوفرة على فاست كارد:*")
-        for pid in out_of_stock_pids:
+        lines.append("\n🔴 *غير متوفرة (" + str(len(out_of_stock_pids)) + "):*")
+        for pid in out_of_stock_pids[:MAX_BTN]:
             o = by_pid[pid]
             mark = "⛔" if pid in disabled else "✅"
             lines.append(f"  • {_short(o['label'])} | #{pid} {mark}")
