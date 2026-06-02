@@ -217,16 +217,62 @@ def games_menu() -> InlineKeyboardMarkup:
 def more_games_menu() -> InlineKeyboardMarkup:
     """قائمة الألعاب الإضافية من FastCard."""
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🎮 حرب الممالك", callback_data="fclist:koa")],
-        [InlineKeyboardButton("🎮 Lords Mobile", callback_data="fclist:lm")],
-        [InlineKeyboardButton("🎮 Top War", callback_data="fclist:tw")],
-        [InlineKeyboardButton("🎮 Whiteout Survival", callback_data="fclist:wos")],
-        [InlineKeyboardButton("🎮 State Survivor", callback_data="fclist:ss")],
-        [InlineKeyboardButton("🎮 Farlight 84", callback_data="fclist:fl")],
-        [InlineKeyboardButton("🎮 Party Star", callback_data="fclist:ps")],
-        [InlineKeyboardButton("🎮 Undawn", callback_data="fclist:ud")],
-        [InlineKeyboardButton("🎮 Identity V", callback_data="fclist:idv")],
-        [InlineKeyboardButton("🌐 كل الألعاب على FastCard", url="https://fastcard1.store/index?page=products&cat=438")],
+        [
+            InlineKeyboardButton("🎯 Valorant تركي", callback_data="fclist:vlt"),
+            InlineKeyboardButton("🎯 Valorant عالمي", callback_data="fclist:vlg"),
+        ],
+        [
+            InlineKeyboardButton("⚔️ Mobile Legends", callback_data="fclist:mlbb"),
+            InlineKeyboardButton("✨ Genshin Impact", callback_data="fclist:gsh"),
+        ],
+        [
+            InlineKeyboardButton("🎮 Arena Breakout", callback_data="fclist:arb"),
+            InlineKeyboardButton("👑 Honor of Kings", callback_data="fclist:hok"),
+        ],
+        [
+            InlineKeyboardButton("🎱 8Ball Pool", callback_data="fclist:8bp"),
+            InlineKeyboardButton("🤖 War Robots", callback_data="fclist:war"),
+        ],
+        [
+            InlineKeyboardButton("🎮 Overwatch 2", callback_data="fclist:ovw"),
+            InlineKeyboardButton("🚀 Farlight 84", callback_data="fclist:fl84"),
+        ],
+        [
+            InlineKeyboardButton("⚽ FC Mobile", callback_data="fclist:fcm"),
+            InlineKeyboardButton("⚽ E Football", callback_data="fclist:efb"),
+        ],
+        [
+            InlineKeyboardButton("⚔️ Rise of Kingdoms", callback_data="fclist:rok"),
+            InlineKeyboardButton("⚔️ حرب الممالك", callback_data="fclist:koa"),
+        ],
+        [
+            InlineKeyboardButton("🏰 Lords Mobile", callback_data="fclist:lm"),
+            InlineKeyboardButton("❄️ Whiteout Survival", callback_data="fclist:wos"),
+        ],
+        [
+            InlineKeyboardButton("🔥 Top War", callback_data="fclist:tw"),
+            InlineKeyboardButton("🧟 State of Survival", callback_data="fclist:sos"),
+        ],
+        [
+            InlineKeyboardButton("🎭 Identity V", callback_data="fclist:idv"),
+            InlineKeyboardButton("🌍 Undawn", callback_data="fclist:undawn"),
+        ],
+        [
+            InlineKeyboardButton("🎮 Clash of Clans", callback_data="fclist:coc"),
+            InlineKeyboardButton("👑 Clash Royale", callback_data="fclist:cr"),
+        ],
+        [
+            InlineKeyboardButton("🌟 Brawl Stars", callback_data="fclist:brawl"),
+            InlineKeyboardButton("🎮 Hay Day", callback_data="fclist:hayday"),
+        ],
+        [
+            InlineKeyboardButton("🐲 Dragon Raja", callback_data="fclist:drg"),
+            InlineKeyboardButton("⚔️ AFK Arena", callback_data="fclist:afk"),
+        ],
+        [
+            InlineKeyboardButton("🎯 Stumble Guys", callback_data="fclist:stmb"),
+            InlineKeyboardButton("🎮 Super Sus", callback_data="fclist:ssus"),
+        ],
         [InlineKeyboardButton("⬅️ رجوع للألعاب", callback_data="store:games")],
     ])
 
