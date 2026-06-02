@@ -1032,12 +1032,47 @@ async def _send_fastcard_list(q, prefix: str):
     if not offers:
         # Try to load from FastCard API directly using the game name
         game_name = cat.get("game", "")
+        # Map game names to FastCard category names
+        GAME_CAT_MAP = {
+            "VALORANT_TR": ["فالورانت", "valorant"],
+            "VALORANT_GLOBAL": ["فالورانت", "valorant"],
+            "ARENA_BREAKOUT": ["arena breakout"],
+            "FC_MOBILE": ["fc mobile", "fifa mobile"],
+            "EFOOTBALL": ["efootball", "e football"],
+            "HONOR_OF_KINGS": ["honor of kings", "ملك المجد"],
+            "8BALL_POOL": ["8ball", "pool"],
+            "WAR_ROBOTS": ["war robots"],
+            "OVERWATCH": ["overwatch"],
+            "FARLIGHT84": ["farlight"],
+            "ROK": ["rise of kingdoms"],
+            "KOA": ["حرب الممالك", "kingdom"],
+            "LORDS_MOBILE": ["lords mobile"],
+            "WHITEOUT": ["whiteout"],
+            "TOP_WAR": ["top war"],
+            "STATE_SURVIVAL": ["state of survival"],
+            "IDENTITY_V": ["identity v"],
+            "UNDAWN": ["undawn"],
+            "COC": ["clash of clans"],
+            "CLASH_ROYALE": ["clash royale"],
+            "BRAWL_STARS": ["brawl stars"],
+            "HAY_DAY": ["hay day"],
+            "DRAGON_RAJA": ["dragon raja"],
+            "AFK_ARENA": ["afk arena"],
+            "MOBILE_LEGENDS": ["mobile legends", "mlbb"],
+            "GENSHIN": ["genshin"],
+        }
+        search_keywords = GAME_CAT_MAP.get(game_name, [game_name.lower().replace("_", " ")])
         if game_name:
             try:
                 all_products = await asyncio.to_thread(fastcard.get_products)
+                # Search by multiple keywords
                 game_offers = [
                     p for p in (all_products or [])
-                    if p.get("available") and game_name.lower().replace("_", " ") in (p.get("category_name") or "").lower()
+                    if p.get("available") and any(
+                        kw in (p.get("category_name") or "").lower() or
+                        kw in (p.get("name") or "").lower()
+                        for kw in search_keywords
+                    )
                 ]
                 if game_offers:
                     offers = [
