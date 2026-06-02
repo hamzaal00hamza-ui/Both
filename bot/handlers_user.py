@@ -1030,12 +1030,37 @@ async def _send_fastcard_list(q, prefix: str):
     import sys
     offers = getattr(sys.modules["bot.config"], cat["offers_attr"], [])
     if not offers:
+        # Try to load from FastCard API directly using the game name
+        game_name = cat.get("game", "")
+        if game_name:
+            try:
+                all_products = await asyncio.to_thread(fastcard.get_products)
+                game_offers = [
+                    p for p in (all_products or [])
+                    if p.get("available") and game_name.lower().replace("_", " ") in (p.get("category_name") or "").lower()
+                ]
+                if game_offers:
+                    offers = [
+                        {
+                            "id": f"fc_{p['id']}",
+                            "label": p["name"],
+                            "price": int(float(p.get("price", 0)) * config.get_usd_to_syp() * (1 + float(os.environ.get("PROFIT_MARGIN", "0.15")))),
+                            "product_id": p["id"],
+                            "cost_usd": float(p.get("price", 0)),
+                            "manual_price": False,
+                        }
+                        for p in game_offers[:10]
+                    ]
+            except Exception as e:
+                logger.warning(f"FastCard API load error for {game_name}: {e}")
+
+    if not offers:
         await _safe_edit(
             q,
-            f"{cat['title']}\n\n"
-            "🔧 هذا القسم قيد التجهيز حالياً، رح تتوفر العروض قريباً جداً.\n"
-            "شكراً لصبرك 🌷",
-            reply_markup=kb.fastcard_offers_list(prefix),
+            cat["title"] + "\n\n"
+            "🔧 هذا القسم قيد التجهيز حالياً.\n"
+            "ستتوفر العروض قريباً جداً 🌷",
+            reply_markup=kb.back_to_main(),
         )
         return
 
