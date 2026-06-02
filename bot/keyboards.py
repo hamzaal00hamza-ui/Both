@@ -164,18 +164,70 @@ def balance_menu() -> InlineKeyboardMarkup:
 def games_menu() -> InlineKeyboardMarkup:
     """قائمة الألعاب الفرعية (تحت 🎮 الألعاب)."""
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🎮 ببجي موبايل", callback_data="store:pubg")],
-        [InlineKeyboardButton("🔥 فري فاير", callback_data="store:freefire")],
-        [InlineKeyboardButton("🏰 ألعاب Supercell", callback_data="store:supercell")],
-        [InlineKeyboardButton("🪖 كول أوف ديوتي موبايل", callback_data="store:cod")],
-        [InlineKeyboardButton("🪖 دلتا فورس", callback_data="store:delta")],
-        [InlineKeyboardButton("⛏️ ماين كرافت", callback_data="store:minecraft")],
-        [InlineKeyboardButton("🎮 فورتنايت", callback_data="store:fortnite")],
-        [InlineKeyboardButton("🎲 ألعاب لودو", callback_data="store:ludo")],
-        [InlineKeyboardButton("💀 Blood Strike", callback_data="fclist:bsk")],
-        [InlineKeyboardButton("🎮 Stumble Guys", callback_data="fclist:stmb")],
-        [InlineKeyboardButton("🛸 Super Sus", callback_data="fclist:ssus")],
+        # ── الألعاب الرئيسية ──
+        [
+            InlineKeyboardButton("🎯 PUBG Mobile ⚡", callback_data="store:pubg"),
+            InlineKeyboardButton("🔥 Free Fire 💎", callback_data="store:freefire"),
+        ],
+        [
+            InlineKeyboardButton("🏰 Supercell ⚔️", callback_data="store:supercell"),
+            InlineKeyboardButton("🪖 COD Mobile 💥", callback_data="store:cod"),
+        ],
+        [
+            InlineKeyboardButton("🎯 فالورانت تركي", callback_data="fclist:vlt"),
+            InlineKeyboardButton("🎯 فالورانت عالمي", callback_data="fclist:vlg"),
+        ],
+        [
+            InlineKeyboardButton("⚔️ Mobile Legends", callback_data="fclist:mlbb"),
+            InlineKeyboardButton("✨ Genshin Impact", callback_data="fclist:gsh"),
+        ],
+        [
+            InlineKeyboardButton("⚽ FC Mobile", callback_data="fclist:fcm"),
+            InlineKeyboardButton("⚽ E Football", callback_data="fclist:efb"),
+        ],
+        [
+            InlineKeyboardButton("🎮 Arena Breakout", callback_data="fclist:arb"),
+            InlineKeyboardButton("👑 Honor of Kings", callback_data="fclist:hok"),
+        ],
+        [
+            InlineKeyboardButton("🎱 8Ball Pool", callback_data="fclist:8bp"),
+            InlineKeyboardButton("🎮 Stumble Guys", callback_data="fclist:stmb"),
+        ],
+        [
+            InlineKeyboardButton("🤖 War Robots", callback_data="fclist:war"),
+            InlineKeyboardButton("🎮 Overwatch 2", callback_data="fclist:ovw"),
+        ],
+        [
+            InlineKeyboardButton("🪖 دلتا فورس", callback_data="store:delta"),
+            InlineKeyboardButton("⛏️ ماين كرافت", callback_data="store:minecraft"),
+        ],
+        [
+            InlineKeyboardButton("🎮 فورتنايت", callback_data="store:fortnite"),
+            InlineKeyboardButton("🎲 ألعاب لودو", callback_data="store:ludo"),
+        ],
+        [
+            InlineKeyboardButton("💀 Blood Strike", callback_data="fclist:bsk"),
+            InlineKeyboardButton("🛸 Super Sus", callback_data="fclist:ssus"),
+        ],
+        [InlineKeyboardButton("🌐 المزيد من الألعاب ➕", callback_data="store:more_games")],
         [InlineKeyboardButton("⬅️ رجوع", callback_data="menu:store")],
+    ])
+
+
+def more_games_menu() -> InlineKeyboardMarkup:
+    """قائمة الألعاب الإضافية من FastCard."""
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🎮 حرب الممالك", callback_data="fclist:koa")],
+        [InlineKeyboardButton("🎮 Lords Mobile", callback_data="fclist:lm")],
+        [InlineKeyboardButton("🎮 Top War", callback_data="fclist:tw")],
+        [InlineKeyboardButton("🎮 Whiteout Survival", callback_data="fclist:wos")],
+        [InlineKeyboardButton("🎮 State Survivor", callback_data="fclist:ss")],
+        [InlineKeyboardButton("🎮 Farlight 84", callback_data="fclist:fl")],
+        [InlineKeyboardButton("🎮 Party Star", callback_data="fclist:ps")],
+        [InlineKeyboardButton("🎮 Undawn", callback_data="fclist:ud")],
+        [InlineKeyboardButton("🎮 Identity V", callback_data="fclist:idv")],
+        [InlineKeyboardButton("🌐 كل الألعاب على FastCard", url="https://fastcard1.store/index?page=products&cat=438")],
+        [InlineKeyboardButton("⬅️ رجوع للألعاب", callback_data="store:games")],
     ])
 
 
@@ -505,11 +557,7 @@ def admin_panel() -> InlineKeyboardMarkup:
             InlineKeyboardButton("📦 المخزون", callback_data="admin:stock"),
         ],
         [InlineKeyboardButton("💼 حالة FastCard API", callback_data="admin:supplier")],
-        [
-            InlineKeyboardButton("🔴 تعطيل منتج", callback_data="admin:stock:disable_menu"),
-            InlineKeyboardButton("✅ تشغيل منتج", callback_data="admin:stock:enable_menu"),
-        ],
-        [InlineKeyboardButton("🔄 فحص وتحديث المخزون الآن", callback_data="admin:stock:refresh")],
+        [InlineKeyboardButton("🔄 فحص وتحديث المخزون الآن", callback_data="admin:stock")],
         # ── 🏷 الأسعار ──
         [InlineKeyboardButton("━━━━ 🏷 الأسعار ━━━━", callback_data="admin:noop")],
         [

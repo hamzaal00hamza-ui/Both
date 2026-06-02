@@ -865,11 +865,19 @@ async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == "store:games":
         await _safe_edit(
             q,
-            "🎮 *الألعاب*\n"
+            "🎮 *قسم الألعاب* 🔥\n"
             "━━━━━━━━━━━━━━━━━\n\n"
-            "اختر اللعبة اللي تبي تشحنها 👇\n\n"
-            "⚡ التسليم تلقائي خلال دقائق",
+            "⚡ شحن فوري · 🔒 مضمون\n\n"
+            "👇 اختر اللعبة:",
             reply_markup=kb.games_menu(),
+        )
+    elif data == "store:more_games":
+        await _safe_edit(
+            q,
+            "🌐 *المزيد من الألعاب*\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "👇 اختر اللعبة:",
+            reply_markup=kb.more_games_menu(),
         )
     elif data == "store:cards":
         await _safe_edit(

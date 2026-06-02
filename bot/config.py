@@ -1413,6 +1413,47 @@ SELAM_TELECOM_OFFERS = [
 PAPRA_OFFERS: list = []  # لا منتجات متاحة على Fastcard حالياً
 
 
+# ── ألعاب جديدة — Offers ──────────────────────────────
+VALORANT_TR_OFFERS = [
+    {"id": "vlt_475",  "label": "475 VP",  "price": 9000,  "product_id": 0, "cost_usd": 0, "manual_price": False, "enabled": False},
+    {"id": "vlt_1000", "label": "1000 VP", "price": 17000, "product_id": 0, "cost_usd": 0, "manual_price": False, "enabled": False},
+]
+VALORANT_GL_OFFERS = [
+    {"id": "vlg_475",  "label": "475 VP",  "price": 9000,  "product_id": 0, "cost_usd": 0, "manual_price": False, "enabled": False},
+]
+ARENA_BREAKOUT_OFFERS = [
+    {"id": "arb_1",    "label": "شراء عبر FastCard", "price": 0, "product_id": 0, "cost_usd": 0, "manual_price": False, "enabled": False},
+]
+FC_MOBILE_OFFERS = [
+    {"id": "fcm_1",    "label": "شراء عبر FastCard", "price": 0, "product_id": 0, "cost_usd": 0, "manual_price": False, "enabled": False},
+]
+EFOOTBALL_OFFERS = [
+    {"id": "efb_1",    "label": "شراء عبر FastCard", "price": 0, "product_id": 0, "cost_usd": 0, "manual_price": False, "enabled": False},
+]
+HOK_OFFERS = [
+    {"id": "hok_1",    "label": "شراء عبر FastCard", "price": 0, "product_id": 0, "cost_usd": 0, "manual_price": False, "enabled": False},
+]
+POOL_OFFERS = [
+    {"id": "8bp_1",    "label": "شراء عبر FastCard", "price": 0, "product_id": 0, "cost_usd": 0, "manual_price": False, "enabled": False},
+]
+STUMBLE_GUYS_OFFERS = [
+    {"id": "stg_1",    "label": "شراء عبر FastCard", "price": 0, "product_id": 0, "cost_usd": 0, "manual_price": False, "enabled": False},
+]
+WAR_ROBOTS_OFFERS = [
+    {"id": "war_1",    "label": "شراء عبر FastCard", "price": 0, "product_id": 0, "cost_usd": 0, "manual_price": False, "enabled": False},
+]
+OVERWATCH_OFFERS = [
+    {"id": "ovw_1",    "label": "شراء عبر FastCard", "price": 0, "product_id": 0, "cost_usd": 0, "manual_price": False, "enabled": False},
+]
+ML_OFFERS = [
+    {"id": "mlbb_1",   "label": "شراء عبر FastCard", "price": 0, "product_id": 0, "cost_usd": 0, "manual_price": False, "enabled": False},
+]
+GENSHIN_OFFERS = [
+    {"id": "gsh_1",    "label": "شراء عبر FastCard", "price": 0, "product_id": 0, "cost_usd": 0, "manual_price": False, "enabled": False},
+]
+
+# ── تطبيقات التواصل ──
+
 FASTCARD_CATEGORIES = {
     "pm": {
         "title": "👑 عضويات ببجي موبايل",
@@ -1527,6 +1568,93 @@ FASTCARD_CATEGORIES = {
         "offers_attr": "LUDO_YALLA_OFFERS",
     },
     # ===== ألعاب جديدة =====
+    "vlt": {
+        "title": "🎯 فالورانت تركي",
+        "game": "VALORANT_TR",
+        "input_fields": [{"key": "playerId", "label": "Riot ID (مثال: Name#TAG)", "type": "id"}],
+        "back_callback": "store:games",
+        "offers_attr": "VALORANT_TR_OFFERS",
+    },
+    "vlg": {
+        "title": "🎯 فالورانت عالمي",
+        "game": "VALORANT_GLOBAL",
+        "input_fields": [{"key": "playerId", "label": "Riot ID (مثال: Name#TAG)", "type": "id"}],
+        "back_callback": "store:games",
+        "offers_attr": "VALORANT_GL_OFFERS",
+    },
+    "arb": {
+        "title": "🎮 Arena Breakout",
+        "game": "ARENA_BREAKOUT",
+        "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}],
+        "back_callback": "store:games",
+        "offers_attr": "ARENA_BREAKOUT_OFFERS",
+    },
+    "fcm": {
+        "title": "⚽ FC Mobile",
+        "game": "FC_MOBILE",
+        "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}],
+        "back_callback": "store:games",
+        "offers_attr": "FC_MOBILE_OFFERS",
+    },
+    "efb": {
+        "title": "⚽ E Football",
+        "game": "EFOOTBALL",
+        "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}],
+        "back_callback": "store:games",
+        "offers_attr": "EFOOTBALL_OFFERS",
+    },
+    "hok": {
+        "title": "🎮 Honor of Kings",
+        "game": "HONOR_OF_KINGS",
+        "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}],
+        "back_callback": "store:games",
+        "offers_attr": "HOK_OFFERS",
+    },
+    "8bp": {
+        "title": "🎱 8Ball Pool",
+        "game": "8BALL_POOL",
+        "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}],
+        "back_callback": "store:games",
+        "offers_attr": "POOL_OFFERS",
+    },
+    "stg": {
+        "title": "🎮 Stumble Guys",
+        "game": "STUMBLE_GUYS",
+        "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}],
+        "back_callback": "store:games",
+        "offers_attr": "STUMBLE_GUYS_OFFERS",
+    },
+    "war": {
+        "title": "🤖 War Robots",
+        "game": "WAR_ROBOTS",
+        "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}],
+        "back_callback": "store:games",
+        "offers_attr": "WAR_ROBOTS_OFFERS",
+    },
+    "ovw": {
+        "title": "🎮 Overwatch 2",
+        "game": "OVERWATCH",
+        "input_fields": [{"key": "playerId", "label": "Battle.net ID", "type": "id"}],
+        "back_callback": "store:games",
+        "offers_attr": "OVERWATCH_OFFERS",
+    },
+    "mlbb": {
+        "title": "⚔️ Mobile Legends",
+        "game": "MOBILE_LEGENDS",
+        "input_fields": [
+            {"key": "playerId", "label": "Player ID", "type": "id"},
+            {"key": "zoneId", "label": "Zone ID", "type": "id"},
+        ],
+        "back_callback": "store:games",
+        "offers_attr": "ML_OFFERS",
+    },
+    "gsh": {
+        "title": "✨ Genshin Impact",
+        "game": "GENSHIN",
+        "input_fields": [{"key": "playerId", "label": "UID اللعبة", "type": "id"}],
+        "back_callback": "store:games",
+        "offers_attr": "GENSHIN_OFFERS",
+    },
     "ff_s2": {
         "title": "🔥 فري فاير — سيرفر 2 (شحن تلقائي)",
         "game": "FREEFIRE_S2",
