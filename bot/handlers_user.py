@@ -689,6 +689,7 @@ async def cb_fcqty_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["fcqty_product_id"] = offer.get("product_id")
     context.user_data["fcqty_title"] = cat.get("title", "")
     context.user_data["fcqty_field_label"] = (cat.get("input_fields", [{}])[0].get("label", "أدخل الرابط:"))
+    context.user_data["fcqty_awaiting_qty"] = True
     await q.edit_message_text(
         cat["title"] + "\n"
         "━━━━━━━━━━━━━━━━━\n\n"
@@ -703,6 +704,8 @@ async def cb_fcqty_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def msg_fcqty_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """② يستقبل الكمية ويطلب الرابط."""
+    if not context.user_data.get("fcqty_awaiting_qty"):
+        return ConversationHandler.END
     prefix = context.user_data.get("fcqty_prefix")
     offer_id = context.user_data.get("fcqty_offer_id")
     if not prefix or not offer_id:
@@ -737,6 +740,7 @@ async def msg_fcqty_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     total = per_unit * qty
     context.user_data["fcqty_qty"] = qty
     context.user_data["fcqty_total"] = total
+    context.user_data.pop("fcqty_awaiting_qty", None)
     # اطلب الرابط مباشرة
     field_label = context.user_data.get("fcqty_field_label", "أدخل الرابط:")
     await update.message.reply_text(
@@ -1138,6 +1142,7 @@ def _clear_pending_orders(context):
         "fcqty_prefix", "fcqty_offer_id", "fcqty_per_unit", "fcqty_unit",
         "fcqty_min", "fcqty_max", "fcqty_qty", "fcqty_total", "fcqty_link",
         "fcqty_product_id", "fcqty_title", "fcqty_awaiting_link", "fcqty_field_label",
+        "fcqty_awaiting_qty",
         "syriatel_tx", "shamcash_tx", "fcqty_pending", "awaiting_fcqty_link",
         "fastcard_offer", "fastcard_prefix", "fastcard_player", "pubg_offer",
         "ff_offer", "custom_player_id", "fc_custom_amount",
@@ -2156,6 +2161,11 @@ async def cb_fastcard_list_nav(update: Update, context: ContextTypes.DEFAULT_TYP
     await q.answer()
     if await is_banned(update):
         return
+    # إلغاء أي طلب رشق معلق
+    _clear_pending_orders(context)
+    uid = update.effective_user.id
+    if context.bot_data.get("fcqty_links", {}).get(uid):
+        context.bot_data["fcqty_links"].pop(uid, None)
     parts = q.data.split(":", 1)
     if len(parts) != 2:
         return
