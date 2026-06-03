@@ -748,6 +748,19 @@ async def msg_fcqty_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return FASTCARD_CUSTOM_AMOUNT
     context.user_data["fcqty_link"] = link
+    # احفظ نسخة في bot_data عشان ما تضيع لو انتهت المحادثة
+    uid = update.effective_user.id
+    if "fcqty_links" not in context.bot_data:
+        context.bot_data["fcqty_links"] = {}
+    context.bot_data["fcqty_links"][uid] = {
+        "link": link,
+        "qty": context.user_data.get("fcqty_qty"),
+        "total": context.user_data.get("fcqty_total"),
+        "product_id": context.user_data.get("fcqty_product_id"),
+        "unit": context.user_data.get("fcqty_unit", "وحدة"),
+        "title": context.user_data.get("fcqty_title", "رشق"),
+        "prefix": context.user_data.get("fcqty_prefix", "smm"),
+    }
     qty = context.user_data.get("fcqty_qty", 0)
     total = context.user_data.get("fcqty_total", 0)
     unit = context.user_data.get("fcqty_unit", "وحدة")
@@ -772,14 +785,41 @@ async def cb_fcqtyconf(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """④ ينفذ الطلب على FastCard."""
     q = update.callback_query
     await q.answer()
-    link = context.user_data.get("fcqty_link")
-    qty = context.user_data.get("fcqty_qty")
-    total = context.user_data.get("fcqty_total")
-    product_id = context.user_data.get("fcqty_product_id")
-    unit = context.user_data.get("fcqty_unit", "وحدة")
-    title = context.user_data.get("fcqty_title", "رشق")
+    # اقرأ من callback_data: fcqtyconf:prefix:offer_id:qty
+    parts = q.data.split(":")
+    if len(parts) >= 4:
+        cb_prefix, cb_offer_id, cb_qty = parts[1], parts[2], parts[3]
+    else:
+        cb_prefix = cb_offer_id = cb_qty = None
+
+    uid = update.effective_user.id
+    saved = context.bot_data.get("fcqty_links", {}).get(uid, {})
+    link = context.user_data.get("fcqty_link") or saved.get("link")
+    qty = context.user_data.get("fcqty_qty") or saved.get("qty")
+    total = context.user_data.get("fcqty_total") or saved.get("total")
+    product_id = context.user_data.get("fcqty_product_id") or saved.get("product_id")
+    unit = context.user_data.get("fcqty_unit") or saved.get("unit", "وحدة")
+    title = context.user_data.get("fcqty_title") or saved.get("title", "رشق")
+
+    # لو user_data ضاع — أعد البناء من callback + config
+    if (not qty or not product_id) and cb_prefix and cb_offer_id and cb_qty:
+        cat = config.FASTCARD_CATEGORIES.get(cb_prefix, {})
+        import sys
+        offers = getattr(sys.modules["bot.config"], cat.get("offers_attr", ""), [])
+        offer = next((o for o in offers if o["id"] == cb_offer_id), None)
+        if offer:
+            qty = int(cb_qty)
+            per_unit = int(offer.get("price_per_unit_syp") or 90)
+            total = per_unit * qty
+            product_id = offer.get("product_id")
+            unit = offer.get("unit_label", "وحدة")
+            title = cat.get("title", "رشق")
+
     if not link or not qty or not product_id:
-        await q.edit_message_text("⚠️ انتهت الجلسة، ابدأ من جديد.", reply_markup=kb.back_to_main())
+        await q.edit_message_text(
+            "⚠️ انتهت الجلسة أو لم يتم إدخال الرابط. ابدأ من جديد.",
+            reply_markup=kb.back_to_main(),
+        )
         return ConversationHandler.END
     user_id = update.effective_user.id
     balance = await asyncio.to_thread(db.get_balance, user_id)
@@ -852,6 +892,8 @@ async def cb_fcqtyconf(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     for k in ["fcqty_prefix","fcqty_offer_id","fcqty_per_unit","fcqty_unit","fcqty_min","fcqty_max","fcqty_qty","fcqty_total","fcqty_link","fcqty_product_id","fcqty_title","fcqty_awaiting_link","fcqty_field_label"]:
         context.user_data.pop(k, None)
+    if context.bot_data.get("fcqty_links", {}).get(uid):
+        context.bot_data["fcqty_links"].pop(uid, None)
     return ConversationHandler.END
 
 
@@ -4185,6 +4227,9 @@ def register_user_handlers(app):
         ), cmd_reply_nav),
         group=-1,
     )
+
+    # ── fcqty confirm (standalone — works even outside conversation) ──
+    app.add_handler(CallbackQueryHandler(cb_fcqtyconf, pattern=r"^fcqtyconf:"))
 
     # ── Section navigation handlers ──
     app.add_handler(CallbackQueryHandler(cb_store, pattern=r"^store:"))
