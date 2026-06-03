@@ -468,7 +468,7 @@ def fastcard_offers_list(prefix: str) -> InlineKeyboardMarkup:
         elif offer.get("custom_amount"):
             # زر كمية مخصصة — المستخدم يكتب الكمية
             unit = offer.get("unit_label", "وحدة")
-            per_unit_syp = int(offer.get("cost_usd_per_unit", 0) * config.get_usd_to_syp() * 1.15)
+            per_unit_syp = int(offer.get("price_per_unit_syp") or offer.get("cost_usd_per_unit", 0) * config.get_usd_to_syp() * 1.15)
             min_qty = offer.get("min_qty", 100)
             label = offer["label"] + " — " + str(per_unit_syp) + " ل.س/" + unit
             rows.append([InlineKeyboardButton(label, callback_data="fcqty:" + prefix + ":" + offer["id"])])

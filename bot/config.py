@@ -813,32 +813,27 @@ SURFSHARK_OFFERS = [
 # Fastcard API: qty يُمرَّر كميةاً، product_id ثابت
 # ملاحظة: المنتجات الـ SMM فيها minimum quantity (e.g. 100, 1000) فلازم qty >= min
 INSTAGRAM_FOLLOWERS = [
-    # 7557 = $0.0041/متابع — حقيقي vip بدون نزول
-    {"id": "igf_custom", "label": "📸 متابعين إنستغرام ✍️ أدخل الكمية",
-     "product_id": 7557, "cost_usd_per_unit": 0.0041, "min_qty": 100, "max_qty": 100000,
+    {"id": "igf_custom", "label": "📸 متابعين إنستغرام",
+     "product_id": 7557, "cost_usd_per_unit": 0.0041, "price_per_unit_syp": 90,
+     "min_qty": 100, "max_qty": 100000,
      "custom_amount": True, "manual_price": True, "enabled": True,
      "unit_label": "متابع", "price": 0},
-    {"id": "igf_1k",   "label": "📸 1,000 متابع إنستغرام",   "price": 68000,   "product_id": 7557, "qty": 1000,  "cost_usd": 4.10,  "manual_price": True, "enabled": True},
-    {"id": "igf_5k",   "label": "📸 5,000 متابع إنستغرام",   "price": 340000,  "product_id": 7557, "qty": 5000,  "cost_usd": 20.50, "manual_price": True, "enabled": True},
-    {"id": "igf_10k",  "label": "📸 10,000 متابع إنستغرام",  "price": 680000,  "product_id": 7557, "qty": 10000, "cost_usd": 41.00, "manual_price": True, "enabled": True},
 ]
 
 INSTAGRAM_LIKES = [
-    # 7563 = $0.0041/لايك
-    {"id": "igl_custom", "label": "❤️ لايكات إنستغرام ✍️ أدخل الكمية",
-     "product_id": 7563, "cost_usd_per_unit": 0.0041, "min_qty": 50, "max_qty": 50000,
+    {"id": "igl_custom", "label": "❤️ لايكات إنستغرام",
+     "product_id": 7563, "cost_usd_per_unit": 0.0041, "price_per_unit_syp": 90,
+     "min_qty": 50, "max_qty": 50000,
      "custom_amount": True, "manual_price": True, "enabled": True,
      "unit_label": "لايك", "price": 0},
-    {"id": "igl_500",  "label": "❤️ 500 لايك إنستغرام",   "price": 17000,   "product_id": 7563, "qty": 500,  "cost_usd": 2.05,  "manual_price": True, "enabled": True},
-    {"id": "igl_1k",   "label": "❤️ 1,000 لايك إنستغرام", "price": 34000,   "product_id": 7563, "qty": 1000, "cost_usd": 4.10,  "manual_price": True, "enabled": True},
-    {"id": "igl_5k",   "label": "❤️ 5,000 لايك إنستغرام", "price": 170000,  "product_id": 7563, "qty": 5000, "cost_usd": 20.50, "manual_price": True, "enabled": True},
 ]
 
 INSTAGRAM_VIEWS = [
-    # 7575 = $0.0001/مشاهدة — سريع، كل أنواع الفديو
-    {"id": "igv_5k",   "label": "👁️ 5,000 مشاهدة فيديو إنستغرام",    "price": 41500, "product_id": 7575, "qty": 5000,   "cost_usd": 0.50, "manual_price": True, "enabled": True},
-    {"id": "igv_10k",  "label": "👁️ 10,000 مشاهدة فيديو إنستغرام",   "price": 165000, "product_id": 7575, "qty": 10000,  "cost_usd": 1.00, "manual_price": True, "enabled": True},
-    {"id": "igv_50k",  "label": "👁️ 50,000 مشاهدة فيديو إنستغرام",   "price": 4116000, "product_id": 7575, "qty": 50000,  "cost_usd": 5.00, "manual_price": True, "enabled": True},
+    {"id": "igv_custom", "label": "👁️ مشاهدات إنستغرام",
+     "product_id": 7575, "cost_usd_per_unit": 0.0001, "price_per_unit_syp": 90,
+     "min_qty": 1000, "max_qty": 1000000,
+     "custom_amount": True, "manual_price": True, "enabled": True,
+     "unit_label": "مشاهدة", "price": 0},
 ]
 
 FACEBOOK_FOLLOWERS = [
@@ -849,17 +844,19 @@ FACEBOOK_FOLLOWERS = [
 ]
 
 TELEGRAM_VIEWS = [
-    # 7748 = $0.0041/مشاهدة لآخر 100 منشور
-    {"id": "tgv_100",  "label": "📊 100 مشاهدة لآخر 100 منشور تلغرام",  "price": 1000,  "product_id": 7748, "qty": 100,  "cost_usd": 0.41, "manual_price": True, "enabled": True},
-    {"id": "tgv_500",  "label": "📊 500 مشاهدة لآخر 100 منشور تلغرام",  "price": 17000, "product_id": 7748, "qty": 500,  "cost_usd": 2.05, "manual_price": True, "enabled": True},
-    {"id": "tgv_1k",   "label": "📊 1,000 مشاهدة لآخر 100 منشور تلغرام", "price": 68000, "product_id": 7748, "qty": 1000, "cost_usd": 4.10, "manual_price": True, "enabled": True},
+    {"id": "tgv_custom", "label": "📊 مشاهدات تلغرام",
+     "product_id": 7748, "cost_usd_per_unit": 0.0041, "price_per_unit_syp": 90,
+     "min_qty": 100, "max_qty": 100000,
+     "custom_amount": True, "manual_price": True, "enabled": True,
+     "unit_label": "مشاهدة", "price": 0},
 ]
 
 TELEGRAM_REACTIONS = [
-    # 7732 = $0.0008/تفاعل — بريميوم تلغرام (لايك)
-    {"id": "tgr_500",  "label": "💯 500 تفاعل/لايك تلغرام (بريميوم)",  "price": 3500,  "product_id": 7732, "qty": 500,  "cost_usd": 0.40, "manual_price": True, "enabled": True},
-    {"id": "tgr_1k",   "label": "💯 1,000 تفاعل/لايك تلغرام (بريميوم)", "price": 13500, "product_id": 7732, "qty": 1000, "cost_usd": 0.80, "manual_price": True, "enabled": True},
-    {"id": "tgr_5k",   "label": "💯 5,000 تفاعل/لايك تلغرام (بريميوم)", "price": 329500, "product_id": 7732, "qty": 5000, "cost_usd": 4.00, "manual_price": True, "enabled": True},
+    {"id": "tgr_custom", "label": "💯 تفاعل/لايك تلغرام",
+     "product_id": 7732, "cost_usd_per_unit": 0.0008, "price_per_unit_syp": 90,
+     "min_qty": 100, "max_qty": 50000,
+     "custom_amount": True, "manual_price": True, "enabled": True,
+     "unit_label": "تفاعل", "price": 0},
 ]
 
 

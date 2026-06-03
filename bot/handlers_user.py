@@ -3877,10 +3877,12 @@ def register_user_handlers(app):
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cb_fastcard_buy_select, pattern=r"^fcbuy:"),
             CallbackQueryHandler(cb_fastcard_amount_start, pattern=r"^fcamt:"),
+            CallbackQueryHandler(cb_fcqty_start, pattern=r"^fcqty:"),
         ],
         states={
             FASTCARD_CUSTOM_AMOUNT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_fastcard_custom_amount),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, msg_fcqty_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^store:balance$"),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
@@ -4050,7 +4052,7 @@ async def msg_fcqty_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return FASTCARD_CUSTOM_AMOUNT
 
-    per_unit_syp = int(offer.get("cost_usd_per_unit", 0) * config.get_usd_to_syp() * 1.15)
+    per_unit_syp = context.user_data.get("fcqty_per_unit_syp") or int(offer.get("price_per_unit_syp") or offer.get("cost_usd_per_unit", 0) * config.get_usd_to_syp() * 1.15)
     total_price = per_unit_syp * qty
 
     # Save to user_data for purchase
