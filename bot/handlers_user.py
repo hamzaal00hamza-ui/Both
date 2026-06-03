@@ -791,27 +791,48 @@ async def cb_fcqtyconf(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=kb.insufficient_balance(),
         )
         return ConversationHandler.END
-    await q.edit_message_text("⏳ جاري تنفيذ الطلب...")
+    await q.edit_message_text("⏳ جاري إرسال طلبك...")
+    import uuid as _uuid
+    order_uuid = str(_uuid.uuid4())
     try:
         result = await asyncio.to_thread(
             fastcard.new_order,
             product_id=product_id,
             qty=qty,
             player_id=link,
+            order_uuid=order_uuid,
         )
         success = result.get("status") == "OK"
+        api_uuid = result.get("uuid") or order_uuid
     except Exception as e:
         success = False
+        api_uuid = None
         logger.error("fcqty order error: %s", e)
     if success:
         await asyncio.to_thread(db.add_balance, user_id, -total)
+        # احفظ الطلب للمتابعة — followup job رح يرسل "تم التنفيذ" لما يكتمل
+        try:
+            order_id = await asyncio.to_thread(
+                db.create_order,
+                user_id=user_id,
+                game=context.user_data.get("fcqty_prefix", "smm"),
+                item=title + " — " + str(qty) + " " + unit,
+                price=total,
+                player_id=link,
+                api_uuid=api_uuid,
+            )
+        except Exception as e:
+            order_id = 0
+            logger.error("fcqty create_order error: %s", e)
         await q.edit_message_text(
             "✅ *تم إرسال طلبك بنجاح!*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
             "📦 " + title + "\n"
             "🔢 " + str(qty) + " " + unit + "\n"
-            "💰 " + str(total) + " ل.س\n\n"
-            "⚡ سيبدأ التنفيذ خلال دقائق",
+            "💰 " + str(total) + " ل.س\n"
+            + ("📋 رقم الطلب: #" + str(order_id) + "\n" if order_id else "") +
+            "\n⏳ *قيد التنفيذ الآن*\n"
+            "سيصلك إشعار فور اكتمال الطلب ⚡",
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=kb.back_to_main(),
         )
@@ -4078,11 +4099,11 @@ def register_user_handlers(app):
         ],
         states={
             FASTCARD_CUSTOM_AMOUNT: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, msg_fastcard_custom_amount),
                 CallbackQueryHandler(cb_fcqtyconf, pattern=r"^fcqtyconf:"),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, msg_fastcard_custom_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^store:balance$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_)"),
             ],
             FASTCARD_PLAYER_ID: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_fastcard_player_id),
