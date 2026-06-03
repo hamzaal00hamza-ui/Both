@@ -652,8 +652,11 @@ async def handle_fcqty_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     link = (update.message.text or "").strip()
-    if not link:
-        await update.message.reply_text("⚠️ الرجاء إرسال رابط صحيح:")
+    if not link or len(link) < 3:
+        await update.message.reply_text(
+            "⚠️ الرجاء إرسال رابط أو معرّف صحيح:",
+            reply_markup=kb.cancel_inline(),
+        )
         return True
 
     user_id = update.effective_user.id
@@ -719,11 +722,18 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يعالج أزرار لوحة المفاتيح الثابتة في الأسفل (Reply Keyboard)."""
     if await is_banned(update):
         return
-    # Check if waiting for fcqty link
-    if context.user_data.get("awaiting_fcqty_link"):
-        await handle_fcqty_link(update, context)
-        return
     text = (update.message.text or "").strip()
+    # Clear fcqty state if user pressed a menu button
+    if context.user_data.get("awaiting_fcqty_link"):
+        # If it looks like a link/username, handle as fcqty link
+        if text.startswith("http") or text.startswith("@") or (text.startswith("t.me")):
+            await handle_fcqty_link(update, context)
+            return
+        # Otherwise clear state and continue to menu
+        context.user_data.pop("awaiting_fcqty_link", None)
+        context.user_data.pop("fcqty_pending", None)
+        context.user_data.pop("fcqty_prefix", None)
+        context.user_data.pop("fcqty_offer_id", None)
 
     async def send(msg, markup):
         await update.message.reply_text(msg, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
@@ -1983,7 +1993,7 @@ async def cb_fastcard_amount_start(update: Update, context: ContextTypes.DEFAULT
 async def msg_fastcard_custom_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يستقبل المبلغ من الزبون، يبني عرض ديناميكي، ويطلب رقم الجوال."""
     # Route to fcqty if we're in qty mode
-    if context.user_data.get("fcqty_prefix"):
+    if context.user_data.get("fcqty_prefix") and context.user_data.get("fcqty_offer_id"):
         return await msg_fcqty_amount(update, context)
     text = (update.message.text or "").strip()
     # تنظيف: شيل الفواصل والنقاط والرموز العربية
