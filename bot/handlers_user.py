@@ -642,6 +642,80 @@ async def _build_referral_screen(user_id: int, bot) -> tuple:
     return text, kb.referral_menu(link, share_text)
 
 
+async def handle_fcqty_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يستقبل رابط الحساب لطلب الرشق ويرسله لـ FastCard."""
+    if not context.user_data.get("awaiting_fcqty_link"):
+        return False
+
+    pending = context.user_data.get("fcqty_pending", {})
+    if not pending:
+        return False
+
+    link = (update.message.text or "").strip()
+    if not link:
+        await update.message.reply_text("⚠️ الرجاء إرسال رابط صحيح:")
+        return True
+
+    user_id = update.effective_user.id
+    product_id = pending.get("product_id")
+    qty = pending.get("qty")
+    total_price = pending.get("total_price")
+    prefix = pending.get("prefix")
+    cat = config.FASTCARD_CATEGORIES.get(prefix, {})
+
+    # إرسال لـ FastCard
+    wait_msg = await update.message.reply_text("⏳ جاري تنفيذ الطلب...")
+    try:
+        result = await asyncio.to_thread(
+            fastcard.new_order,
+            product_id=product_id,
+            quantity=qty,
+            player_id=link,
+        )
+        success = result.get("status") == "OK" or result.get("success")
+    except Exception as e:
+        success = False
+        logger.error(f"fcqty FastCard order error: {e}")
+
+    if success:
+        db.add_balance(user_id, -total_price)
+        req_id = db.create_order(
+            user_id=user_id,
+            product_name=cat.get("title", "رشق"),
+            amount=total_price,
+            status="completed",
+        )
+        await wait_msg.edit_text(
+            "✅ *تم تنفيذ الطلب بنجاح!*\n\n"
+            "📦 الخدمة: " + cat.get("title", "") + "\n"
+            "🔢 الكمية: " + str(qty) + "\n"
+            "💰 المبلغ: " + str(total_price) + " ل.س\n\n"
+            "⚡ سيبدأ التنفيذ خلال دقائق",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb.back_to_main(),
+        )
+        if config.ADMIN_ID:
+            try:
+                await context.bot.send_message(
+                    chat_id=config.ADMIN_ID,
+                    text="🆕 طلب رشق جديد\n👤 " + str(user_id) + "\n📦 " + cat.get("title","") + "\n🔢 " + str(qty) + "\n🔗 " + link,
+                )
+            except Exception:
+                pass
+    else:
+        await wait_msg.edit_text(
+            "❌ تعذّر تنفيذ الطلب على FastCard\n"
+            "تواصل مع الدعم أو حاول لاحقاً.",
+            reply_markup=kb.back_to_main(),
+        )
+
+    context.user_data.pop("awaiting_fcqty_link", None)
+    context.user_data.pop("fcqty_pending", None)
+    context.user_data.pop("fcqty_prefix", None)
+    context.user_data.pop("fcqty_offer_id", None)
+    return True
+
+
 async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يعالج أزرار لوحة المفاتيح الثابتة في الأسفل (Reply Keyboard)."""
     if await is_banned(update):
@@ -4030,7 +4104,9 @@ async def _handle_fcqtyconf(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "👇 " + field.get("label", "أدخل الرابط أو معرّفك:"),
         reply_markup=kb.cancel_inline(),
     )
+    # Set state for link input - handled by next message
     context.user_data["awaiting_fcqty_link"] = True
+    context.user_data["fcqty_chat_id"] = update.effective_chat.id
 
 
 async def cb_fcqty_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -4135,11 +4211,12 @@ async def msg_fcqty_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-    # fcqty بتشتغل ضمن fastcard_conv — فقط سجّل التأكيد خارجياً
-    app.add_handler(CallbackQueryHandler(
-        lambda u, c: asyncio.create_task(_handle_fcqtyconf(u, c)),
-        pattern=r"^fcqtyconf:"
-    ))
+    app.add_handler(CallbackQueryHandler(_handle_fcqtyconf, pattern=r"^fcqtyconf:"))
+    # fcqty link input handler
+    app.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        lambda u, c: handle_fcqty_link(u, c) if c.user_data.get("awaiting_fcqty_link") else None,
+    ), group=2)
     app.add_handler(CallbackQueryHandler(cb_main_menu, pattern=r"^menu:"))
     app.add_handler(CallbackQueryHandler(cb_store, pattern=r"^store:"))
     app.add_handler(CallbackQueryHandler(cb_pubg_section, pattern=r"^pubg:"))
