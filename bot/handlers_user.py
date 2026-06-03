@@ -1021,6 +1021,8 @@ async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.edit_message_text("🚫 تم حظرك من استخدام البوت.")
         return
     data = q.data
+    # إلغاء أي طلب معلق
+    _clear_pending_orders(context)
 
     if data == "menu:main":
         await _safe_edit(q, "👇 اختر من القائمة أدناه:")
@@ -1110,12 +1112,28 @@ async def _safe_edit(q, text: str, reply_markup=None, parse_mode=ParseMode.MARKD
     except Exception:
         pass
 
+
+def _clear_pending_orders(context):
+    """يمسح كل حالات الطلبات المعلقة عند الانتقال لقسم جديد."""
+    keys = [
+        "fcqty_prefix", "fcqty_offer_id", "fcqty_per_unit", "fcqty_unit",
+        "fcqty_min", "fcqty_max", "fcqty_qty", "fcqty_total", "fcqty_link",
+        "fcqty_product_id", "fcqty_title", "fcqty_awaiting_link", "fcqty_field_label",
+        "syriatel_tx", "shamcash_tx", "fcqty_pending",
+        "awaiting_fcqty_link",
+    ]
+    for k in keys:
+        context.user_data.pop(k, None)
+
+
 async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
     if await is_banned(update):
         return
     data = q.data
+    # إلغاء أي طلب معلق عند الانتقال لقسم جديد
+    _clear_pending_orders(context)
 
     if data == "store:games":
         await _safe_edit(
@@ -1233,6 +1251,7 @@ async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def cb_pubg_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
+    _clear_pending_orders(context)
     if await is_banned(update):
         return
     data = q.data
@@ -1392,6 +1411,7 @@ async def cb_supercell_section(update: Update, context: ContextTypes.DEFAULT_TYP
     """يوجّه لأقسام Supercell الفرعية: Brawl Stars / CoC / CR / Hay Day."""
     q = update.callback_query
     await q.answer()
+    _clear_pending_orders(context)
     if await is_banned(update):
         return
     parts = q.data.split(":", 1)
@@ -1407,6 +1427,7 @@ async def cb_cod_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يوجّه لأقسام COD الفرعية: شدات (cod) / Battle Pass (cdbp)."""
     q = update.callback_query
     await q.answer()
+    _clear_pending_orders(context)
     if await is_banned(update):
         return
     parts = q.data.split(":", 1)
@@ -1424,6 +1445,7 @@ async def cb_ludo_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يوجّه لأقسام Ludo الفرعية: World / Club / Yalla."""
     q = update.callback_query
     await q.answer()
+    _clear_pending_orders(context)
     if await is_banned(update):
         return
     parts = q.data.split(":", 1)
@@ -1439,6 +1461,7 @@ async def cb_cards_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يوجّه قسم البطاقات: قائمة المنصة → دول → عروض."""
     q = update.callback_query
     await q.answer()
+    _clear_pending_orders(context)
     if await is_banned(update):
         return
     parts = q.data.split(":", 1)
@@ -1845,6 +1868,7 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def cb_freefire_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
+    _clear_pending_orders(context)
     if await is_banned(update):
         return
     data = q.data
@@ -3977,10 +4001,33 @@ async def msg_usdt_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def cancel_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # امسح أي طلب معلق
+    _clear_pending_orders(context)
     q = update.callback_query
     if q:
         await q.answer()
-        await q.edit_message_text(WELCOME, reply_markup=kb.main_menu(), parse_mode=ParseMode.MARKDOWN)
+        data = q.data or ""
+        # لو ضغط قسم معيّن — افتحه بدل الرجوع للقائمة
+        if data.startswith("store:"):
+            return await cb_store(update, context)
+        elif data.startswith("pubg:"):
+            return await cb_pubg_section(update, context)
+        elif data.startswith("ff:"):
+            return await cb_freefire_section(update, context)
+        elif data.startswith("sc:"):
+            return await cb_supercell_section(update, context)
+        elif data.startswith("cdnav:"):
+            return await cb_cod_section(update, context)
+        elif data.startswith("lunav:"):
+            return await cb_ludo_section(update, context)
+        elif data.startswith("cards:"):
+            return await cb_cards_section(update, context)
+        elif data.startswith("fclist:"):
+            return await cb_fastcard_list_nav(update, context)
+        elif data.startswith("menu:") and data != "menu:main":
+            return await cb_main_menu(update, context)
+        else:
+            await q.edit_message_text(WELCOME, reply_markup=kb.main_menu(), parse_mode=ParseMode.MARKDOWN)
     return ConversationHandler.END
 
 
@@ -4145,7 +4192,7 @@ def register_user_handlers(app):
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_fastcard_custom_amount),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^store:balance$"),
-                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_)"),
+                CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|store:|pubg:|ff:|sc:|cdnav:|lunav:|cards:|rate:|fclist:)"),
             ],
             FASTCARD_PLAYER_ID: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_fastcard_player_id),
