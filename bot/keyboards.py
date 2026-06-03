@@ -463,12 +463,19 @@ def fastcard_offers_list(prefix: str) -> InlineKeyboardMarkup:
     rows = []
     for offer in offers:
         if not offer.get("enabled", True):
-            label = f"🔴 {offer['label']} — نفد المخزون"
-            rows.append([InlineKeyboardButton(label, callback_data=f"fcsold:{prefix}")])
+            label = "🔴 " + offer["label"] + " — نفد المخزون"
+            rows.append([InlineKeyboardButton(label, callback_data="fcsold:" + prefix)])
+        elif offer.get("custom_amount"):
+            # زر كمية مخصصة — المستخدم يكتب الكمية
+            unit = offer.get("unit_label", "وحدة")
+            per_unit_syp = int(offer.get("cost_usd_per_unit", 0) * config.get_usd_to_syp() * 1.15)
+            min_qty = offer.get("min_qty", 100)
+            label = offer["label"] + " — " + str(per_unit_syp) + " ل.س/" + unit
+            rows.append([InlineKeyboardButton(label, callback_data="fcqty:" + prefix + ":" + offer["id"])])
         else:
-            price_fmt = f"{config.get_offer_price(offer):,}".replace(",", "،")
-            label = f"{btn_emoji} {offer['label']} — {price_fmt} ل.س"
-            rows.append([InlineKeyboardButton(label, callback_data=f"fcbuy:{prefix}:{offer['id']}")])
+            price_fmt = str(int(config.get_offer_price(offer))).replace(",", "،")
+            label = btn_emoji + " " + offer["label"] + " — " + price_fmt + " ل.س"
+            rows.append([InlineKeyboardButton(label, callback_data="fcbuy:" + prefix + ":" + offer["id"])])
     rows.append([InlineKeyboardButton("⬅️ رجوع", callback_data=cat["back_callback"])])
     return InlineKeyboardMarkup(rows)
 
@@ -506,6 +513,17 @@ def shamcash_retry_markup() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("💬 تواصل مع الدعم", callback_data="menu:support")],
         [InlineKeyboardButton("⬅️ القائمة الرئيسية", callback_data="menu:main")],
     ])
+
+def fcqty_confirm(prefix: str, offer_id: str, qty: int, total_price: int) -> InlineKeyboardMarkup:
+    """تأكيد شراء كمية مخصصة."""
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(
+            "✅ تأكيد — " + str(total_price) + " ل.س",
+            callback_data="fcqtyconf:" + prefix + ":" + offer_id + ":" + str(qty)
+        )],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="fclist:" + prefix)],
+    ])
+
 
 def cancel_inline() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([

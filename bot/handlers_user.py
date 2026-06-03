@@ -3969,6 +3969,109 @@ def register_user_handlers(app):
     # Safety net — لو shamcash/syriatel ما اشتغل من ConversationHandler
     app.add_handler(CallbackQueryHandler(cb_shamcash_start, pattern=r"^recharge:shamcash$"), group=1)
     app.add_handler(CallbackQueryHandler(cb_syriatel_start, pattern=r"^recharge:syriatel$"), group=1)
+async def cb_fcqty_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يطلب من المستخدم إدخال الكمية المخصصة للرشق."""
+    q = update.callback_query
+    await q.answer()
+    parts = q.data.split(":")
+    if len(parts) < 3:
+        return
+    prefix, offer_id = parts[1], parts[2]
+    cat = config.FASTCARD_CATEGORIES.get(prefix)
+    if not cat:
+        return
+    import sys
+    offers = getattr(sys.modules["bot.config"], cat["offers_attr"], [])
+    offer = next((o for o in offers if o["id"] == offer_id), None)
+    if not offer or not offer.get("custom_amount"):
+        return
+
+    unit = offer.get("unit_label", "وحدة")
+    min_qty = offer.get("min_qty", 100)
+    max_qty = offer.get("max_qty", 100000)
+    per_unit_syp = int(offer.get("cost_usd_per_unit", 0) * config.get_usd_to_syp() * 1.15)
+
+    context.user_data["fcqty_prefix"] = prefix
+    context.user_data["fcqty_offer_id"] = offer_id
+
+    await q.edit_message_text(
+        cat["title"] + "\n"
+        "━━━━━━━━━━━━━━━━━\n\n"
+        "✍️ أدخل الكمية المطلوبة:\n\n"
+        "📊 السعر: " + str(per_unit_syp) + " ل.س/" + unit + "\n"
+        "📉 الحد الأدنى: " + str(min_qty) + " " + unit + "\n"
+        "📈 الحد الأقصى: " + str(max_qty) + " " + unit + "\n\n"
+        "مثال: اكتب `500` للحصول على 500 " + unit,
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=kb.cancel_inline(),
+    )
+    return FASTCARD_CUSTOM_AMOUNT
+
+
+async def msg_fcqty_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يستقبل الكمية ويحسب السعر ويعرض تأكيد الشراء."""
+    prefix = context.user_data.get("fcqty_prefix")
+    offer_id = context.user_data.get("fcqty_offer_id")
+    if not prefix or not offer_id:
+        return ConversationHandler.END
+
+    cat = config.FASTCARD_CATEGORIES.get(prefix)
+    import sys
+    offers = getattr(sys.modules["bot.config"], cat["offers_attr"], [])
+    offer = next((o for o in offers if o["id"] == offer_id), None)
+
+    text = (update.message.text or "").strip()
+    try:
+        qty = int(text.replace(",", "").replace("،", ""))
+        if qty <= 0:
+            raise ValueError()
+    except ValueError:
+        await update.message.reply_text(
+            "⚠️ أدخل رقماً صحيحاً مثل: 500",
+            reply_markup=kb.cancel_inline(),
+        )
+        return FASTCARD_CUSTOM_AMOUNT
+
+    min_qty = offer.get("min_qty", 100)
+    max_qty = offer.get("max_qty", 100000)
+    unit = offer.get("unit_label", "وحدة")
+
+    if qty < min_qty:
+        await update.message.reply_text(
+            "⚠️ الحد الأدنى هو " + str(min_qty) + " " + unit,
+            reply_markup=kb.cancel_inline(),
+        )
+        return FASTCARD_CUSTOM_AMOUNT
+
+    if qty > max_qty:
+        await update.message.reply_text(
+            "⚠️ الحد الأقصى هو " + str(max_qty) + " " + unit,
+            reply_markup=kb.cancel_inline(),
+        )
+        return FASTCARD_CUSTOM_AMOUNT
+
+    per_unit_syp = int(offer.get("cost_usd_per_unit", 0) * config.get_usd_to_syp() * 1.15)
+    total_price = per_unit_syp * qty
+
+    # Save to user_data for purchase
+    context.user_data["fcqty_qty"] = qty
+    context.user_data["fcqty_price"] = total_price
+
+    await update.message.reply_text(
+        "✅ *ملخص الطلب*\n"
+        "━━━━━━━━━━━━━━━━━\n\n"
+        "📦 الخدمة: " + cat["title"] + "\n"
+        "🔢 الكمية: " + str(qty) + " " + unit + "\n"
+        "💰 السعر الإجمالي: *" + str(total_price) + " ل.س*\n\n"
+        "هل تريد المتابعة؟",
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=kb.fcqty_confirm(prefix, offer_id, qty, total_price),
+    )
+    return FASTCARD_CUSTOM_AMOUNT
+
+
+
+    app.add_handler(CallbackQueryHandler(cb_fcqty_start, pattern=r"^fcqty:"))
     app.add_handler(CallbackQueryHandler(cb_main_menu, pattern=r"^menu:"))
     app.add_handler(CallbackQueryHandler(cb_store, pattern=r"^store:"))
     app.add_handler(CallbackQueryHandler(cb_pubg_section, pattern=r"^pubg:"))

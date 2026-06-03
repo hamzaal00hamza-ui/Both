@@ -813,17 +813,25 @@ SURFSHARK_OFFERS = [
 # Fastcard API: qty يُمرَّر كميةاً، product_id ثابت
 # ملاحظة: المنتجات الـ SMM فيها minimum quantity (e.g. 100, 1000) فلازم qty >= min
 INSTAGRAM_FOLLOWERS = [
-    # 7557 = $0.0041/متابع — حقيقي vip بدون نزول، min=100 (افتراضي)
-    {"id": "igf_1k",   "label": "📸 1,000 متابع انستغرام (حقيقي/مضمون)",   "price": 68000,   "product_id": 7557, "qty": 1000,  "cost_usd": 4.10,  "manual_price": True, "enabled": True},
-    {"id": "igf_5k",   "label": "📸 5,000 متابع انستغرام (حقيقي/مضمون)",   "price": 1688000,  "product_id": 7557, "qty": 5000,  "cost_usd": 20.50, "manual_price": True, "enabled": True},
-    {"id": "igf_10k",  "label": "📸 10,000 متابع انستغرام (حقيقي/مضمون)",  "price": 6750500,  "product_id": 7557, "qty": 10000, "cost_usd": 41.00, "manual_price": True, "enabled": True},
+    # 7557 = $0.0041/متابع — حقيقي vip بدون نزول
+    {"id": "igf_custom", "label": "📸 متابعين إنستغرام ✍️ أدخل الكمية",
+     "product_id": 7557, "cost_usd_per_unit": 0.0041, "min_qty": 100, "max_qty": 100000,
+     "custom_amount": True, "manual_price": True, "enabled": True,
+     "unit_label": "متابع", "price": 0},
+    {"id": "igf_1k",   "label": "📸 1,000 متابع إنستغرام",   "price": 68000,   "product_id": 7557, "qty": 1000,  "cost_usd": 4.10,  "manual_price": True, "enabled": True},
+    {"id": "igf_5k",   "label": "📸 5,000 متابع إنستغرام",   "price": 340000,  "product_id": 7557, "qty": 5000,  "cost_usd": 20.50, "manual_price": True, "enabled": True},
+    {"id": "igf_10k",  "label": "📸 10,000 متابع إنستغرام",  "price": 680000,  "product_id": 7557, "qty": 10000, "cost_usd": 41.00, "manual_price": True, "enabled": True},
 ]
 
 INSTAGRAM_LIKES = [
-    # 7563 = $0.0041/لايك — vip عربي مضمون مدى الحياة
-    {"id": "igl_500",  "label": "❤️ 500 لايك إنستغرام (عربي/مضمون)",   "price": 17000,  "product_id": 7563, "qty": 500,  "cost_usd": 2.05,  "manual_price": True, "enabled": True},
-    {"id": "igl_1k",   "label": "❤️ 1,000 لايك إنستغرام (عربي/مضمون)", "price": 68000,  "product_id": 7563, "qty": 1000, "cost_usd": 4.10,  "manual_price": True, "enabled": True},
-    {"id": "igl_5k",   "label": "❤️ 5,000 لايك إنستغرام (عربي/مضمون)", "price": 1688000, "product_id": 7563, "qty": 5000, "cost_usd": 20.50, "manual_price": True, "enabled": True},
+    # 7563 = $0.0041/لايك
+    {"id": "igl_custom", "label": "❤️ لايكات إنستغرام ✍️ أدخل الكمية",
+     "product_id": 7563, "cost_usd_per_unit": 0.0041, "min_qty": 50, "max_qty": 50000,
+     "custom_amount": True, "manual_price": True, "enabled": True,
+     "unit_label": "لايك", "price": 0},
+    {"id": "igl_500",  "label": "❤️ 500 لايك إنستغرام",   "price": 17000,   "product_id": 7563, "qty": 500,  "cost_usd": 2.05,  "manual_price": True, "enabled": True},
+    {"id": "igl_1k",   "label": "❤️ 1,000 لايك إنستغرام", "price": 34000,   "product_id": 7563, "qty": 1000, "cost_usd": 4.10,  "manual_price": True, "enabled": True},
+    {"id": "igl_5k",   "label": "❤️ 5,000 لايك إنستغرام", "price": 170000,  "product_id": 7563, "qty": 5000, "cost_usd": 20.50, "manual_price": True, "enabled": True},
 ]
 
 INSTAGRAM_VIEWS = [
