@@ -642,31 +642,170 @@ async def _build_referral_screen(user_id: int, bot) -> tuple:
     return text, kb.referral_menu(link, share_text)
 
 
-async def handle_fcqty_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """يستقبل رابط الحساب لطلب الرشق ويرسله لـ FastCard."""
-    if not context.user_data.get("awaiting_fcqty_link"):
-        return
 
-    pending = context.user_data.get("fcqty_pending", {})
+
+
+# ═══════════════════════════════════════
+# قسم الرشق — كود نظيف
+# ═══════════════════════════════════════
+
+async def cb_fcqty_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يطلب الكمية من المستخدم."""
+    q = update.callback_query
+    await q.answer()
+    parts = q.data.split(":")
+    if len(parts) < 3:
+        return
+    prefix, offer_id = parts[1], parts[2]
+    cat = config.FASTCARD_CATEGORIES.get(prefix)
+    if not cat:
+        return
+    import sys
+    offers = getattr(sys.modules["bot.config"], cat["offers_attr"], [])
+    offer = next((o for o in offers if o["id"] == offer_id), None)
+    if not offer or not offer.get("custom_amount"):
+        return
+    per_unit = int(offer.get("price_per_unit_syp") or 90)
+    min_qty = offer.get("min_qty", 100)
+    max_qty = offer.get("max_qty", 100000)
+    unit = offer.get("unit_label", "وحدة")
+    context.user_data["fcqty_prefix"] = prefix
+    context.user_data["fcqty_offer_id"] = offer_id
+    context.user_data["fcqty_per_unit"] = per_unit
+    context.user_data["fcqty_unit"] = unit
+    context.user_data["fcqty_min"] = min_qty
+    context.user_data["fcqty_max"] = max_qty
+    await q.edit_message_text(
+        cat["title"] + "\n"
+        "━━━━━━━━━━━━━━━━━\n\n"
+        "💰 السعر: " + str(per_unit) + " ل.س/" + unit + "\n"
+        "📉 الحد الأدنى: " + str(min_qty) + " " + unit + "\n"
+        "📈 الحد الأقصى: " + str(max_qty) + " " + unit + "\n\n"
+        "✍️ أدخل الكمية:",
+        reply_markup=kb.cancel_inline(),
+    )
+    return FASTCARD_CUSTOM_AMOUNT
+
+
+async def msg_fcqty_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يستقبل الكمية ويعرض الملخص."""
+    prefix = context.user_data.get("fcqty_prefix")
+    offer_id = context.user_data.get("fcqty_offer_id")
+    if not prefix or not offer_id:
+        return ConversationHandler.END
+    per_unit = context.user_data.get("fcqty_per_unit", 90)
+    unit = context.user_data.get("fcqty_unit", "وحدة")
+    min_qty = context.user_data.get("fcqty_min", 100)
+    max_qty = context.user_data.get("fcqty_max", 100000)
+    cat = config.FASTCARD_CATEGORIES.get(prefix, {})
+    text = (update.message.text or "").strip().replace(",", "").replace("،", "")
+    try:
+        qty = int(text)
+        if qty <= 0:
+            raise ValueError()
+    except ValueError:
+        await update.message.reply_text(
+            "⚠️ أدخل رقماً صحيحاً مثل: 1000",
+            reply_markup=kb.cancel_inline(),
+        )
+        return FASTCARD_CUSTOM_AMOUNT
+    if qty < min_qty:
+        await update.message.reply_text(
+            "⚠️ الحد الأدنى هو " + str(min_qty) + " " + unit,
+            reply_markup=kb.cancel_inline(),
+        )
+        return FASTCARD_CUSTOM_AMOUNT
+    if qty > max_qty:
+        await update.message.reply_text(
+            "⚠️ الحد الأقصى هو " + str(max_qty) + " " + unit,
+            reply_markup=kb.cancel_inline(),
+        )
+        return FASTCARD_CUSTOM_AMOUNT
+    total = per_unit * qty
+    context.user_data["fcqty_qty"] = qty
+    context.user_data["fcqty_total"] = total
+    await update.message.reply_text(
+        "✅ *ملخص الطلب*\n"
+        "━━━━━━━━━━━━━━━━━\n\n"
+        "📦 " + cat.get("title", "") + "\n"
+        "🔢 الكمية: " + str(qty) + " " + unit + "\n"
+        "💰 السعر: *" + str(total) + " ل.س*\n\n"
+        "👇 اضغط تأكيد للمتابعة:",
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=kb.fcqty_confirm(prefix, offer_id, qty, total),
+    )
+    return FASTCARD_CUSTOM_AMOUNT
+
+
+async def cb_fcqtyconf(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يتأكد من الطلب ويطلب الرابط."""
+    q = update.callback_query
+    await q.answer()
+    parts = q.data.split(":")
+    if len(parts) < 4:
+        return ConversationHandler.END
+    prefix, offer_id, qty_str = parts[1], parts[2], parts[3]
+    try:
+        qty = int(qty_str)
+    except ValueError:
+        return ConversationHandler.END
+    cat = config.FASTCARD_CATEGORIES.get(prefix, {})
+    import sys
+    offers = getattr(sys.modules["bot.config"], cat.get("offers_attr", ""), [])
+    offer = next((o for o in offers if o["id"] == offer_id), None)
+    if not offer:
+        return ConversationHandler.END
+    per_unit = context.user_data.get("fcqty_per_unit", 90)
+    total = per_unit * qty
+    unit = context.user_data.get("fcqty_unit", "وحدة")
+    user_id = update.effective_user.id
+    balance = db.get_balance(user_id)
+    if balance < total:
+        await q.edit_message_text(
+            "❌ رصيدك غير كافٍ\n\n"
+            "المطلوب: " + str(total) + " ل.س\n"
+            "رصيدك: " + str(int(balance)) + " ل.س",
+            reply_markup=kb.insufficient_balance(),
+        )
+        return ConversationHandler.END
+    context.user_data["fcqty_pending"] = {
+        "prefix": prefix, "offer_id": offer_id,
+        "qty": qty, "total": total,
+        "product_id": offer.get("product_id"),
+        "unit": unit, "title": cat.get("title", ""),
+    }
+    fields = cat.get("input_fields", [{}])
+    field_label = fields[0].get("label", "أدخل الرابط:") if fields else "أدخل الرابط:"
+    await q.edit_message_text(
+        "✅ *تأكيد الطلب*\n"
+        "━━━━━━━━━━━━━━━━━\n\n"
+        "📦 " + cat.get("title","") + " — " + str(qty) + " " + unit + "\n"
+        "💰 *" + str(total) + " ل.س*\n\n"
+        "👇 " + field_label,
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=kb.cancel_inline(),
+    )
+    return FASTCARD_CUSTOM_AMOUNT
+
+
+async def msg_fcqty_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يستقبل الرابط وينفذ الطلب على FastCard."""
+    pending = context.user_data.get("fcqty_pending")
     if not pending:
-        return
-
+        return ConversationHandler.END
     link = (update.message.text or "").strip()
     if not link or len(link) < 3:
         await update.message.reply_text(
-            "⚠️ الرجاء إرسال رابط أو معرّف صحيح:",
+            "⚠️ أدخل رابطاً أو معرّفاً صحيحاً:",
             reply_markup=kb.cancel_inline(),
         )
-        return True
-
+        return FASTCARD_CUSTOM_AMOUNT
     user_id = update.effective_user.id
-    product_id = pending.get("product_id")
-    qty = pending.get("qty")
-    total_price = pending.get("total_price")
-    prefix = pending.get("prefix")
-    cat = config.FASTCARD_CATEGORIES.get(prefix, {})
-
-    # إرسال لـ FastCard
+    product_id = pending["product_id"]
+    qty = pending["qty"]
+    total = pending["total"]
+    unit = pending.get("unit", "وحدة")
+    title = pending.get("title", "رشق")
     wait_msg = await update.message.reply_text("⏳ جاري تنفيذ الطلب...")
     try:
         result = await asyncio.to_thread(
@@ -678,21 +817,15 @@ async def handle_fcqty_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         success = result.get("status") == "OK"
     except Exception as e:
         success = False
-        logger.error(f"fcqty FastCard order error: {e}")
-
+        logger.error("fcqty order error: %s", e)
     if success:
-        db.add_balance(user_id, -total_price)
-        req_id = db.create_order(
-            user_id=user_id,
-            product_name=cat.get("title", "رشق"),
-            amount=total_price,
-            status="completed",
-        )
+        await asyncio.to_thread(db.add_balance, user_id, -total)
         await wait_msg.edit_text(
-            "✅ *تم تنفيذ الطلب بنجاح!*\n\n"
-            "📦 الخدمة: " + cat.get("title", "") + "\n"
-            "🔢 الكمية: " + str(qty) + "\n"
-            "💰 المبلغ: " + str(total_price) + " ل.س\n\n"
+            "✅ *تم تنفيذ الطلب!*\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "📦 " + title + "\n"
+            "🔢 " + str(qty) + " " + unit + "\n"
+            "💰 " + str(total) + " ل.س\n\n"
             "⚡ سيبدأ التنفيذ خلال دقائق",
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=kb.back_to_main(),
@@ -701,21 +834,20 @@ async def handle_fcqty_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
             try:
                 await context.bot.send_message(
                     chat_id=config.ADMIN_ID,
-                    text="🆕 طلب رشق جديد\n👤 " + str(user_id) + "\n📦 " + cat.get("title","") + "\n🔢 " + str(qty) + "\n🔗 " + link,
+                    text="🆕 رشق جديد\n👤 " + str(user_id) + "\n📦 " + title + "\n🔢 " + str(qty) + " " + unit + "\n🔗 " + link + "\n💰 " + str(total) + " ل.س",
                 )
             except Exception:
                 pass
     else:
         await wait_msg.edit_text(
-            "❌ تعذّر تنفيذ الطلب على FastCard\n"
+            "❌ فشل تنفيذ الطلب على FastCard\n"
             "تواصل مع الدعم أو حاول لاحقاً.",
             reply_markup=kb.back_to_main(),
         )
+    for k in ["fcqty_pending","fcqty_prefix","fcqty_offer_id","fcqty_per_unit","fcqty_unit","fcqty_min","fcqty_max","fcqty_qty","fcqty_total"]:
+        context.user_data.pop(k, None)
+    return ConversationHandler.END
 
-    context.user_data.pop("awaiting_fcqty_link", None)
-    context.user_data.pop("fcqty_pending", None)
-    context.user_data.pop("fcqty_prefix", None)
-    context.user_data.pop("fcqty_offer_id", None)
 
 
 async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -723,17 +855,6 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if await is_banned(update):
         return
     text = (update.message.text or "").strip()
-    # Clear fcqty state if user pressed a menu button
-    if context.user_data.get("awaiting_fcqty_link"):
-        # If it looks like a link/username, handle as fcqty link
-        if text.startswith("http") or text.startswith("@") or (text.startswith("t.me")):
-            await handle_fcqty_link(update, context)
-            return
-        # Otherwise clear state and continue to menu
-        context.user_data.pop("awaiting_fcqty_link", None)
-        context.user_data.pop("fcqty_pending", None)
-        context.user_data.pop("fcqty_prefix", None)
-        context.user_data.pop("fcqty_offer_id", None)
 
     async def send(msg, markup):
         await update.message.reply_text(msg, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
@@ -1994,6 +2115,9 @@ async def msg_fastcard_custom_amount(update: Update, context: ContextTypes.DEFAU
     """يستقبل المبلغ من الزبون، يبني عرض ديناميكي، ويطلب رقم الجوال."""
     # Route to fcqty if we're in qty mode
     if context.user_data.get("fcqty_prefix") and context.user_data.get("fcqty_offer_id"):
+        # Check if we have pending (waiting for link) or waiting for qty
+        if context.user_data.get("fcqty_pending"):
+            return await msg_fcqty_link(update, context)
         return await msg_fcqty_amount(update, context)
     text = (update.message.text or "").strip()
     # تنظيف: شيل الفواصل والنقاط والرموز العربية
@@ -3972,7 +4096,7 @@ def register_user_handlers(app):
         states={
             FASTCARD_CUSTOM_AMOUNT: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_fastcard_custom_amount),
-                MessageHandler(filters.TEXT & ~filters.COMMAND, msg_fcqty_amount),
+                CallbackQueryHandler(cb_fcqtyconf, pattern=r"^fcqtyconf:"),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^store:balance$"),
                 CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|pubg_uc:|ff_dia:|fcbuy:|loyalty:|menu:|back:|game_|fclist:)"),
@@ -4061,183 +4185,3 @@ def register_user_handlers(app):
     # Safety net — لو shamcash/syriatel ما اشتغل من ConversationHandler
     app.add_handler(CallbackQueryHandler(cb_shamcash_start, pattern=r"^recharge:shamcash$"), group=1)
     app.add_handler(CallbackQueryHandler(cb_syriatel_start, pattern=r"^recharge:syriatel$"), group=1)
-async def _handle_fcqtyconf(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """يعالج تأكيد طلب الكمية المخصصة للرشق."""
-    q = update.callback_query
-    await q.answer()
-    parts = q.data.split(":")
-    if len(parts) < 4:
-        return
-    prefix, offer_id, qty_str = parts[1], parts[2], parts[3]
-    try:
-        qty = int(qty_str)
-    except ValueError:
-        return
-
-    cat = config.FASTCARD_CATEGORIES.get(prefix)
-    if not cat:
-        return
-
-    import sys
-    offers = getattr(sys.modules["bot.config"], cat["offers_attr"], [])
-    offer = next((o for o in offers if o["id"] == offer_id), None)
-    if not offer:
-        return
-
-    user_id = update.effective_user.id
-    per_unit = context.user_data.get("fcqty_per_unit_syp") or int(offer.get("price_per_unit_syp") or 90)
-    total_price = per_unit * qty
-    balance = db.get_balance(user_id)
-
-    if balance < total_price:
-        await q.edit_message_text(
-            "💰 رصيدك غير كافٍ\n\n"
-            "الرصيد المطلوب: " + str(total_price) + " ل.س\n"
-            "رصيدك الحالي: " + str(int(balance)) + " ل.س",
-            reply_markup=kb.insufficient_balance(),
-        )
-        return
-
-    unit = offer.get("unit_label", "وحدة")
-    fields = cat.get("input_fields", [{}])
-    field_label = fields[0].get("label", "أدخل الرابط:") if fields else "أدخل الرابط:"
-
-    context.user_data["fcqty_pending"] = {
-        "prefix": prefix,
-        "offer_id": offer_id,
-        "qty": qty,
-        "total_price": total_price,
-        "product_id": offer.get("product_id"),
-        "unit": unit,
-    }
-    context.user_data["awaiting_fcqty_link"] = True
-
-    await q.edit_message_text(
-        "✅ *تأكيد الطلب*\n"
-        "━━━━━━━━━━━━━━━━━\n\n"
-        "📦 " + cat["title"] + " — " + str(qty) + " " + unit + "\n"
-        "💰 السعر: *" + str(total_price) + " ل.س*\n\n"
-        "👇 " + field_label,
-        parse_mode=ParseMode.MARKDOWN,
-        reply_markup=kb.cancel_inline(),
-    )
-
-
-async def cb_fcqty_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """يطلب من المستخدم إدخال الكمية المخصصة للرشق."""
-    q = update.callback_query
-    await q.answer()
-    parts = q.data.split(":")
-    if len(parts) < 3:
-        return
-    prefix, offer_id = parts[1], parts[2]
-    cat = config.FASTCARD_CATEGORIES.get(prefix)
-    if not cat:
-        return
-    import sys
-    offers = getattr(sys.modules["bot.config"], cat["offers_attr"], [])
-    offer = next((o for o in offers if o["id"] == offer_id), None)
-    if not offer or not offer.get("custom_amount"):
-        return
-
-    unit = offer.get("unit_label", "وحدة")
-    min_qty = offer.get("min_qty", 100)
-    max_qty = offer.get("max_qty", 100000)
-    per_unit_syp = int(offer.get("cost_usd_per_unit", 0) * config.get_usd_to_syp() * 1.15)
-
-    context.user_data["fcqty_prefix"] = prefix
-    context.user_data["fcqty_offer_id"] = offer_id
-
-    await q.edit_message_text(
-        cat["title"] + "\n"
-        "━━━━━━━━━━━━━━━━━\n\n"
-        "✍️ أدخل الكمية المطلوبة:\n\n"
-        "📊 السعر: " + str(per_unit_syp) + " ل.س/" + unit + "\n"
-        "📉 الحد الأدنى: " + str(min_qty) + " " + unit + "\n"
-        "📈 الحد الأقصى: " + str(max_qty) + " " + unit + "\n\n"
-        "مثال: اكتب `500` للحصول على 500 " + unit,
-        parse_mode=ParseMode.MARKDOWN,
-        reply_markup=kb.cancel_inline(),
-    )
-    return FASTCARD_CUSTOM_AMOUNT
-
-
-async def msg_fcqty_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """يستقبل الكمية ويحسب السعر ويعرض تأكيد الشراء."""
-    prefix = context.user_data.get("fcqty_prefix")
-    offer_id = context.user_data.get("fcqty_offer_id")
-    if not prefix or not offer_id:
-        return ConversationHandler.END
-
-    cat = config.FASTCARD_CATEGORIES.get(prefix)
-    import sys
-    offers = getattr(sys.modules["bot.config"], cat["offers_attr"], [])
-    offer = next((o for o in offers if o["id"] == offer_id), None)
-
-    text = (update.message.text or "").strip()
-    try:
-        qty = int(text.replace(",", "").replace("،", ""))
-        if qty <= 0:
-            raise ValueError()
-    except ValueError:
-        await update.message.reply_text(
-            "⚠️ أدخل رقماً صحيحاً مثل: 500",
-            reply_markup=kb.cancel_inline(),
-        )
-        return FASTCARD_CUSTOM_AMOUNT
-
-    min_qty = offer.get("min_qty", 100)
-    max_qty = offer.get("max_qty", 100000)
-    unit = offer.get("unit_label", "وحدة")
-
-    if qty < min_qty:
-        await update.message.reply_text(
-            "⚠️ الحد الأدنى هو " + str(min_qty) + " " + unit,
-            reply_markup=kb.cancel_inline(),
-        )
-        return FASTCARD_CUSTOM_AMOUNT
-
-    if qty > max_qty:
-        await update.message.reply_text(
-            "⚠️ الحد الأقصى هو " + str(max_qty) + " " + unit,
-            reply_markup=kb.cancel_inline(),
-        )
-        return FASTCARD_CUSTOM_AMOUNT
-
-    per_unit_syp = context.user_data.get("fcqty_per_unit_syp") or int(offer.get("price_per_unit_syp") or offer.get("cost_usd_per_unit", 0) * config.get_usd_to_syp() * 1.15)
-    total_price = per_unit_syp * qty
-
-    # Save to user_data for purchase
-    context.user_data["fcqty_qty"] = qty
-    context.user_data["fcqty_price"] = total_price
-
-    # Save qty and price for confirm handler
-    context.user_data["fcqty_qty"] = qty
-    context.user_data["fcqty_total_price"] = total_price
-
-    await update.message.reply_text(
-        "✅ *ملخص الطلب*\n"
-        "━━━━━━━━━━━━━━━━━\n\n"
-        "📦 الخدمة: " + cat["title"] + "\n"
-        "🔢 الكمية: " + str(qty) + " " + unit + "\n"
-        "💰 السعر الإجمالي: *" + str(total_price) + " ل.س*\n\n"
-        "اضغط تأكيد للمتابعة 👇",
-        parse_mode=ParseMode.MARKDOWN,
-        reply_markup=kb.fcqty_confirm(prefix, offer_id, qty, total_price),
-    )
-    return FASTCARD_CUSTOM_AMOUNT
-
-
-
-    app.add_handler(CallbackQueryHandler(_handle_fcqtyconf, pattern=r"^fcqtyconf:"))
-    # fcqty link input handler
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_fcqty_link), group=2)
-    app.add_handler(CallbackQueryHandler(cb_main_menu, pattern=r"^menu:"))
-    app.add_handler(CallbackQueryHandler(cb_store, pattern=r"^store:"))
-    app.add_handler(CallbackQueryHandler(cb_pubg_section, pattern=r"^pubg:"))
-    app.add_handler(CallbackQueryHandler(cb_freefire_section, pattern=r"^ff:"))
-    app.add_handler(CallbackQueryHandler(cb_supercell_section, pattern=r"^sc:"))
-    app.add_handler(CallbackQueryHandler(cb_cod_section, pattern=r"^cdnav:"))
-    app.add_handler(CallbackQueryHandler(cb_ludo_section, pattern=r"^lunav:"))
-    app.add_handler(CallbackQueryHandler(cb_cards_section, pattern=r"^cards:"))
-    app.add_handler(CallbackQueryHandler(cb_rating, pattern=r"^rate:"))
