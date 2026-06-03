@@ -1136,24 +1136,33 @@ async def _safe_edit(q, text: str, reply_markup=None, parse_mode=ParseMode.MARKD
 
 
 def _clear_pending_orders(context):
-    """يمسح كل حالات الطلبات المعلقة عند الانتقال لقسم جديد."""
-    # امسح كل user_data تبع الطلبات
+    """يمسح كل حالات الطلبات المعلقة من جميع أقسام البوت."""
+    # امسح كل user_data تبع أي طلب — كل الأقسام
     keys = [
+        # الرشق
         "fcqty_prefix", "fcqty_offer_id", "fcqty_per_unit", "fcqty_unit",
         "fcqty_min", "fcqty_max", "fcqty_qty", "fcqty_total", "fcqty_link",
-        "fcqty_product_id", "fcqty_title", "fcqty_awaiting_link", "fcqty_field_label",
-        "fcqty_awaiting_qty",
-        "syriatel_tx", "shamcash_tx", "fcqty_pending", "awaiting_fcqty_link",
-        "fastcard_offer", "fastcard_prefix", "fastcard_player", "pubg_offer",
-        "ff_offer", "custom_player_id", "fc_custom_amount",
+        "fcqty_product_id", "fcqty_title", "fcqty_awaiting_link",
+        "fcqty_field_label", "fcqty_awaiting_qty", "fcqty_pending",
+        "awaiting_fcqty_link",
+        # شحن الرصيد
+        "syriatel_tx", "shamcash_tx", "shamcash_amount", "shamcash_req_id",
+        "syriatel_req_id", "usdt_amount", "binance_amount",
+        "awaiting_binance_amount", "awaiting_usdt_amount",
+        # الألعاب
+        "fastcard_offer", "fastcard_prefix", "fastcard_player", "fastcard_offer_id",
+        "pubg_offer", "pubg_offer_id", "pubg_player", "pubg_verify",
+        "ff_offer", "ff_offer_id", "ff_player",
+        "sc_offer", "sc_offer_id", "cod_offer", "ludo_offer",
+        "custom_player_id", "fc_custom_amount", "current_offer",
+        "current_prefix", "current_game", "player_id_input",
+        # البطاقات والأقسام الثانية
+        "card_offer", "card_prefix", "number_offer",
+        # نقاط الولاء / كوبونات
+        "loyalty_redeem", "coupon_input",
     ]
     for k in keys:
         context.user_data.pop(k, None)
-    # امسح نسخة bot_data
-    try:
-        uid = context._user_id if hasattr(context, "_user_id") else None
-    except Exception:
-        uid = None
 
 
 async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1534,6 +1543,7 @@ async def cb_pubg_uc_select(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يطلب Player ID قبل ما يدفع."""
     q = update.callback_query
     await q.answer()
+    _clear_pending_orders(context)
     if await is_banned(update):
         return ConversationHandler.END
 
@@ -2345,6 +2355,7 @@ async def cb_fastcard_buy_select(update: Update, context: ContextTypes.DEFAULT_T
     """يبدأ الشراء: حسب عدد الحقول بالقسم بيسأل واحد/أكثر، أو بيروح مباشرة للتأكيد."""
     q = update.callback_query
     await q.answer()
+    _clear_pending_orders(context)
     if await is_banned(update):
         return ConversationHandler.END
 
@@ -2847,6 +2858,7 @@ async def _apply_deposit_bonus(context, user_id: int, deposited_syp: float) -> f
 async def cb_syriatel_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
+    _clear_pending_orders(context)
     if await is_banned(update):
         return ConversationHandler.END
 
@@ -3177,6 +3189,7 @@ async def cb_syriatel_manual(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def cb_shamcash_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
+    _clear_pending_orders(context)
     if await is_banned(update):
         return ConversationHandler.END
 
@@ -3422,6 +3435,7 @@ async def cb_shamcash_verify(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def cb_shamcash_usd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
+    _clear_pending_orders(context)
     if await is_banned(update):
         return ConversationHandler.END
 
@@ -3709,6 +3723,7 @@ async def msg_shamcash_photo(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def cb_usdt_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
+    _clear_pending_orders(context)
     if await is_banned(update):
         return ConversationHandler.END
 
