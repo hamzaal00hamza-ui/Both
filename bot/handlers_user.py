@@ -371,6 +371,11 @@ async def cb_loyalty(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def loyalty_redeem_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يستقبل عدد النقاط المراد استبدالها (نص)."""
+    _t = (update.message.text or "").strip()
+    if _t in _REPLY_KB_TEXTS:
+        _clear_pending_orders(context)
+        await cmd_reply_nav(update, context)
+        return ConversationHandler.END
     txt = (update.message.text or "").strip()
     # تنقية أرقام عربية / فواصل
     txt_clean = txt.translate(str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")).replace(",", "").replace("،", "").replace(" ", "")
@@ -437,6 +442,11 @@ async def cb_coupon_entry(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def msg_coupon_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يستقبل كود الخصم من الزبون ويطبّقه (يضاف للرصيد مباشرة)."""
+    _t = (update.message.text or "").strip()
+    if _t in _REPLY_KB_TEXTS:
+        _clear_pending_orders(context)
+        await cmd_reply_nav(update, context)
+        return ConversationHandler.END
     code = (update.message.text or "").strip().upper()
     if not code or len(code) > 50:
         await update.message.reply_text("⚠️ أدخل كود صحيح.", reply_markup=kb.coupon_cancel())
@@ -1578,6 +1588,11 @@ async def cb_pubg_uc_select(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def msg_pubg_player_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    _t = (update.message.text or "").strip()
+    if _t in _REPLY_KB_TEXTS:
+        _clear_pending_orders(context)
+        await cmd_reply_nav(update, context)
+        return ConversationHandler.END
     text = (update.message.text or "").strip()
     if not text.isdigit() or not (5 <= len(text) <= 15):
         await update.message.reply_text(
@@ -1961,6 +1976,11 @@ async def cb_freefire_diamond_select(update: Update, context: ContextTypes.DEFAU
 
 
 async def msg_freefire_player_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    _t = (update.message.text or "").strip()
+    if _t in _REPLY_KB_TEXTS:
+        _clear_pending_orders(context)
+        await cmd_reply_nav(update, context)
+        return ConversationHandler.END
     text = (update.message.text or "").strip()
     if not text.isdigit() or not (5 <= len(text) <= 15):
         await update.message.reply_text(
@@ -2487,6 +2507,11 @@ async def _show_confirm(message, context, offer, cat, fields, user):
 
 async def msg_fastcard_player_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """معالج عام لإدخالات حقول Fastcard المتعددة. يتقدم سلسلة الحقول حسب fc_field_idx."""
+    _t = (update.message.text or "").strip()
+    if _t in _REPLY_KB_TEXTS:
+        _clear_pending_orders(context)
+        await cmd_reply_nav(update, context)
+        return ConversationHandler.END
     text = (update.message.text or "").strip()
 
     prefix = context.user_data.get("fc_prefix")
@@ -2873,6 +2898,11 @@ async def cb_syriatel_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def msg_syriatel_tx_code(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    _t = (update.message.text or "").strip()
+    if _t in _REPLY_KB_TEXTS:
+        _clear_pending_orders(context)
+        await cmd_reply_nav(update, context)
+        return ConversationHandler.END
     code = (update.message.text or "").strip()
     if len(code) != 12 or not code.isdigit():
         await update.message.reply_text(
@@ -2892,6 +2922,11 @@ async def msg_syriatel_tx_code(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 async def msg_syriatel_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    _t = (update.message.text or "").strip()
+    if _t in _REPLY_KB_TEXTS:
+        _clear_pending_orders(context)
+        await cmd_reply_nav(update, context)
+        return ConversationHandler.END
     text = (update.message.text or "").strip()
     try:
         amount = float(text)
@@ -3210,6 +3245,11 @@ async def cb_shamcash_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def msg_shamcash_tx(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يستقبل رقم العملية من شام كاش."""
+    _t = (update.message.text or "").strip()
+    if _t in _REPLY_KB_TEXTS:
+        _clear_pending_orders(context)
+        await cmd_reply_nav(update, context)
+        return ConversationHandler.END
     tx = (update.message.text or "").strip()
     if len(tx) != 12 or not tx.isdigit():
         await update.message.reply_text(
@@ -3229,6 +3269,11 @@ async def msg_shamcash_tx(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def msg_shamcash_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    _t = (update.message.text or "").strip()
+    if _t in _REPLY_KB_TEXTS:
+        _clear_pending_orders(context)
+        await cmd_reply_nav(update, context)
+        return ConversationHandler.END
     text = (update.message.text or "").strip()
     try:
         amount = float(text)
@@ -3451,6 +3496,11 @@ async def cb_shamcash_usd_start(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 async def msg_shamcash_usd_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    _t = (update.message.text or "").strip()
+    if _t in _REPLY_KB_TEXTS:
+        _clear_pending_orders(context)
+        await cmd_reply_nav(update, context)
+        return ConversationHandler.END
     text = (update.message.text or "").strip()
     try:
         amount_usd = float(text)
@@ -3852,6 +3902,11 @@ async def cb_usdt_manual_start(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 async def msg_usdt_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    _t = (update.message.text or "").strip()
+    if _t in _REPLY_KB_TEXTS:
+        _clear_pending_orders(context)
+        await cmd_reply_nav(update, context)
+        return ConversationHandler.END
     text = (update.message.text or "").strip().replace(",", ".")
     try:
         amount = float(text)
@@ -3899,6 +3954,11 @@ async def _process_binance_pay(update, context, amount: float):
 
 
 async def msg_usdt_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    _t = (update.message.text or "").strip()
+    if _t in _REPLY_KB_TEXTS:
+        _clear_pending_orders(context)
+        await cmd_reply_nav(update, context)
+        return ConversationHandler.END
     tx_hash = (update.message.text or "").strip()
     if len(tx_hash) < 20:
         await update.message.reply_text(
@@ -4060,6 +4120,13 @@ async def msg_usdt_tx_hash(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 
+async def cancel_and_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يلغي المحادثة الحالية ويفتح القسم المطلوب من Reply Keyboard."""
+    _clear_pending_orders(context)
+    await cmd_reply_nav(update, context)
+    return ConversationHandler.END
+
+
 async def cancel_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # امسح أي طلب معلق
     _clear_pending_orders(context)
@@ -4110,6 +4177,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
@@ -4142,6 +4210,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
@@ -4181,6 +4250,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
@@ -4204,6 +4274,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
@@ -4227,6 +4298,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
@@ -4261,6 +4333,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
@@ -4286,6 +4359,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
@@ -4308,6 +4382,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
