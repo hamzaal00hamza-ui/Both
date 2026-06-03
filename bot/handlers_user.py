@@ -4182,6 +4182,17 @@ def register_user_handlers(app):
         group=-1,
     )
 
+    # ── Section navigation handlers ──
+    app.add_handler(CallbackQueryHandler(cb_store, pattern=r"^store:"))
+    app.add_handler(CallbackQueryHandler(cb_pubg_section, pattern=r"^pubg:"))
+    app.add_handler(CallbackQueryHandler(cb_freefire_section, pattern=r"^ff:"))
+    app.add_handler(CallbackQueryHandler(cb_supercell_section, pattern=r"^sc:"))
+    app.add_handler(CallbackQueryHandler(cb_cod_section, pattern=r"^cdnav:"))
+    app.add_handler(CallbackQueryHandler(cb_ludo_section, pattern=r"^lunav:"))
+    app.add_handler(CallbackQueryHandler(cb_cards_section, pattern=r"^cards:"))
+    app.add_handler(CallbackQueryHandler(cb_rating, pattern=r"^rate:"))
+    app.add_handler(CallbackQueryHandler(cb_main_menu, pattern=r"^menu:"))
+
     # Safety net — لو shamcash/syriatel ما اشتغل من ConversationHandler
     app.add_handler(CallbackQueryHandler(cb_shamcash_start, pattern=r"^recharge:shamcash$"), group=1)
     app.add_handler(CallbackQueryHandler(cb_syriatel_start, pattern=r"^recharge:syriatel$"), group=1)
