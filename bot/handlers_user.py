@@ -53,6 +53,17 @@ logger = logging.getLogger(__name__)
     USDT_TX_HASH,
 ) = range(14)
 
+_REPLY_KB_TEXTS = {
+    "🔥 الألعاب 🎮", "💫 التطبيقات 📱",
+    "💳 بطاقات وأكواد 🃏", "⚡ الرشق 📈", "🌐 الأرقام 📲",
+    "💰 شحن الرصيد ⚡", "📊 حسابي 👤",
+    "👑 نقاط الولاء 💎", "🎁 كود خصم 🎟", "💬 الدعم 📞",
+    "🎮 قسم الألعاب", "📱 قسم التطبيقات", "🃏 قسم البطاقات والأكواد",
+    "📈 قسم الرشق", "📲 قسم الأرقام",
+    "💎 نقاط الولاء", "🎟 كود الخصم",
+    "💰 شحن رصيد الحساب", "👤 معلومات حسابي", "📞 التواصل مع الأدمن",
+}
+
 
 WELCOME = (
     "🎮 *GameZone — متجرك للألعاب الرقمية*\n"
@@ -903,6 +914,13 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     text = (update.message.text or "").strip()
 
+    # إلغاء أي طلب معلق عند الضغط على زر قسم
+    if text in _REPLY_KB_TEXTS:
+        _clear_pending_orders(context)
+        uid = update.effective_user.id
+        if context.bot_data.get("fcqty_links", {}).get(uid):
+            context.bot_data["fcqty_links"].pop(uid, None)
+
     async def send(msg, markup):
         await update.message.reply_text(msg, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
 
@@ -1115,15 +1133,22 @@ async def _safe_edit(q, text: str, reply_markup=None, parse_mode=ParseMode.MARKD
 
 def _clear_pending_orders(context):
     """يمسح كل حالات الطلبات المعلقة عند الانتقال لقسم جديد."""
+    # امسح كل user_data تبع الطلبات
     keys = [
         "fcqty_prefix", "fcqty_offer_id", "fcqty_per_unit", "fcqty_unit",
         "fcqty_min", "fcqty_max", "fcqty_qty", "fcqty_total", "fcqty_link",
         "fcqty_product_id", "fcqty_title", "fcqty_awaiting_link", "fcqty_field_label",
-        "syriatel_tx", "shamcash_tx", "fcqty_pending",
-        "awaiting_fcqty_link",
+        "syriatel_tx", "shamcash_tx", "fcqty_pending", "awaiting_fcqty_link",
+        "fastcard_offer", "fastcard_prefix", "fastcard_player", "pubg_offer",
+        "ff_offer", "custom_player_id", "fc_custom_amount",
     ]
     for k in keys:
         context.user_data.pop(k, None)
+    # امسح نسخة bot_data
+    try:
+        uid = context._user_id if hasattr(context, "_user_id") else None
+    except Exception:
+        uid = None
 
 
 async def cb_store(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2184,6 +2209,16 @@ async def cb_fastcard_amount_start(update: Update, context: ContextTypes.DEFAULT
 
 async def msg_fastcard_custom_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يستقبل المبلغ من الزبون، يبني عرض ديناميكي، ويطلب رقم الجوال."""
+    # لو ضغط زر قسم من لوحة المفاتيح — ألغِ الطلب وحوّل
+    text_in = (update.message.text or "").strip()
+    if text_in in _REPLY_KB_TEXTS:
+        _clear_pending_orders(context)
+        uid = update.effective_user.id
+        if context.bot_data.get("fcqty_links", {}).get(uid):
+            context.bot_data["fcqty_links"].pop(uid, None)
+        await cmd_reply_nav(update, context)
+        return ConversationHandler.END
+
     # Route to fcqty if we're in qty mode
     if context.user_data.get("fcqty_prefix") and context.user_data.get("fcqty_offer_id"):
         if context.user_data.get("fcqty_awaiting_link"):
@@ -4258,16 +4293,6 @@ def register_user_handlers(app):
     app.add_handler(coupon_conv)
 
     # Reply Keyboard nav — group=-1 يضمن الأولوية على ConversationHandlers
-    _REPLY_KB_TEXTS = {
-        "🔥 الألعاب 🎮", "💫 التطبيقات 📱",
-        "💳 بطاقات وأكواد 🃏", "⚡ الرشق 📈", "🌐 الأرقام 📲",
-        "💰 شحن الرصيد ⚡", "📊 حسابي 👤",
-        "👑 نقاط الولاء 💎", "🎁 كود خصم 🎟", "💬 الدعم 📞",
-        "🎮 قسم الألعاب", "📱 قسم التطبيقات", "🃏 قسم البطاقات والأكواد",
-        "📈 قسم الرشق", "📲 قسم الأرقام",
-        "💎 نقاط الولاء", "🎟 كود الخصم",
-        "💰 شحن رصيد الحساب", "👤 معلومات حسابي", "📞 التواصل مع الأدمن",
-    }
     app.add_handler(
         MessageHandler(filters.TEXT & filters.Regex(
             "^(" + "|".join(map(lambda s: s.replace("+", r"\+"), _REPLY_KB_TEXTS)) + ")$"
