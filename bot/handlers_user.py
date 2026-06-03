@@ -1778,35 +1778,15 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
     )
 
     _start_ts = time.time()
-    # العروض اللي بدها تحقق (مثل uc_60v) منمرّرها عبر endpoint الموقع نفسه
-    # (order-handler.php) لأن seller API ما بينفّذها تلقائياً.
-    use_web = bool(offer.get("verify")) and fastcard_web.is_enabled()
-
+    # كل العروض تُنفّذ عبر seller API مباشرة (new_order)
+    # منتج 7816 يدعم التحقق من الاسم تلقائياً عبر API
     try:
-        if use_web:
-            web_resp = await asyncio.to_thread(
-                fastcard_web.place_order,
-                offer["product_id"],
-                player_id=player_id,
-                quantity=1,
-            )
-            # نلفّ الرد بشكل شبيه بـ seller API حتى يكمل بقية الكود
-            success = bool(web_resp.get("success"))
-            result = {
-                "order_id": str(web_resp.get("order_id") or web_resp.get("id") or ""),
-                "status": "accept" if success else "reject",
-                "replay_api": [str(web_resp.get("message") or web_resp.get("data") or "")],
-                "_raw": web_resp,
-            }
-            if not success:
-                raise fastcard.FastcardError(str(web_resp.get("message") or "فشل الطلب عبر الموقع"))
-        else:
-            result = await asyncio.to_thread(
-                fastcard.new_order,
-                offer["product_id"],
-                player_id=player_id,
-                order_uuid=api_uuid,
-            )
+        result = await asyncio.to_thread(
+            fastcard.new_order,
+            offer["product_id"],
+            player_id=player_id,
+            order_uuid=api_uuid,
+        )
     except (fastcard.FastcardError, fastcard_web.FastcardWebError) as e:
         # فشل الإنشاء → استرجاع المبلغ
         db.update_balance(user_id, config.get_offer_price(offer))
