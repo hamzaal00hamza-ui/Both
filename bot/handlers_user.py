@@ -4053,7 +4053,6 @@ async def _handle_fcqtyconf(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
     parts = q.data.split(":")
-    # fcqtyconf:prefix:offer_id:qty
     if len(parts) < 4:
         return
     prefix, offer_id, qty_str = parts[1], parts[2], parts[3]
@@ -4086,27 +4085,29 @@ async def _handle_fcqtyconf(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # اطلب الرابط
+    unit = offer.get("unit_label", "وحدة")
+    fields = cat.get("input_fields", [{}])
+    field_label = fields[0].get("label", "أدخل الرابط:") if fields else "أدخل الرابط:"
+
     context.user_data["fcqty_pending"] = {
         "prefix": prefix,
         "offer_id": offer_id,
         "qty": qty,
         "total_price": total_price,
         "product_id": offer.get("product_id"),
+        "unit": unit,
     }
-    unit = offer.get("unit_label", "وحدة")
-    field = cat.get("input_fields", [{}])[0]
+    context.user_data["awaiting_fcqty_link"] = True
+
     await q.edit_message_text(
-        "✅ تم تأكيد الطلب\n\n"
-        "📦 الخدمة: " + cat["title"] + "\n"
-        "🔢 الكمية: " + str(qty) + " " + unit + "\n"
-        "💰 السعر: " + str(total_price) + " ل.س\n\n"
-        "👇 " + field.get("label", "أدخل الرابط أو معرّفك:"),
+        "✅ *تأكيد الطلب*\n"
+        "━━━━━━━━━━━━━━━━━\n\n"
+        "📦 " + cat["title"] + " — " + str(qty) + " " + unit + "\n"
+        "💰 السعر: *" + str(total_price) + " ل.س*\n\n"
+        "👇 " + field_label,
+        parse_mode=ParseMode.MARKDOWN,
         reply_markup=kb.cancel_inline(),
     )
-    # Set state for link input - handled by next message
-    context.user_data["awaiting_fcqty_link"] = True
-    context.user_data["fcqty_chat_id"] = update.effective_chat.id
 
 
 async def cb_fcqty_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -4197,13 +4198,17 @@ async def msg_fcqty_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["fcqty_qty"] = qty
     context.user_data["fcqty_price"] = total_price
 
+    # Save qty and price for confirm handler
+    context.user_data["fcqty_qty"] = qty
+    context.user_data["fcqty_total_price"] = total_price
+
     await update.message.reply_text(
         "✅ *ملخص الطلب*\n"
         "━━━━━━━━━━━━━━━━━\n\n"
         "📦 الخدمة: " + cat["title"] + "\n"
         "🔢 الكمية: " + str(qty) + " " + unit + "\n"
         "💰 السعر الإجمالي: *" + str(total_price) + " ل.س*\n\n"
-        "هل تريد المتابعة؟",
+        "اضغط تأكيد للمتابعة 👇",
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=kb.fcqty_confirm(prefix, offer_id, qty, total_price),
     )
