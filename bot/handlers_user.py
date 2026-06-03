@@ -645,11 +645,11 @@ async def _build_referral_screen(user_id: int, bot) -> tuple:
 async def handle_fcqty_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يستقبل رابط الحساب لطلب الرشق ويرسله لـ FastCard."""
     if not context.user_data.get("awaiting_fcqty_link"):
-        return False
+        return
 
     pending = context.user_data.get("fcqty_pending", {})
     if not pending:
-        return False
+        return
 
     link = (update.message.text or "").strip()
     if not link:
@@ -669,10 +669,10 @@ async def handle_fcqty_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         result = await asyncio.to_thread(
             fastcard.new_order,
             product_id=product_id,
-            quantity=qty,
+            qty=qty,
             player_id=link,
         )
-        success = result.get("status") == "OK" or result.get("success")
+        success = result.get("status") == "OK"
     except Exception as e:
         success = False
         logger.error(f"fcqty FastCard order error: {e}")
@@ -713,12 +713,15 @@ async def handle_fcqty_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.pop("fcqty_pending", None)
     context.user_data.pop("fcqty_prefix", None)
     context.user_data.pop("fcqty_offer_id", None)
-    return True
 
 
 async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يعالج أزرار لوحة المفاتيح الثابتة في الأسفل (Reply Keyboard)."""
     if await is_banned(update):
+        return
+    # Check if waiting for fcqty link
+    if context.user_data.get("awaiting_fcqty_link"):
+        await handle_fcqty_link(update, context)
         return
     text = (update.message.text or "").strip()
 
@@ -4218,10 +4221,7 @@ async def msg_fcqty_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     app.add_handler(CallbackQueryHandler(_handle_fcqtyconf, pattern=r"^fcqtyconf:"))
     # fcqty link input handler
-    app.add_handler(MessageHandler(
-        filters.TEXT & ~filters.COMMAND,
-        lambda u, c: handle_fcqty_link(u, c) if c.user_data.get("awaiting_fcqty_link") else None,
-    ), group=2)
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & filters.ChatType.PRIVATE, handle_fcqty_link), group=2)
     app.add_handler(CallbackQueryHandler(cb_main_menu, pattern=r"^menu:"))
     app.add_handler(CallbackQueryHandler(cb_store, pattern=r"^store:"))
     app.add_handler(CallbackQueryHandler(cb_pubg_section, pattern=r"^pubg:"))
