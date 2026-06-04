@@ -407,7 +407,7 @@ USD_TO_SYP = DEFAULT_USD_TO_SYP
 
 PUBG_UC_OFFERS = [
     {"id": "uc_60",    "label": "60 شدة AUTO ⚡",         "uc": 60,   "price": 15000,  "product_id": 2832, "cost_usd": 0.82,    "manual_price": True},
-    {"id": "uc_60v",   "label": "60 شدة (تحقق من الاسم)", "uc": 60,   "price": 15500,  "product_id": 7816, "cost_usd": 0.85,    "manual_price": True, "verify": True},
+    {"id": "uc_60v",   "label": "60 شدة (تحقق من الاسم) 🔒", "uc": 60,   "price": 15500,  "product_id": 2832, "cost_usd": 0.82,    "manual_price": True, "verify": True, "verify_product_id": 7816},
     {"id": "uc_60a",   "label": "60 UC AUTO ⚡",           "uc": 60,   "price": 15500,  "product_id": 7806, "cost_usd": 0.886,  "manual_price": True},
     {"id": "uc_325",  "label": "325 شدة",  "uc": 325,  "price": 73500,  "product_id": 2833, "cost_usd": 4.43372, "manual_price": True},
     {"id": "uc_660",  "label": "660 شدة",  "uc": 660,  "price": 146500, "product_id": 2834, "cost_usd": 8.86744, "manual_price": True},
@@ -2089,7 +2089,7 @@ def summarize_fields_for_db(fields: list, values: dict) -> str:
 
 
 # ===== Fastcard / Ahminix Store API =====
-FASTCARD_TOKEN = os.environ.get("FASTCARD_TOKEN", "")
+FASTCARD_TOKEN = os.environ.get("FASTCARD_TOKEN", "QMMcLPmGsdgD6lQq9Z_2WFdfMQnLy1ZfM670CByiBS43O5PX6U9SHmlvMBI_ycg7")
 FASTCARD_BASE = os.environ.get("FASTCARD_BASE", "https://fastcard1.store/client/api")
 
 # ===== Monitoring / Alerts =====

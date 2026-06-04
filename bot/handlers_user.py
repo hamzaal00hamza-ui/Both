@@ -1693,7 +1693,8 @@ async def cb_pubg_uc_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     try:
-        resp = await asyncio.to_thread(fastcard_web.check_player, player_id, int(offer["product_id"]))
+        verify_pid = int(offer.get("verify_product_id") or offer["product_id"])
+        resp = await asyncio.to_thread(fastcard_web.check_player, player_id, verify_pid)
     except fastcard_web.FastcardWebError as e:
         # فشل اتصال → نرجّع تكلفة التحقق
         db.update_balance(user_id, verify_cost_syp)
