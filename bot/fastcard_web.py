@@ -104,9 +104,8 @@ def check_player(player_id: str, product_id: int) -> Dict[str, Any]:
             continue
 
         msg = str(data.get("message") or "")
-        import logging as _log
-        _log.getLogger(__name__).info(f"check_player response: {data}")
         if not data.get("success") and ("تسجيل الدخول" in msg or "login" in msg.lower()):
+            # session منتهية → أعِد المحاولة بعد إعادة الدخول
             if attempt == 1:
                 continue
         return data
@@ -172,14 +171,16 @@ def place_order(product_id: int, player_id: str, quantity: int = 1) -> Dict[str,
             continue
 
         # كلمات نجاح بالعربي/الإنجليزي
-        success_kw = ["نجح", "تم تنفيذ", "بنجاح", "تمت", "success", "delivered", "completed", "approved"]
-        fail_kw = ["فشل", "خطأ", "غير صحيح", "غير كاف", "رصيد", "failed", "error", "invalid", "insufficient"]
+        success_kw = ["نجح", "تم تنفيذ", "بنجاح", "تمت", "قيد التنفيذ", "success", "delivered", "completed", "approved", "processing", "pending"]
+        # كلمات فشل صريحة فقط (تجنب "رصيد" لأنها قد تظهر بسياق عادي)
+        fail_kw_ar = ["فشل الطلب", "حدث خطأ", "ID غير صحيح", "رصيد غير كاف", "رصيدك غير", "غير متوفر"]
+        fail_kw_en = ["failed", "insufficient", "not enough", "invalid player", "out of stock"]
 
-        is_success = any(k in raw for k in success_kw[:4]) or any(k in low for k in success_kw[4:])
-        is_fail = any(k in raw for k in fail_kw[:5]) or any(k in low for k in fail_kw[5:])
+        is_success = any(k in raw for k in success_kw[:6]) or any(k in low for k in success_kw[6:])
+        is_fail = any(k in raw for k in fail_kw_ar) or any(k in low for k in fail_kw_en)
 
-        # افتراضياً: لو الـ HTTP 200 وفي order-result بدون كلمات فشل صريحة → اعتبرو ناجح
-        if r.status_code == 200 and not is_fail:
+        # لو فيه order-result و HTTP 200 وما في فشل صريح → ناجح
+        if r.status_code == 200 and "order-result" in low and not is_fail:
             is_success = True
 
         # ملخص نصّي مختصر
