@@ -273,6 +273,63 @@ def more_games_menu() -> InlineKeyboardMarkup:
             InlineKeyboardButton("🎯 Stumble Guys", callback_data="fclist:stmb"),
             InlineKeyboardButton("🎮 Super Sus", callback_data="fclist:ssus"),
         ],
+        # ── ألعاب إضافية (مطابقة للموقع) ──
+        [
+            InlineKeyboardButton("🔫 City of Crime", callback_data="fclist:coc2"),
+            InlineKeyboardButton("👑 King of Avalon", callback_data="fclist:koav"),
+        ],
+        [
+            InlineKeyboardButton("🚢 Modern Warships", callback_data="fclist:mws"),
+            InlineKeyboardButton("⚔️ Age of Legends", callback_data="fclist:aol"),
+        ],
+        [
+            InlineKeyboardButton("🛡️ Watcher of Realms", callback_data="fclist:wor"),
+            InlineKeyboardButton("🔪 Knives Out", callback_data="fclist:ko"),
+        ],
+        [
+            InlineKeyboardButton("🏰 دمج الممالك", callback_data="fclist:mk"),
+            InlineKeyboardButton("⚔️ Hero Clash", callback_data="fclist:hc"),
+        ],
+        [
+            InlineKeyboardButton("⚽ Football Rising Star", callback_data="fclist:frs"),
+            InlineKeyboardButton("🎲 Ludo Club", callback_data="fclist:lc"),
+        ],
+        [
+            InlineKeyboardButton("🎲 Ludo World", callback_data="fclist:lw"),
+            InlineKeyboardButton("💀 Doom Dark Ages", callback_data="fclist:doom"),
+        ],
+        [
+            InlineKeyboardButton("🧟 Walking Dead", callback_data="fclist:twd"),
+            InlineKeyboardButton("🔫 Guns of Glory", callback_data="fclist:gog"),
+        ],
+        [
+            InlineKeyboardButton("👑 Mobile Royale", callback_data="fclist:mr"),
+            InlineKeyboardButton("⚔️ Sultans Revenge", callback_data="fclist:sr"),
+        ],
+        [
+            InlineKeyboardButton("🐉 Dragonheir", callback_data="fclist:dh"),
+            InlineKeyboardButton("🦸 Marvel Reveals", callback_data="fclist:mrv"),
+        ],
+        [
+            InlineKeyboardButton("🎯 Pure Sniper", callback_data="fclist:ps"),
+            InlineKeyboardButton("🎮 Project Entropy", callback_data="fclist:pe"),
+        ],
+        [
+            InlineKeyboardButton("🌑 Dark Legion", callback_data="fclist:dl"),
+            InlineKeyboardButton("🁢 Domino", callback_data="fclist:dom"),
+        ],
+        [
+            InlineKeyboardButton("🐷 Piggy Go", callback_data="fclist:pg"),
+            InlineKeyboardButton("🃏 Zynga Poker", callback_data="fclist:zp"),
+        ],
+        [
+            InlineKeyboardButton("⚔️ MU Origin 3", callback_data="fclist:mu3"),
+            InlineKeyboardButton("⭐ Party Star", callback_data="fclist:pstar"),
+        ],
+        [
+            InlineKeyboardButton("🌍 Life After", callback_data="fclist:la"),
+            InlineKeyboardButton("🎮 Yalla Ludo", callback_data="fclist:yl"),
+        ],
         [InlineKeyboardButton("⬅️ رجوع للألعاب", callback_data="store:games")],
     ])
 

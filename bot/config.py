@@ -412,6 +412,8 @@ PUBG_UC_OFFERS = [
     {"id": "uc_325",  "label": "325 شدة",  "uc": 325,  "price": 73500,  "product_id": 2833, "cost_usd": 4.43372, "manual_price": True},
     {"id": "uc_660",  "label": "660 شدة",  "uc": 660,  "price": 146500, "product_id": 2834, "cost_usd": 8.86744, "manual_price": True},
     {"id": "uc_1800", "label": "1800 شدة", "uc": 1800, "price": 365500, "product_id": 2835, "cost_usd": 22.1686, "manual_price": True},
+    {"id": "uc_3850", "label": "3850 شدة", "uc": 3850, "price": 714000, "product_id": 2836, "cost_usd": 43.257, "manual_price": True},
+    {"id": "uc_8100", "label": "8100 شدة", "uc": 8100, "price": 1402000, "product_id": 2837, "cost_usd": 84.95, "manual_price": True},
 ]
 
 # عروض جواهر فري فاير — شحن تلقائي عبر Fastcard (سيرفر اوتو 1)
@@ -837,10 +839,11 @@ INSTAGRAM_VIEWS = [
 ]
 
 FACEBOOK_FOLLOWERS = [
-    # 7592 = $0.0023/متابع — صفحة عرب، السرعة 50k/يوم، مضمون مدى الحياة
-    {"id": "fbf_1k",   "label": "👍 1,000 متابع صفحة فيسبوك (عرب/مضمون)",  "price": 38000,  "product_id": 7592, "qty": 1000,  "cost_usd": 2.30,  "manual_price": True, "enabled": True},
-    {"id": "fbf_5k",   "label": "👍 5,000 متابع صفحة فيسبوك (عرب/مضمون)",  "price": 947000, "product_id": 7592, "qty": 5000,  "cost_usd": 11.50, "manual_price": True, "enabled": True},
-    {"id": "fbf_10k",  "label": "👍 10,000 متابع صفحة فيسبوك (عرب/مضمون)", "price": 3787000, "product_id": 7592, "qty": 10000, "cost_usd": 23.00, "manual_price": True, "enabled": True},
+    {"id": "fbf_custom", "label": "👍 متابعين فيسبوك",
+     "product_id": 7592, "cost_usd_per_unit": 0.0023, "price_per_unit_syp": 90,
+     "min_qty": 100, "max_qty": 100000,
+     "custom_amount": True, "manual_price": True, "enabled": True,
+     "unit_label": "متابع", "price": 0},
 ]
 
 TELEGRAM_VIEWS = [
@@ -1459,6 +1462,53 @@ GENSHIN_OFFERS = [
 
 # ── تطبيقات التواصل ──
 
+
+# ── قوائم منتجات الألعاب (تُملأ تلقائياً من FastCard أو يدوياً) ──
+AFK_OFFERS = []
+AOL_OFFERS = []
+BRAWL_OFFERS = []
+CITY_CRIME_OFFERS = []
+COC_OFFERS = []
+CR_OFFERS = []
+DH_OFFERS = []
+DL_OFFERS = []
+DOM_OFFERS = []
+DOOM_OFFERS = []
+DRG_OFFERS = []
+FARLIGHT84_OFFERS = []
+FRS_OFFERS = []
+GOG_OFFERS = []
+HAYDAY_OFFERS = []
+HC_OFFERS = []
+IDV_OFFERS = []
+KING_AVALON_OFFERS = []
+KOA_OFFERS = []
+KO_OFFERS = []
+LA_OFFERS = []
+LC_OFFERS = []
+LORDS_MOBILE_OFFERS = []
+LW_OFFERS = []
+MK_OFFERS = []
+MRV_OFFERS = []
+MR_OFFERS = []
+MU3_OFFERS = []
+MWS_OFFERS = []
+PAPRA_OFFERS = []
+PE_OFFERS = []
+PG_OFFERS = []
+PSTAR_OFFERS = []
+PS_OFFERS = []
+ROK_OFFERS = []
+SOS_OFFERS = []
+SR_OFFERS = []
+TOP_WAR_OFFERS = []
+TWD_OFFERS = []
+UNDAWN_OFFERS = []
+WHITEOUT_OFFERS = []
+WOR_OFFERS = []
+YL_OFFERS = []
+ZP_OFFERS = []
+
 FASTCARD_CATEGORIES = {
     "pm": {
         "title": "👑 عضويات ببجي موبايل",
@@ -1723,20 +1773,6 @@ FASTCARD_CATEGORIES = {
         "back_callback": "store:more_games",
         "offers_attr": "UNDAWN_OFFERS",
     },
-    "coc": {
-        "title": "🎮 Clash of Clans",
-        "game": "COC",
-        "input_fields": [{"key": "playerId", "label": "Player Tag", "type": "id"}],
-        "back_callback": "store:more_games",
-        "offers_attr": "COC_OFFERS",
-    },
-    "cr": {
-        "title": "👑 Clash Royale",
-        "game": "CLASH_ROYALE",
-        "input_fields": [{"key": "playerId", "label": "Player Tag", "type": "id"}],
-        "back_callback": "store:more_games",
-        "offers_attr": "CR_OFFERS",
-    },
     "brawl": {
         "title": "🌟 Brawl Stars",
         "game": "BRAWL_STARS",
@@ -1765,6 +1801,31 @@ FASTCARD_CATEGORIES = {
         "back_callback": "store:more_games",
         "offers_attr": "AFK_OFFERS",
     },
+    "coc2": {"title": "🔫 City of Crime", "game": "CITY_CRIME", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "CITY_CRIME_OFFERS"},
+    "koav": {"title": "👑 King of Avalon", "game": "KING_AVALON", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "KING_AVALON_OFFERS"},
+    "mws": {"title": "🚢 Modern Warships", "game": "MODERN_WARSHIPS", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "MWS_OFFERS"},
+    "aol": {"title": "⚔️ Age of Legends", "game": "AGE_LEGENDS", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "AOL_OFFERS"},
+    "wor": {"title": "🛡️ Watcher of Realms", "game": "WATCHER_REALMS", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "WOR_OFFERS"},
+    "ko": {"title": "🔪 Knives Out", "game": "KNIVES_OUT", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "KO_OFFERS"},
+    "mk": {"title": "🏰 دمج الممالك", "game": "MERGE_KINGDOMS", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "MK_OFFERS"},
+    "hc": {"title": "⚔️ Hero Clash", "game": "HERO_CLASH", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "HC_OFFERS"},
+    "frs": {"title": "⚽ Football Rising Star", "game": "FOOTBALL_RISING", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "FRS_OFFERS"},
+    "doom": {"title": "💀 Doom Dark Ages", "game": "DOOM", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "DOOM_OFFERS"},
+    "twd": {"title": "🧟 Walking Dead", "game": "WALKING_DEAD", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "TWD_OFFERS"},
+    "gog": {"title": "🔫 Guns of Glory", "game": "GUNS_GLORY", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "GOG_OFFERS"},
+    "mr": {"title": "👑 Mobile Royale", "game": "MOBILE_ROYALE", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "MR_OFFERS"},
+    "sr": {"title": "⚔️ Sultans Revenge", "game": "SULTANS", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "SR_OFFERS"},
+    "dh": {"title": "🐉 Dragonheir", "game": "DRAGONHEIR", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "DH_OFFERS"},
+    "mrv": {"title": "🦸 Marvel Reveals", "game": "MARVEL", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "MRV_OFFERS"},
+    "ps": {"title": "🎯 Pure Sniper", "game": "PURE_SNIPER", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "PS_OFFERS"},
+    "pe": {"title": "🎮 Project Entropy", "game": "PROJECT_ENTROPY", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "PE_OFFERS"},
+    "dl": {"title": "🌑 Dark Legion", "game": "DARK_LEGION", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "DL_OFFERS"},
+    "dom": {"title": "🁢 Domino", "game": "DOMINO", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "DOM_OFFERS"},
+    "pg": {"title": "🐷 Piggy Go", "game": "PIGGY_GO", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "PG_OFFERS"},
+    "zp": {"title": "🃏 Zynga Poker", "game": "ZYNGA_POKER", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "ZP_OFFERS"},
+    "mu3": {"title": "⚔️ MU Origin 3", "game": "MU_ORIGIN", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "MU3_OFFERS"},
+    "pstar": {"title": "⭐ Party Star", "game": "PARTY_STAR", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "PSTAR_OFFERS"},
+    "la": {"title": "🌍 Life After", "game": "LIFE_AFTER", "input_fields": [{"key": "playerId", "label": "Player ID", "type": "id"}], "back_callback": "store:more_games", "offers_attr": "LA_OFFERS"},
     "ff_s2": {
         "title": "🔥 فري فاير — سيرفر 2 (شحن تلقائي)",
         "game": "FREEFIRE_S2",

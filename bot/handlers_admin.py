@@ -74,6 +74,18 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     data = q.data
 
+    # زر فاصل — ما يعمل شي
+    if data == "admin:noop":
+        return
+
+    # معالجة admin:codes (زر الرجوع لقائمة الأكواد)
+    if data == "admin:codes":
+        try:
+            await cb_admin_codes(update, context)
+        except Exception:
+            await q.edit_message_text("🎫 قسم الأكواد", reply_markup=kb.admin_panel())
+        return
+
     if data == "admin:stats":
         s = db.get_stats()
         text = (
@@ -628,6 +640,17 @@ async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             await q.answer(str(e), show_alert=True)
         return ConversationHandler.END
+
+    # أزرار اختيار نوع الكوبون (احتياطي - النظام الأساسي يستخدم الإدخال النصي)
+    if data.startswith("admin:coupon:type:"):
+        ctype = data.split(":")[-1]  # percent أو fixed
+        context.user_data["coupon_type"] = ctype
+        await q.edit_message_text(
+            "✅ اخترت نوع: " + ("نسبة مئوية %" if ctype == "percent" else "مبلغ ثابت ل.س") + "\n\n"
+            "استخدم زر '➕ كوبون جديد' وأدخل البيانات نصياً.",
+            reply_markup=kb.admin_coupon_cancel(),
+        )
+        return
 
     if data == "admin:coupon:new":
         await q.edit_message_text(
