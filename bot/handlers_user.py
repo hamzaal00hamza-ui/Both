@@ -1815,8 +1815,7 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
         logger.error(f"new_order failed: {e}")
         await context.bot.send_message(
             user_id,
-            f"❌ تعذّر تنفيذ الطلب وتم استرجاع المبلغ كاملاً لرصيدك.\n\n"
-            f"السبب: {e.message}\n"
+            f"❌ تعذّر تنفيذ طلبك وتم استرجاع المبلغ كاملاً لرصيدك.\n\n"
             f"رقم الطلب: #{order_id}",
             reply_markup=kb.back_to_main(),
         )
@@ -1825,7 +1824,7 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 await notify.notify_admin(
                     context.bot,
                     f"⚠️ *فشل طلب PUBG API* #{order_id}\nUser: {user_id}\n"
-                    f"الخطأ: {e.message}",
+                    f"الخطأ: {str(e.message)[:100]}",
                     parse_mode=ParseMode.MARKDOWN,
                 )
             except Exception:
@@ -2077,8 +2076,7 @@ async def cb_freefire_diamond_confirm(update: Update, context: ContextTypes.DEFA
         logger.error(f"FF new_order failed: {e}")
         await context.bot.send_message(
             user_id,
-            f"❌ تعذّر تنفيذ الطلب وتم استرجاع المبلغ كاملاً لرصيدك.\n\n"
-            f"السبب: {e.message}\n"
+            f"❌ تعذّر تنفيذ طلبك وتم استرجاع المبلغ كاملاً لرصيدك.\n\n"
             f"رقم الطلب: #{order_id}",
             reply_markup=kb.back_to_main(),
         )
@@ -2683,8 +2681,7 @@ async def cb_fastcard_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE
         logger.error(f"Fastcard generic ({prefix}/{offer_id}) new_order failed: <redacted error>")
         await context.bot.send_message(
             user_id,
-            f"❌ تعذّر تنفيذ الطلب وتم استرجاع المبلغ كاملاً لرصيدك.\n\n"
-            f"السبب: {e.message}\n"
+            f"❌ تعذّر تنفيذ طلبك وتم استرجاع المبلغ كاملاً لرصيدك.\n\n"
             f"رقم الطلب: #{order_id}",
             reply_markup=kb.back_to_main(),
         )

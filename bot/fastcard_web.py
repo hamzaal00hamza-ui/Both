@@ -201,10 +201,18 @@ def place_order(product_id: int, player_id: str, quantity: int = 1) -> Dict[str,
         final_success = bool(is_success and not is_fail)
         order_pending = bool((is_pending or (r.status_code == 200 and "order-result" in low)) and not is_fail and not is_success)
 
+        # رسالة نظيفة ثابتة (بدون كود HTML/CSS)
+        if final_success:
+            clean_msg = "تم تنفيذ الطلب بنجاح"
+        elif order_pending:
+            clean_msg = "طلبك قيد التنفيذ"
+        else:
+            clean_msg = "تعذّر تنفيذ طلبك"
+
         return {
             "success": final_success,
             "pending": order_pending,
-            "message": text or ("تم بنجاح" if is_success else "فشل"),
+            "message": clean_msg,
             "_html": True,
         }
 
