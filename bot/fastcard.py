@@ -212,32 +212,59 @@ def new_order(product_id: int, *, player_id: Optional[str] = None, order_uuid: O
         "order_uuid": order_uuid,
     }
     if player_id:
-        payload["playerId"] = player_id
+        payload["playerId"] = str(player_id).strip()
     if extra:
         for k, v in extra.items():
             payload[k] = str(v)
 
-    # التوثيق الرسمي بيستخدم query string (?qty=...&playerId=...&order_uuid=...)
-    # مش form body — منتجات Server 2 صارمة وبتطلب query string فقط.
-    try:
-        body = _request("POST", f"newOrder/{int(product_id)}/params", params=payload)
-    except FastcardError as e:
-        # بعض منتجات "package" بترفض qty → نعيد المحاولة بدون qty
-        if e.code == 500:
-            payload_no_qty = {k: v for k, v in payload.items() if k != "qty"}
-            new_uuid = str(uuid.uuid4())
-            payload_no_qty["order_uuid"] = new_uuid
-            try:
-                body = _request("POST", f"newOrder/{int(product_id)}/params", params=payload_no_qty)
-                order_uuid = new_uuid
-            except FastcardError:
-                # المحاولة 3: endpoint بدون /params
-                new_uuid2 = str(uuid.uuid4())
-                payload["order_uuid"] = new_uuid2
-                body = _request("POST", f"newOrder/{int(product_id)}", params=payload)
-                order_uuid = new_uuid2
-        else:
-            raise
+    logger.info(f"new_order START: product_id={product_id} qty={qty_str} player_id={player_id} extra={extra}")
+
+    # نجرّب صيغ متعددة لأن منتجات Fastcard مختلفة في طريقة الاستقبال
+    pid = int(product_id)
+    last_error = None
+    body = None
+
+    # قائمة المحاولات بالترتيب
+    attempts = [
+        # (method, path, use_params, use_data, drop_qty)
+        ("POST", f"newOrder/{pid}/params", True, False, False),   # query string + /params
+        ("POST", f"newOrder/{pid}", True, False, False),          # query string بدون /params
+        ("POST", f"newOrder/{pid}", False, True, False),          # form body
+        ("POST", f"newOrder/{pid}/params", True, False, True),    # query string بدون qty
+        ("POST", f"newOrder/{pid}", False, True, True),           # form body بدون qty
+        ("GET",  f"newOrder/{pid}/params", True, False, False),   # GET query string
+    ]
+
+    for method, path, use_params, use_data, drop_qty in attempts:
+        # ابني payload لهذه المحاولة
+        attempt_payload = dict(payload)
+        if drop_qty:
+            attempt_payload.pop("qty", None)
+        # uuid جديد لكل محاولة لتجنب idempotency conflict
+        fresh_uuid = str(uuid.uuid4())
+        attempt_payload["order_uuid"] = fresh_uuid
+        try:
+            if use_params:
+                body = _request(method, path, params=attempt_payload)
+            else:
+                body = _request(method, path, data=attempt_payload)
+            order_uuid = fresh_uuid
+            # نجح — اخرج
+            logger.info(f"newOrder success: pid={pid} via {method} {path} params={use_params}")
+            break
+        except FastcardError as e:
+            last_error = e
+            # لو الخطأ مش 500 (مثلاً رصيد غير كافٍ، كمية غير متوفرة) — لا تكمل المحاولات
+            if e.code not in (500, None):
+                raise
+            logger.warning(f"newOrder attempt failed: pid={pid} {method} {path} code={e.code}")
+            continue
+
+    if body is None:
+        # كل المحاولات فشلت
+        if last_error:
+            raise last_error
+        raise FastcardError("فشل إنشاء الطلب بعد عدة محاولات")
 
     out = body.get("data") if isinstance(body, dict) else None
     if not isinstance(out, dict):
