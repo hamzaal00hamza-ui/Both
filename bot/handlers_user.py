@@ -1780,13 +1780,18 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     _start_ts = time.time()
     # كل العروض تُنفّذ عبر seller API مباشرة (new_order)
-    # منتج 7816 يدعم التحقق من الاسم تلقائياً عبر API
+    # منتجات التحقق (7816) قد تحتاج اسم اللاعب كـ extra param
+    extra_params = {}
+    verified_name = context.user_data.get("pubg_verified_name")
+    if offer.get("verify") and verified_name and verified_name != "—":
+        extra_params["player_name"] = verified_name
     try:
         result = await asyncio.to_thread(
             fastcard.new_order,
             offer["product_id"],
             player_id=player_id,
             order_uuid=api_uuid,
+            extra=extra_params if extra_params else None,
         )
     except (fastcard.FastcardError, fastcard_web.FastcardWebError) as e:
         # فشل الإنشاء → استرجاع المبلغ
