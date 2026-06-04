@@ -1790,13 +1790,16 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 quantity=1,
             )
             success = bool(web_resp.get("success"))
+            is_pending = bool(web_resp.get("pending"))
+            web_status = "accept" if success else ("processing" if is_pending else "reject")
             result = {
                 "order_id": str(web_resp.get("order_id") or web_resp.get("id") or api_uuid),
-                "status": "accept" if success else "reject",
+                "status": web_status,
                 "replay_api": [str(web_resp.get("message") or web_resp.get("data") or "")],
                 "order_uuid": api_uuid,
             }
-            if not success:
+            # فشل صريح فقط → استرجاع. "قيد التنفيذ" يكمل ويُتابع لاحقاً
+            if not success and not is_pending:
                 raise fastcard.FastcardError(str(web_resp.get("message") or "فشل الطلب عبر الموقع"))
         else:
             result = await asyncio.to_thread(

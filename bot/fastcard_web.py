@@ -177,23 +177,33 @@ def place_order(product_id: int, player_id: str, quantity: int = 1) -> Dict[str,
         # كلمات نجاح بالعربي/الإنجليزي
         success_kw = ["نجح", "تم تنفيذ", "بنجاح", "تمت", "قيد التنفيذ", "success", "delivered", "completed", "approved", "processing", "pending"]
         # كلمات فشل صريحة فقط (تجنب "رصيد" لأنها قد تظهر بسياق عادي)
-        fail_kw_ar = ["فشل الطلب", "حدث خطأ", "ID غير صحيح", "رصيد غير كاف", "رصيدك غير", "غير متوفر"]
+        fail_kw_ar = ["فشل الطلب", "حدث خطأ", "ID غير صحيح", "رصيد غير كاف", "رصيدك غير", "غير متوفر", "تم رفض", "رفض طلب", "تعذر تنفيذ", "تعذّر تنفيذ", "مرفوض", "لم يتم"]
         fail_kw_en = ["failed", "insufficient", "not enough", "invalid player", "out of stock"]
 
         is_success = any(k in raw for k in success_kw[:6]) or any(k in low for k in success_kw[6:])
         is_fail = any(k in raw for k in fail_kw_ar) or any(k in low for k in fail_kw_en)
 
-        # لو فيه order-result و HTTP 200 وما في فشل صريح → ناجح
-        if r.status_code == 200 and "order-result" in low and not is_fail:
-            is_success = True
-
+        # الفشل له الأولوية المطلقة — لو فيه أي كلمة رفض/فشل → فاشل
+        # النجاح لازم يكون صريح (مش بس وجود order-result)
         # ملخص نصّي مختصر
         import re
         text = re.sub(r"<[^>]+>", " ", raw)
         text = re.sub(r"\s+", " ", text).strip()[:300]
 
+        # حالة "قيد التنفيذ" — لا قبول صريح ولا رفض → نتابعه لاحقاً
+        pending_kw = ["قيد التنفيذ", "قيد المعالجة", "جاري", "pending", "processing", "in progress"]
+        is_pending = any(k in raw for k in pending_kw[:3]) or any(k in low for k in pending_kw[3:])
+
+        # القرار النهائي:
+        # - فشل صريح → فاشل
+        # - نجاح صريح وما فيه فشل → ناجح
+        # - لا هذا ولا ذاك (قيد التنفيذ) → معلّق للمتابعة
+        final_success = bool(is_success and not is_fail)
+        order_pending = bool((is_pending or (r.status_code == 200 and "order-result" in low)) and not is_fail and not is_success)
+
         return {
-            "success": bool(is_success and not is_fail),
+            "success": final_success,
+            "pending": order_pending,
             "message": text or ("تم بنجاح" if is_success else "فشل"),
             "_html": True,
         }

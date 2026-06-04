@@ -800,7 +800,21 @@ async def fastcard_followup_job(context: ContextTypes.DEFAULT_TYPE) -> None:
             info = await asyncio.to_thread(lambda u=api_uuid: fastcard.check_order(u, by_uuid=True))
         except Exception as e:
             logger.warning("fastcard_followup: check_order failed for #%s: %s", order.get("id"), e)
-            continue
+            info = None
+        # لو ما في رد من seller API (طلب موقع) — نتحقق عبر الموقع
+        if not info:
+            try:
+                from . import fastcard_web
+                if fastcard_web.is_enabled():
+                    # نتحقق من حالة الطلب عبر سجل الموقع
+                    web_check = await asyncio.to_thread(
+                        lambda: fastcard_web.check_order_status(api_uuid)
+                        if hasattr(fastcard_web, "check_order_status") else None
+                    )
+                    if web_check:
+                        info = web_check
+            except Exception:
+                pass
         if not info:
             continue
         status = (info.get("status") or "").lower()
