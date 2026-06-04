@@ -151,7 +151,11 @@ def place_order(product_id: int, player_id: str, quantity: int = 1) -> Dict[str,
             continue
 
         raw = (r.text or "")
-        logger.info(f"fastcard_web.place_order status={r.status_code} body={raw[:500]}")
+        # نطبع الرد كامل بدون HTML tags للتشخيص
+        import re as _re
+        _clean = _re.sub(r"<[^>]+>", " ", raw)
+        _clean = _re.sub(r"\s+", " ", _clean).strip()
+        logger.info(f"fastcard_web.place_order status={r.status_code} clean_text={_clean[:800]}")
 
         # محاولة قراءة JSON أولاً
         try:
