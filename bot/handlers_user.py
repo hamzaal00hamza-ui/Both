@@ -1779,20 +1779,32 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
     )
 
     _start_ts = time.time()
-    # كل العروض تُنفّذ عبر seller API مباشرة (new_order)
-    # منتجات التحقق (7816) قد تحتاج اسم اللاعب كـ extra param
-    extra_params = {}
-    verified_name = context.user_data.get("pubg_verified_name")
-    if offer.get("verify") and verified_name and verified_name != "—":
-        extra_params["player_name"] = verified_name
+    # منتجات التحقق (verify) تُشحن عبر موقع FastCard (order-handler.php)
+    # لأن seller API ما بيدعمها — الموقع يستخدم product_id/quantity/player_id
     try:
-        result = await asyncio.to_thread(
-            fastcard.new_order,
-            offer["product_id"],
-            player_id=player_id,
-            order_uuid=api_uuid,
-            extra=extra_params if extra_params else None,
-        )
+        if offer.get("verify") and fastcard_web.is_enabled():
+            web_resp = await asyncio.to_thread(
+                fastcard_web.place_order,
+                offer["product_id"],
+                player_id=player_id,
+                quantity=1,
+            )
+            success = bool(web_resp.get("success"))
+            result = {
+                "order_id": str(web_resp.get("order_id") or web_resp.get("id") or api_uuid),
+                "status": "accept" if success else "reject",
+                "replay_api": [str(web_resp.get("message") or web_resp.get("data") or "")],
+                "order_uuid": api_uuid,
+            }
+            if not success:
+                raise fastcard.FastcardError(str(web_resp.get("message") or "فشل الطلب عبر الموقع"))
+        else:
+            result = await asyncio.to_thread(
+                fastcard.new_order,
+                offer["product_id"],
+                player_id=player_id,
+                order_uuid=api_uuid,
+            )
     except (fastcard.FastcardError, fastcard_web.FastcardWebError) as e:
         # فشل الإنشاء → استرجاع المبلغ
         db.update_balance(user_id, config.get_offer_price(offer))
