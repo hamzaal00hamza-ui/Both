@@ -28,6 +28,22 @@ def user_reply_keyboard() -> ReplyKeyboardMarkup:
     )
 
 
+
+def _is_offer_available(offer) -> bool:
+    """يفحص إذا المنتج متوفر — من config (enabled) ومن قاعدة البيانات (المخزون التلقائي)."""
+    if not offer.get("enabled", True):
+        return False
+    pid = offer.get("product_id")
+    if pid:
+        try:
+            from . import database as _db
+            if _db.is_product_disabled(int(pid)):
+                return False
+        except Exception:
+            pass
+    return True
+
+
 def main_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🛒 تسوّق الآن", callback_data="menu:store")],
@@ -454,10 +470,17 @@ def pubg_uc_offers(stock: dict = None) -> InlineKeyboardMarkup:
     rows = []
     for offer in config.PUBG_UC_OFFERS:
         price = config.get_offer_price(offer)
-        rows.append([InlineKeyboardButton(
-            f"🎯 {offer['label']} — {price:,.0f} ل.س",
-            callback_data=f"pubg_uc:{offer['id']}"
-        )])
+        # منتج غير متوفر → ❌ ولا يمكن شراؤه
+        if not _is_offer_available(offer):
+            rows.append([InlineKeyboardButton(
+                f"❌ {offer['label']} — غير متوفر",
+                callback_data="fcsold:pubg"
+            )])
+        else:
+            rows.append([InlineKeyboardButton(
+                f"🎯 {offer['label']} — {price:,.0f} ل.س",
+                callback_data=f"pubg_uc:{offer['id']}"
+            )])
     rows.append([InlineKeyboardButton("⬅️ رجوع", callback_data="store:pubg")])
     return InlineKeyboardMarkup(rows)
 
@@ -490,10 +513,17 @@ def freefire_sections() -> InlineKeyboardMarkup:
 def freefire_diamond_offers() -> InlineKeyboardMarkup:
     rows = []
     for offer in config.FREEFIRE_DIAMOND_OFFERS:
-        rows.append([InlineKeyboardButton(
-            f"💎 {offer['label']} - {config.get_offer_price(offer)} ل.س",
-            callback_data=f"ff_dia:{offer['id']}"
-        )])
+        # منتج غير متوفر → ❌
+        if not _is_offer_available(offer):
+            rows.append([InlineKeyboardButton(
+                f"❌ {offer['label']} - غير متوفر",
+                callback_data="fcsold:ff"
+            )])
+        else:
+            rows.append([InlineKeyboardButton(
+                f"💎 {offer['label']} - {config.get_offer_price(offer)} ل.س",
+                callback_data=f"ff_dia:{offer['id']}"
+            )])
     rows.append([InlineKeyboardButton("⬅️ فري فاير", callback_data="store:freefire")])
     return InlineKeyboardMarkup(rows)
 
@@ -519,8 +549,8 @@ def fastcard_offers_list(prefix: str) -> InlineKeyboardMarkup:
 
     rows = []
     for offer in offers:
-        if not offer.get("enabled", True):
-            label = "🔴 " + offer["label"] + " — نفد المخزون"
+        if not _is_offer_available(offer):
+            label = "❌ " + offer["label"] + " — غير متوفر"
             rows.append([InlineKeyboardButton(label, callback_data="fcsold:" + prefix)])
         elif offer.get("custom_amount"):
             # زر كمية مخصصة — المستخدم يكتب الكمية
