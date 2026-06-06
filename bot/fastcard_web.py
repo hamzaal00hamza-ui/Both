@@ -12,6 +12,7 @@ import threading
 from typing import Optional, Dict, Any
 
 import requests
+import re as _re2
 
 from . import config
 
@@ -209,14 +210,73 @@ def place_order(product_id: int, player_id: str, quantity: int = 1) -> Dict[str,
         else:
             clean_msg = "تعذّر تنفيذ طلبك"
 
+        # استخراج رقم الطلب من الرد (order.php?id=58828 أو id=58828)
+        web_order_id = None
+        _id_match = _re2.search(r"order\.php\?id=(\d+)", raw) or _re2.search(r'data-order-id="(\d+)"', raw) or _re2.search(r'"order_id"\s*:\s*"?(\d+)', raw) or _re2.search(r'id=(\d{4,})', raw)
+        if _id_match:
+            web_order_id = _id_match.group(1)
+
         return {
             "success": final_success,
             "pending": order_pending,
             "message": clean_msg,
+            "order_id": web_order_id,
             "_html": True,
         }
 
     raise FastcardWebError("فشل الاتصال بعد محاولتين")
+
+
+def check_order_status(order_id: str) -> Optional[Dict[str, Any]]:
+    """
+    يفحص حالة طلب من صفحة الموقع order.php?id=ORDER_ID.
+    يقرأ badge-state ويرجّع الحالة: accept / processing / reject.
+    """
+    if not order_id:
+        return None
+    base = config.FASTCARD_WEB_BASE.rstrip("/")
+    url = base + "/api/order.php?id=" + str(order_id)
+
+    for attempt in (1, 2):
+        s = _get_session(force_relogin=(attempt == 2))
+        try:
+            r = s.get(url, timeout=30, headers={"X-Requested-With": "XMLHttpRequest"})
+        except Exception:
+            if attempt == 2:
+                return None
+            continue
+
+        raw = (r.text or "")
+        low = raw.lower()
+
+        # لو رجعنا لصفحة تسجيل الدخول → أعد المحاولة
+        if "login" in r.url.lower() and attempt == 1:
+            continue
+
+        # نقرأ badge-state من الـ HTML
+        # completed → مقبول/منفّذ | pending → قيد التنفيذ | rejected → مرفوض
+        status = "processing"
+        if "badge-state completed" in low or "مقبول" in raw or "تم التنفيذ" in raw or "منفذ" in raw or "منفّذ" in raw:
+            status = "accept"
+        elif "badge-state rejected" in low or "مرفوض" in raw or "تم الرفض" in raw or "فشل" in raw:
+            status = "reject"
+        elif "badge-state pending" in low or "قيد التنفيذ" in raw or "قيد المعالجة" in raw or "بانتظار" in raw:
+            status = "processing"
+
+        # نستخرج رد المتجر/الكود لو موجود
+        replay = []
+        _code = _re2.search(r"الاستجابة[:\s]*([^<\n]{1,60})", raw)
+        if _code:
+            replay = [_code.group(1).strip()]
+
+        return {
+            "order_id": str(order_id),
+            "status": status,
+            "replay_api": replay,
+            "_html": True,
+        }
+
+    return None
 
 
 def extract_player_name(resp: Dict[str, Any]) -> Optional[str]:
