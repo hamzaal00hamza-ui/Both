@@ -1866,9 +1866,12 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
     final_data = result
     db.update_order_api(order_id, api_order_id=api_order_id, api_response=config.sanitize_for_storage(result))
 
-    # polling لو الحالة لسة بـ processing
+    # طلبات الموقع (verify) — الموقع رجّع نتيجة نهائية، لا polling عبر seller API
+    is_web_order = bool(offer.get("verify"))
+
+    # polling لو الحالة لسة بـ processing (فقط لطلبات seller API)
     elapsed = 0
-    while elapsed < config.FASTCARD_POLL_TIMEOUT and final_status in ("processing", "wait", "pending", ""):
+    while not is_web_order and elapsed < config.FASTCARD_POLL_TIMEOUT and final_status in ("processing", "wait", "pending", ""):
         await asyncio.sleep(config.FASTCARD_POLL_INTERVAL)
         elapsed += config.FASTCARD_POLL_INTERVAL
         try:
@@ -1884,6 +1887,9 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     accepted = final_status in ("accept", "accepted", "completed", "done", "success")
     rejected = final_status in ("reject", "rejected", "fail", "failed", "refund", "refunded", "canceled", "cancelled")
+    # طلب موقع بحالة processing بعد انتهاء — اعتبره مقبول (الموقع نفّذه فعلاً)
+    if is_web_order and not accepted and not rejected:
+        accepted = True
 
     if accepted:
         took = max(0, int(round(time.time() - _start_ts)))
@@ -2144,6 +2150,9 @@ async def cb_freefire_diamond_confirm(update: Update, context: ContextTypes.DEFA
 
     accepted = final_status in ("accept", "accepted", "completed", "done", "success")
     rejected = final_status in ("reject", "rejected", "fail", "failed", "refund", "refunded", "canceled", "cancelled")
+    # طلب موقع بحالة processing بعد انتهاء — اعتبره مقبول (الموقع نفّذه فعلاً)
+    if is_web_order and not accepted and not rejected:
+        accepted = True
 
     if accepted:
         replay = final_data.get("replay_api") or []
@@ -2755,6 +2764,9 @@ async def cb_fastcard_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     accepted = final_status in ("accept", "accepted", "completed", "done", "success")
     rejected = final_status in ("reject", "rejected", "fail", "failed", "refund", "refunded", "canceled", "cancelled")
+    # طلب موقع بحالة processing بعد انتهاء — اعتبره مقبول (الموقع نفّذه فعلاً)
+    if is_web_order and not accepted and not rejected:
+        accepted = True
 
     is_code_only = not fields  # ما في حقول → منتج كود/ستوك
     has_credentials = any(f.get("type") == "password" for f in fields)

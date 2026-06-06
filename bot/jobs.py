@@ -1033,6 +1033,15 @@ def schedule_jobs(app: Application) -> None:
             name="stock_check",
         )
 
+    # تعطيل/تشغيل المنتجات تلقائياً حسب التوفر — كل 5 دقائق (يحدّث إشارة ❌)
+    if fastcard.is_enabled():
+        jq.run_repeating(
+            auto_stock_check,
+            interval=300,
+            first=60,
+            name="auto_stock_check",
+        )
+
     # فحص أسعار Fastcard اليومي — يقارن cost_usd مع API ويرسل تنبيه بالفروق
     if fastcard.is_enabled():
         jq.run_daily(
