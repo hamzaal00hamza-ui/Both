@@ -406,43 +406,41 @@ def collect_priced_offers() -> list:
 USD_TO_SYP = DEFAULT_USD_TO_SYP
 
 PUBG_UC_OFFERS = [
-    {"id": "uc_60",    "label": "60 شدة AUTO ⚡",         "uc": 60,   "price": 15000,  "product_id": 2832, "cost_usd": 0.82,    "manual_price": True},
-    {"id": "uc_60v",   "label": "60 شدة (تحقق من الاسم) 🔒", "uc": 60,   "price": 15500,  "product_id": 7816, "cost_usd": 0.85,    "manual_price": True, "verify": True, "verify_product_id": 7816},
-    {"id": "uc_60a",   "label": "60 UC AUTO ⚡",           "uc": 60,   "price": 15500,  "product_id": 7806, "cost_usd": 0.886,  "manual_price": True},
-    {"id": "uc_325",  "label": "325 شدة",  "uc": 325,  "price": 73500,  "product_id": 2833, "cost_usd": 4.43372, "manual_price": True},
-    {"id": "uc_660",  "label": "660 شدة",  "uc": 660,  "price": 146500, "product_id": 2834, "cost_usd": 8.86744, "manual_price": True},
-    {"id": "uc_1800", "label": "1800 شدة", "uc": 1800, "price": 365500, "product_id": 2835, "cost_usd": 22.1686, "manual_price": True},
-    {"id": "uc_3850", "label": "3850 شدة", "uc": 3850, "price": 714000, "product_id": 2836, "cost_usd": 43.257, "manual_price": True},
-    {"id": "uc_8100", "label": "8100 شدة", "uc": 8100, "price": 1402000, "product_id": 2837, "cost_usd": 84.95, "manual_price": True},
+    {"id": "uc_60", "label": "60 شدة 🔒", "uc": 60, "price": 15000, "product_id": 2832, "cost_usd": 0.82, "manual_price": True, "verify": True, "verify_product_id": 2832},
+    {"id": "uc_325", "label": "325 شدة 🔒", "uc": 325, "price": 73500, "product_id": 2833, "cost_usd": 4.43372, "manual_price": True, "verify": True, "verify_product_id": 2833},
+    {"id": "uc_660", "label": "660 شدة 🔒", "uc": 660, "price": 146500, "product_id": 2834, "cost_usd": 8.86744, "manual_price": True, "verify": True, "verify_product_id": 2834},
+    {"id": "uc_1800", "label": "1800 شدة 🔒", "uc": 1800, "price": 365500, "product_id": 2835, "cost_usd": 22.1686, "manual_price": True, "verify": True, "verify_product_id": 2835},
+    {"id": "uc_3850", "label": "3850 شدة 🔒", "uc": 3850, "price": 714000, "product_id": 2836, "cost_usd": 43.257, "manual_price": True, "verify": True, "verify_product_id": 2836},
+    {"id": "uc_8100", "label": "8100 شدة 🔒", "uc": 8100, "price": 1402000, "product_id": 2837, "cost_usd": 84.95, "manual_price": True, "verify": True, "verify_product_id": 2837},
 ]
 
 # عروض جواهر فري فاير — شحن تلقائي عبر Fastcard (سيرفر اوتو 1)
 FREEFIRE_DIAMOND_OFFERS = [
-    {"id": "ff_110",  "label": "100 + 10 جوهرة",   "diamonds": 110,  "price": 15500,  "product_id": 7709, "cost_usd": 0.94127, "manual_price": True},
-    {"id": "ff_231",  "label": "210 + 21 جوهرة",   "diamonds": 231,  "price": 31000,  "product_id": 7710, "cost_usd": 1.88254, "manual_price": True},
-    {"id": "ff_583",  "label": "530 + 53 جوهرة",   "diamonds": 583,  "price": 77500,  "product_id": 7711, "cost_usd": 4.706351, "manual_price": True},
-    {"id": "ff_1188", "label": "1080 + 108 جوهرة", "diamonds": 1188, "price": 155000, "product_id": 7712, "cost_usd": 9.412701, "manual_price": True},
-    {"id": "ff_2420", "label": "2200 + 220 جوهرة", "diamonds": 2420, "price": 310000, "product_id": 7713, "cost_usd": 18.825401, "manual_price": True},
+    {"id": "ff_110",  "label": "100 + 10 جوهرة 🔒",   "diamonds": 110,  "price": 15500,  "product_id": 7709, "cost_usd": 0.94127, "manual_price": True, "verify": True, "verify_product_id": 7709},
+    {"id": "ff_231",  "label": "210 + 21 جوهرة 🔒",   "diamonds": 231,  "price": 31000,  "product_id": 7710, "cost_usd": 1.88254, "manual_price": True, "verify": True, "verify_product_id": 7710},
+    {"id": "ff_583",  "label": "530 + 53 جوهرة 🔒",   "diamonds": 583,  "price": 77500,  "product_id": 7711, "cost_usd": 4.706351, "manual_price": True, "verify": True, "verify_product_id": 7711},
+    {"id": "ff_1188", "label": "1080 + 108 جوهرة 🔒", "diamonds": 1188, "price": 155000, "product_id": 7712, "cost_usd": 9.412701, "manual_price": True, "verify": True, "verify_product_id": 7712},
+    {"id": "ff_2420", "label": "2200 + 220 جوهرة 🔒", "diamonds": 2420, "price": 310000, "product_id": 7713, "cost_usd": 18.825401, "manual_price": True, "verify": True, "verify_product_id": 7713},
 ]
 
 # فري فاير سيرفر 2 — شحن تلقائي
 FREEFIRE_S2_OFFERS = [
-    {"id": "ff_s2_110",  "label": "100 + 10 جوهرة (سيرفر 2)",   "price": 14000,  "product_id": 7642, "cost_usd": 0.95,   "enabled": True},
-    {"id": "ff_s2_231",  "label": "210 + 21 جوهرة (سيرفر 2)",   "price": 28000,  "product_id": 7643, "cost_usd": 1.899,  "enabled": True},
-    {"id": "ff_s2_583",  "label": "530 + 53 جوهرة (سيرفر 2)",   "price": 70000,  "product_id": 7644, "cost_usd": 4.75,   "enabled": True},
-    {"id": "ff_s2_1188", "label": "1080 + 108 جوهرة (سيرفر 2)", "price": 140000, "product_id": 7645, "cost_usd": 9.5,    "enabled": True},
-    {"id": "ff_s2_2420", "label": "2200 + 220 جوهرة (سيرفر 2)", "price": 280000, "product_id": 7646, "cost_usd": 18.981, "enabled": True},
+    {"id": "ff_s2_110",  "label": "100 + 10 جوهرة (سيرفر 2) 🔒",   "price": 14000,  "product_id": 7642, "cost_usd": 0.95,   "enabled": True, "verify": True, "verify_product_id": 7642},
+    {"id": "ff_s2_231",  "label": "210 + 21 جوهرة (سيرفر 2) 🔒",   "price": 28000,  "product_id": 7643, "cost_usd": 1.899,  "enabled": True, "verify": True, "verify_product_id": 7643},
+    {"id": "ff_s2_583",  "label": "530 + 53 جوهرة (سيرفر 2) 🔒",   "price": 70000,  "product_id": 7644, "cost_usd": 4.75,   "enabled": True, "verify": True, "verify_product_id": 7644},
+    {"id": "ff_s2_1188", "label": "1080 + 108 جوهرة (سيرفر 2) 🔒", "price": 140000, "product_id": 7645, "cost_usd": 9.5,    "enabled": True, "verify": True, "verify_product_id": 7645},
+    {"id": "ff_s2_2420", "label": "2200 + 220 جوهرة (سيرفر 2) 🔒", "price": 280000, "product_id": 7646, "cost_usd": 18.981, "enabled": True, "verify": True, "verify_product_id": 7646},
 ]
 
 # فري فاير أوروبا — شحن تلقائي
 FREEFIRE_EU_OFFERS = [
-    {"id": "ff_eu_100",   "label": "100 جوهرة (أوروبا)",            "price": 14500,   "product_id": 7793, "cost_usd": 0.968,   "enabled": True},
-    {"id": "ff_eu_310",   "label": "310 جوهرة (أوروبا)",            "price": 43500,   "product_id": 7794, "cost_usd": 2.925,   "enabled": True},
-    {"id": "ff_eu_520",   "label": "520 جوهرة (أوروبا)",            "price": 66500,   "product_id": 7795, "cost_usd": 4.5,     "enabled": True},
-    {"id": "ff_eu_1060",  "label": "1060 جوهرة (أوروبا)",           "price": 133000,  "product_id": 7796, "cost_usd": 9.0,     "enabled": True},
-    {"id": "ff_eu_2180",  "label": "2180 جوهرة (أوروبا)",           "price": 270500,  "product_id": 7797, "cost_usd": 18.337,  "enabled": True},
-    {"id": "ff_eu_5600",  "label": "5600 جوهرة (أوروبا)",           "price": 647500,  "product_id": 7798, "cost_usd": 43.874,  "enabled": True},
-    {"id": "ff_eu_wk",    "label": "عضوية أسبوعية (أوروبا)",        "price": 5000,    "product_id": 7800, "cost_usd": 0.315,   "enabled": True},
+    {"id": "ff_eu_100",   "label": "100 جوهرة (أوروبا) 🔒",            "price": 14500,   "product_id": 7793, "cost_usd": 0.968,   "enabled": True, "verify": True, "verify_product_id": 7793},
+    {"id": "ff_eu_310",   "label": "310 جوهرة (أوروبا) 🔒",            "price": 43500,   "product_id": 7794, "cost_usd": 2.925,   "enabled": True, "verify": True, "verify_product_id": 7794},
+    {"id": "ff_eu_520",   "label": "520 جوهرة (أوروبا) 🔒",            "price": 66500,   "product_id": 7795, "cost_usd": 4.5,     "enabled": True, "verify": True, "verify_product_id": 7795},
+    {"id": "ff_eu_1060",  "label": "1060 جوهرة (أوروبا) 🔒",           "price": 133000,  "product_id": 7796, "cost_usd": 9.0,     "enabled": True, "verify": True, "verify_product_id": 7796},
+    {"id": "ff_eu_2180",  "label": "2180 جوهرة (أوروبا) 🔒",           "price": 270500,  "product_id": 7797, "cost_usd": 18.337,  "enabled": True, "verify": True, "verify_product_id": 7797},
+    {"id": "ff_eu_5600",  "label": "5600 جوهرة (أوروبا) 🔒",           "price": 647500,  "product_id": 7798, "cost_usd": 43.874,  "enabled": True, "verify": True, "verify_product_id": 7798},
+    {"id": "ff_eu_wk",    "label": "عضوية أسبوعية (أوروبا) 🔒",        "price": 5000,    "product_id": 7800, "cost_usd": 0.315,   "enabled": True, "verify": True, "verify_product_id": 7800},
     {"id": "ff_eu_wkmem", "label": "عضوية أسبوعية VIP (أوروبا)",   "price": 29000,   "product_id": 7801, "cost_usd": 1.913,   "enabled": True},
     {"id": "ff_eu_mo",    "label": "عضوية شهرية (أوروبا)",          "price": 133000,  "product_id": 7802, "cost_usd": 8.978,   "enabled": True},
     {"id": "ff_eu_ev3",   "label": "Evo Access 3D (أوروبا)",        "price": 9500,    "product_id": 7803, "cost_usd": 0.63,    "enabled": True},
