@@ -1,4 +1,0 @@
-python-telegram-bot[job-queue]==21.6
-requests
-matplotlib
-psycopg2-binary
