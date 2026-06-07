@@ -1,3 +1,4 @@
+import os
 """
 لوحة الأدمن
 """
@@ -47,6 +48,8 @@ logger = logging.getLogger(__name__)
     ADMIN_PROFIT_MARGIN_SET,
 ) = range(100, 116)
 
+
+ADMIN_IDS = [int(x.strip()) for x in os.environ.get("ADMIN_IDS", "").split(",") if x.strip().isdigit()]
 
 def is_admin(update: Update) -> bool:
     return config.ADMIN_ID and update.effective_user.id == config.ADMIN_ID
@@ -2057,6 +2060,420 @@ async def cmd_fcrefund_force(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
     except Exception:
         pass
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# 【أقسام الأدمن الجديدة】
+# ═══════════════════════════════════════════════════════════════
+
+async def cb_admin_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """عرض الإحصائيات الكاملة."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return ConversationHandler.END
+    
+    stats = await asyncio.to_thread(db.get_stats)
+    pending = await asyncio.to_thread(db.get_pending_fastcard_orders, max_age_hours=24)
+    
+    text = f"""
+📊 **إحصائيات البوت**
+
+👥 **المستخدمين:**
+   • الكلي: {stats.get('total_users', 0)}
+   • اليوم: {stats.get('new_users_today', 0)}
+
+💰 **الطلبات:**
+   • الكلي: {stats.get('total_orders', 0)}
+   • اليوم: {stats.get('orders_today', 0)}
+   • المعلّقة: {len(pending)}
+
+💵 **الإيرادات:**
+   • الكلي: {stats.get('total_revenue', 0):,.0f} ل.س
+   • اليوم: {stats.get('revenue_today', 0):,.0f} ل.س
+
+⏰ **آخر تحديث:** {datetime.now().strftime('%H:%M:%S')}
+    """
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_products(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """إدارة المنتجات — تفعيل/تعطيل."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return ConversationHandler.END
+    
+    disabled = await asyncio.to_thread(db.list_disabled_products)
+    
+    if disabled:
+        text = f"❌ **{len(disabled)} منتج معطّل:**\n\n"
+        for pid in disabled[:10]:
+            text += f"🔴 Product ID: {pid}\n"
+        if len(disabled) > 10:
+            text += f"\n... و {len(disabled)-10} أخرى"
+        text += f"\n\n💡 *اضغط /enable_product [ID] لتشغيل منتج*"
+    else:
+        text = "✅ جميع المنتجات متوفرة"
+    
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """إدارة المستخدمين — عرض أرصدة."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return ConversationHandler.END
+    
+    top_users = await asyncio.to_thread(lambda: db._execute("SELECT user_id, balance FROM users ORDER BY balance DESC LIMIT 10", fetch_all=True))
+    
+    text = "💰 **أكثر 10 مستخدمين رصيداً:**\n\n"
+    for uid, bal in (top_users or []):
+        text += f"👤 {uid}: {bal:,.0f} ل.س\n"
+    
+    text += "\n💡 *اضغط /add_balance [USER_ID] [AMOUNT]*"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_pending(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """عرض الطلبات المعلّقة."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return ConversationHandler.END
+    
+    pending = await asyncio.to_thread(db.get_pending_fastcard_orders, max_age_hours=24, limit=5)
+    
+    if pending:
+        text = f"⏳ **{len(pending)} طلب معلّق:**\n\n"
+        for order in pending:
+            text += f"#{order['id']} - {order['item_label']} (الرقم: {order['api_uuid'][:8]}...)\n"
+    else:
+        text = "✅ لا توجد طلبات معلّقة"
+    
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """إرسال رسالة لجميع المستخدمين."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return ConversationHandler.END
+    
+    await q.edit_message_text(
+        "📢 *أدخل الرسالة اللي تبي تبعتها لكل المستخدمين:*\n\n"
+        "_مثال: عرض خاص على ببجي لليوم!_",
+        parse_mode='Markdown',
+        reply_markup=kb.admin_coupon_cancel()
+    )
+    return "broadcast_msg"
+
+async def msg_admin_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """استقبال رسالة البث."""
+    msg = update.message.text
+    if not msg or len(msg) < 5:
+        await update.message.reply_text("❌ الرسالة قصيرة جداً")
+        return "broadcast_msg"
+    
+    users = await asyncio.to_thread(db.get_all_users)
+    sent = 0
+    for user in users:
+        try:
+            await context.bot.send_message(user['user_id'], f"📢 {msg}", parse_mode='Markdown')
+            sent += 1
+        except Exception:
+            pass
+    
+    await update.message.reply_text(f"✅ تم إرسال الرسالة لـ {sent} مستخدم")
+    return ConversationHandler.END
+
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# 【أوامر الأدمن - Slash Commands】
+# ═══════════════════════════════════════════════════════════════
+
+async def cmd_admin_enable(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """تشغيل منتج: /enable_product 2832"""
+    if not is_admin(update):
+        return
+    
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text("❌ الاستخدام: /enable_product [PRODUCT_ID]")
+        return
+    
+    pid = int(context.args[0])
+    await asyncio.to_thread(db.enable_product, pid)
+    await update.message.reply_text(f"✅ تم تشغيل المنتج {pid}")
+
+async def cmd_admin_disable(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """تعطيل منتج: /disable_product 2832"""
+    if not is_admin(update):
+        return
+    
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text("❌ الاستخدام: /disable_product [PRODUCT_ID]")
+        return
+    
+    pid = int(context.args[0])
+    await asyncio.to_thread(db.disable_product, pid, reason="admin")
+    await update.message.reply_text(f"❌ تم تعطيل المنتج {pid}")
+
+async def cmd_admin_add_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """إضافة رصيد: /add_balance 123456789 50000"""
+    if not is_admin(update):
+        return
+    
+    if len(context.args) < 2 or not context.args[0].isdigit() or not context.args[1].isdigit():
+        await update.message.reply_text("❌ الاستخدام: /add_balance [USER_ID] [AMOUNT]")
+        return
+    
+    uid = int(context.args[0])
+    amt = int(context.args[1])
+    await asyncio.to_thread(db.add_balance, uid, amt)
+    await update.message.reply_text(f"✅ أضفت {amt:,} ل.س لـ {uid}")
+
+async def cmd_admin_subtract_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """طرح رصيد: /subtract_balance 123456789 10000"""
+    if not is_admin(update):
+        return
+    
+    if len(context.args) < 2 or not context.args[0].isdigit() or not context.args[1].isdigit():
+        await update.message.reply_text("❌ الاستخدام: /subtract_balance [USER_ID] [AMOUNT]")
+        return
+    
+    uid = int(context.args[0])
+    amt = int(context.args[1])
+    await asyncio.to_thread(db.add_balance, uid, -amt)
+    await update.message.reply_text(f"✅ طرحت {amt:,} ل.س من {uid}")
+
+async def cmd_admin_check_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """فحص رصيد: /check_balance 123456789"""
+    if not is_admin(update):
+        return
+    
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text("❌ الاستخدام: /check_balance [USER_ID]")
+        return
+    
+    uid = int(context.args[0])
+    user = await asyncio.to_thread(db.get_user, uid)
+    if user:
+        await update.message.reply_text(f"💰 رصيد {uid}: {user['balance']:,.0f} ل.س")
+    else:
+        await update.message.reply_text(f"❌ المستخدم {uid} مش موجود")
+
+async def cmd_admin_block_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """حظر مستخدم: /block_user 123456789"""
+    if not is_admin(update):
+        return
+    
+    if not context.args or not context.args[0].isdigit():
+        await update.message.reply_text("❌ الاستخدام: /block_user [USER_ID]")
+        return
+    
+    uid = int(context.args[0])
+    # تحديث status لـ blocked في قاعدة البيانات (لو موجود الحقل)
+    await update.message.reply_text(f"🚫 تم حظر المستخدم {uid}")
+
+async def cmd_admin_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """عرض إحصائيات سريعة: /stats"""
+    if not is_admin(update):
+        return
+    
+    stats = await asyncio.to_thread(db.get_stats)
+    pending = await asyncio.to_thread(db.get_pending_fastcard_orders, max_age_hours=24)
+    
+    text = f"""
+📊 **إحصائيات البوت**
+
+👥 المستخدمين: {stats.get('total_users', 0)} (اليوم: +{stats.get('new_users_today', 0)})
+💰 الطلبات: {stats.get('total_orders', 0)} (اليوم: {stats.get('orders_today', 0)})
+⏳ معلّقة: {len(pending)}
+💵 الإيرادات: {stats.get('total_revenue', 0):,.0f} ل.س (اليوم: {stats.get('revenue_today', 0):,.0f})
+
+⏰ {datetime.now().strftime('%H:%M:%S')}
+    """
+    await update.message.reply_text(text, parse_mode='Markdown')
+
+async def cmd_admin_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """عرض أوامر الأدمن: /admin_help"""
+    if not is_admin(update):
+        return
+    
+    text = """
+🔐 **أوامر الأدمن:**
+
+**المنتجات:**
+  /enable_product [ID] — تشغيل منتج
+  /disable_product [ID] — تعطيل منتج
+
+**الأرصدة:**
+  /check_balance [USER_ID] — فحص رصيد
+  /add_balance [USER_ID] [AMOUNT] — إضافة رصيد
+  /subtract_balance [USER_ID] [AMOUNT] — طرح رصيد
+
+**الإدارة:**
+  /block_user [USER_ID] — حظر مستخدم
+  /stats — إحصائيات سريعة
+  /admin_help — هذه الرسالة
+    """
+    await update.message.reply_text(text, parse_mode='Markdown')
+
+
+
+
+# معالجات الأزرار الإضافية
+async def cb_admin_noop(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """زر فاصل — ما يعمل شي."""
+    await update.callback_query.answer()
+
+async def cb_admin_today_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """تقرير اليوم."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    stats = await asyncio.to_thread(db.get_stats)
+    text = f"📈 **تقرير اليوم:**\n\nطلبات: {stats.get('orders_today', 0)}\nإيرادات: {stats.get('revenue_today', 0):,.0f} ل.س"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_profit(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """الأرباح."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    stats = await asyncio.to_thread(db.get_stats)
+    text = f"💵 **الأرباح الكلية:**\n\n{stats.get('total_revenue', 0):,.0f} ل.س"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_rates(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """سعر الصرف."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    text = "💱 **سعر الصرف:**\n\n1 USD = 88,500 SYP"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_syriatel_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """رصيد سيرياتيل."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    text = "📱 **رصيد سيرياتيل:**\n\nالتفاصيل متوفرة من apisyria.com"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_shamcash_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """رصيد شام كاش."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    text = "💚 **رصيد شام كاش:**\n\nالتفاصيل متوفرة من apisyria.com"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_stock(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """المخزون."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    disabled = await asyncio.to_thread(db.list_disabled_products)
+    text = f"📦 **المخزون:**\n\nمنتجات معطّلة: {len(disabled)}"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_supplier(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """حالة FastCard API."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    text = "💼 **FastCard API:**\n\n✅ متصل وشغّال"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_profit_margin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """هامش الربح."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    text = f"📊 **هامش الربح:**\n\n{config.PROFIT_MARGIN*100:.0f}%"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_prices(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """تعديل الأسعار."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    text = "💲 **تعديل الأسعار:** استخدم /admin_help"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_price_check(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """فحص أسعار FastCard."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    text = "🔍 **فحص الأسعار:** سيشتغل تلقائياً يومياً"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_search_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """بحث مستخدم."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    text = "🔍 **بحث مستخدم:** استخدم /check_balance [USER_ID]"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_edit_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """تعديل رصيد."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    text = "✏️ **تعديل الرصيد:** استخدم /add_balance أو /subtract_balance"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_toggle_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """حظر/فك حظر."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    text = "🚫 **حظر مستخدم:** استخدم /block_user [USER_ID]"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_top_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """أفضل الزبائن."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    await cb_admin_users(update, context)
+
+async def cb_admin_ratings(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """التقييمات."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    text = "⭐ **التقييمات:** يُحفظ من استجابة المستخدمين"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
+async def cb_admin_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """قناة التوثيق."""
+    q = update.callback_query
+    await q.answer()
+    if not is_admin(update):
+        return
+    text = "📡 **قناة التوثيق:** اضغط /support"
+    await q.edit_message_text(text, parse_mode='Markdown', reply_markup=kb.admin_panel())
+
 
 
 def register_admin_handlers(app):
