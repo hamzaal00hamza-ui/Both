@@ -79,18 +79,23 @@ def _get_session(force_relogin: bool = False) -> requests.Session:
 
 
 def check_player(player_id: str, product_id: int) -> Dict[str, Any]:
-    """يرجّع dict فيه success/message/data. data بتحتوي اسم اللاعب لو success=True."""
+    """يرجّع dict فيه success/valid/player_name. data بتحتوي اسم اللاعب لو success=True."""
     if not is_enabled():
         raise FastcardWebError("تحقق الاسم غير مفعّل (مفاتيح الموقع ناقصة)")
 
-    url = config.FASTCARD_WEB_BASE.rstrip("/") + "/api/redeemtech_check_player.php"
-    payload = {"player_id": str(player_id), "product_id": int(product_id)}
+    # الرابط الجديد من التحديث
+    base = config.FASTCARD_WEB_BASE.rstrip("/")
+    url = base + "/api/player-id-check.js"
+    
+    # الـ parameters الجديدة: user_id بدل player_id
+    params = {"user_id": str(player_id), "product_id": int(product_id)}
 
     for attempt in (1, 2):
         s = _get_session(force_relogin=(attempt == 2))
         try:
-            r = s.post(url, data=payload, timeout=25,
-                       headers={"X-Requested-With": "XMLHttpRequest"})
+            # جرّب GET أولاً (الأشهر)
+            r = s.get(url, params=params, timeout=25,
+                      headers={"X-Requested-With": "XMLHttpRequest"})
         except Exception as e:
             if attempt == 2:
                 raise FastcardWebError(f"تعذّر الاتصال بالموقع: {e}")
@@ -104,11 +109,24 @@ def check_player(player_id: str, product_id: int) -> Dict[str, Any]:
                 raise FastcardWebError(f"رد غير متوقع من الموقع: {text}")
             continue
 
-        msg = str(data.get("message") or "")
-        if not data.get("success") and ("تسجيل الدخول" in msg or "login" in msg.lower()):
-            # session منتهية → أعِد المحاولة بعد إعادة الدخول
-            if attempt == 1:
-                continue
+        # التحقق من النجاح
+        if data.get("success") and data.get("valid"):
+            return {
+                "success": True,
+                "message": data.get("player_name", ""),
+                "data": data.get("player_name", ""),
+            }
+        elif not data.get("valid"):
+            return {
+                "success": False,
+                "message": "ID غير صحيح أو لم يتم العثور على اللاعب",
+                "data": None,
+            }
+        
+        # لو فشل login، أعِد المحاولة
+        if not data.get("success") and attempt == 1:
+            continue
+        
         return data
 
     raise FastcardWebError("فشل الاتصال بعد محاولتين")
