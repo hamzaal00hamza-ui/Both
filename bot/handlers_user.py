@@ -2962,6 +2962,9 @@ async def cb_fastcard_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE
         api_response=config.sanitize_for_storage(result, extra_redact_values=_sensitive_vals),
     )
 
+    # هل هذا طلب موقع (verify)؟ المعالج العام يستخدم seller API دائماً، فالقيمة False
+    is_web_order = bool(offer.get("verify"))
+
     elapsed = 0
     while elapsed < config.FASTCARD_POLL_TIMEOUT and final_status in ("processing", "wait", "pending", ""):
         await asyncio.sleep(config.FASTCARD_POLL_INTERVAL)
