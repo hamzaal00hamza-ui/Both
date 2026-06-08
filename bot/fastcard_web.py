@@ -51,6 +51,10 @@ def _get_csrf_token(s: requests.Session) -> str:
     try:
         r = s.get(base + "/index?page=products", timeout=15)
         html = r.text or ""
+        # طريقة 0 (الأهم): window.PLAYER_CHECK_CSRF
+        m = _re.search(r'PLAYER_CHECK_CSRF\s*=\s*["\']([a-f0-9]{20,})["\']', html, _re.I)
+        if m:
+            return m.group(1)
         # طريقة 1: meta tag
         m = _re.search(r'<meta\s+name=["\']csrf-token["\']\s+content=["\']([^"\']+)["\']', html)
         if m:
@@ -122,6 +126,7 @@ def check_player(player_id: str, product_id: int) -> Dict[str, Any]:
         s = _get_session(force_relogin=(attempt == 2))
         # نجيب CSRF token (ضروري للـ endpoint الجديد)
         csrf = _get_csrf_token(s)
+        logger.info(f"check_player CSRF token = '{csrf[:20]}...' (len={len(csrf)})")
         try:
             # POST request مع CSRF token
             r = s.post(url, data=payload, timeout=25,
