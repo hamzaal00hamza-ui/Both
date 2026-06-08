@@ -225,22 +225,27 @@ def find_matching_transaction(tx_code: str,
         logger.warning(f"find_tx error: {e}")
         return None
 
+    logger.info(f"find_tx response: found={data.get('found')} data_keys={list(data.keys())}")
+
     if not data.get("found"):
+        logger.info(f"Syriatel tx {target} NOT FOUND → رفض")
         return None
 
     tx = data.get("transaction", {})
     try:
         amount = float(tx.get("amount", 0))
     except (TypeError, ValueError):
+        logger.warning(f"Syriatel tx {target} bad amount field: {tx.get('amount')}")
         return None
 
     if abs(amount - float(expected_amount)) > tolerance:
         logger.warning(
             f"Syriatel tx {target} amount mismatch: "
-            f"got {amount} vs expected {expected_amount}"
+            f"got {amount} vs expected {expected_amount} → رفض"
         )
         return None
 
+    logger.info(f"Syriatel tx {target} matched ✅ amount={amount}")
     return tx
 
 

@@ -700,10 +700,12 @@ async def cb_fcqty_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["fcqty_title"] = cat.get("title", "")
     context.user_data["fcqty_field_label"] = (cat.get("input_fields", [{}])[0].get("label", "أدخل الرابط:"))
     context.user_data["fcqty_awaiting_qty"] = True
+    _rate = config.get_syp_per_usd()
+    _per_unit_usd = (" ($" + format(per_unit/_rate, ',.4f') + ")") if _rate else ""
     await q.edit_message_text(
         cat["title"] + "\n"
         "━━━━━━━━━━━━━━━━━\n\n"
-        "💰 السعر: " + str(per_unit) + " ل.س/" + unit + "\n"
+        "💰 السعر: " + str(per_unit) + " ل.س/" + unit + _per_unit_usd + "\n"
         "📉 الحد الأدنى: " + str(min_qty) + " " + unit + "\n"
         "📈 الحد الأقصى: " + str(max_qty) + " " + unit + "\n\n"
         "✍️ أدخل الكمية المطلوبة:",
@@ -753,9 +755,11 @@ async def msg_fcqty_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.pop("fcqty_awaiting_qty", None)
     # اطلب الرابط مباشرة
     field_label = context.user_data.get("fcqty_field_label", "أدخل الرابط:")
+    _rate = config.get_syp_per_usd()
+    _total_usd = (" ($" + format(total/_rate, ',.2f') + ")") if _rate else ""
     await update.message.reply_text(
         "✅ الكمية: " + str(qty) + " " + unit + "\n"
-        "💰 السعر: " + str(total) + " ل.س\n\n"
+        "💰 السعر: " + format(total, ',') + " ل.س" + _total_usd + "\n\n"
         "👇 " + field_label,
         reply_markup=kb.cancel_inline(),
     )
@@ -1046,6 +1050,44 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+async def cb_toggle_currency(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يبدّل عملة العرض بين الليرة والدولار."""
+    q = update.callback_query
+    uid = update.effective_user.id
+    current = db.get_user_currency(uid)
+    new_cur = "USD" if current == "SYP" else "SYP"
+    db.set_user_currency(uid, new_cur)
+    await q.answer(f"✅ تم التغيير إلى {'الدولار' if new_cur == 'USD' else 'الليرة السورية'}")
+
+    # نعيد عرض صفحة حسابي محدّثة
+    user = db.get_user(uid)
+    orders_count = db.count_user_orders(uid)
+    loyalty_pts = int(user.get("loyalty_points") or 0)
+    username = user.get("username") or user.get("first_name") or "—"
+    rate = config.get_syp_per_usd()
+    bal_syp = user["balance"] or 0
+    if new_cur == "USD":
+        bal_disp = f"${bal_syp/rate:,.2f}" if rate else "$0.00"
+        rech_disp = f"${(user['total_recharged'] or 0)/rate:,.2f}" if rate else "$0.00"
+    else:
+        bal_disp = f"{bal_syp:,.0f} ل.س"
+        rech_disp = f"{user['total_recharged'] or 0:,.0f} ل.س"
+    text = (
+        "👤 *الملف الشخصي*\n"
+        "━━━━━━━━━━━━━━━━━\n\n"
+        f"🪪 الاسم: `{username}`\n"
+        f"🆔 المعرّف: `{user['user_id']}`\n\n"
+        f"💰 الرصيد الحالي: *{bal_disp}*\n"
+        f"💎 نقاط الولاء: *{loyalty_pts:,}* نقطة\n"
+        f"🏅 المستوى: *{user['level']}*\n\n"
+        f"📊 إجمالي الشحن: *{rech_disp}*\n"
+        f"📦 عدد الطلبات: *{orders_count}*\n"
+        "━━━━━━━━━━━━━━━━━\n"
+        f"💵 عملة العرض الحالية: *{'دولار $' if new_cur == 'USD' else 'ليرة سورية'}*"
+    )
+    await _safe_edit(q, text, reply_markup=kb.account_menu(new_cur))
+
+
 async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
@@ -1076,7 +1118,8 @@ async def cb_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📦 عدد الطلبات: *{orders_count}*\n"
             "━━━━━━━━━━━━━━━━━"
         )
-        await _safe_edit(q, text, reply_markup=kb.back_to_main())
+        _cur = db.get_user_currency(update.effective_user.id)
+        await _safe_edit(q, text, reply_markup=kb.account_menu(_cur))
 
     elif data == "menu:recharge":
         await _safe_edit(
@@ -1308,12 +1351,22 @@ async def cb_pubg_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == "pubg:uc":
         await _safe_edit(
             q,
-            "🎯 *PUBG MOBILE — شدات*\n"
+            "🎯 *PUBG MOBILE — شدات (سيرفر 1)*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
             "⚡ شحن تلقائي فوري خلال ثوانٍ\n"
             "🔒 آمن 100% · مضمون أو يُرد المبلغ\n\n"
             "👇 اختر الباقة المناسبة:",
-            reply_markup=kb.pubg_uc_offers(),
+            reply_markup=kb.pubg_uc_offers(currency=db.get_user_currency(update.effective_user.id)),
+        )
+    elif data == "pubg:uc2":
+        await _safe_edit(
+            q,
+            "🤖 *PUBG MOBILE — شدات (سيرفر 2)*\n"
+            "━━━━━━━━━━━━━━━━━\n\n"
+            "🔒 يتطلب تحقق من اسم اللاعب\n"
+            "⚡ شحن آمن 100% · مضمون أو يُرد المبلغ\n\n"
+            "👇 اختر الباقة المناسبة:",
+            reply_markup=kb.pubg_uc_s2_offers(currency=db.get_user_currency(update.effective_user.id)),
         )
     elif data == "pubg:membership":
         await _send_fastcard_list(q, "pm")
@@ -1322,6 +1375,7 @@ async def cb_pubg_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def _send_fastcard_list(q, prefix: str):
+    _cur = db.get_user_currency(q.from_user.id)
     cat = config.FASTCARD_CATEGORIES.get(prefix)
     if not cat:
         return
@@ -1480,7 +1534,7 @@ async def _send_fastcard_list(q, prefix: str):
             f"📌 *البيانات اللي بنحتاجها:* {field_labels}"
         )
 
-    markup = kb.fastcard_offers_list(prefix)
+    markup = kb.fastcard_offers_list(prefix, currency=_cur)
     await _safe_edit(q, intro, reply_markup=markup)
 
 
@@ -1577,6 +1631,14 @@ async def cb_cards_section(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ============= PUBG UC purchase (auto via Fastcard API) =============
+def _find_pubg_offer(offer_id: str):
+    """يلاقي عرض ببجي في سيرفر 1 أو سيرفر 2."""
+    o = next((x for x in config.PUBG_UC_OFFERS if x["id"] == offer_id), None)
+    if o:
+        return o
+    return next((x for x in config.PUBG_UC_S2_OFFERS if x["id"] == offer_id), None)
+
+
 async def cb_pubg_uc_select(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """يطلب Player ID قبل ما يدفع."""
     q = update.callback_query
@@ -1586,7 +1648,7 @@ async def cb_pubg_uc_select(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
 
     offer_id = q.data.split(":", 1)[1]
-    offer = next((o for o in config.PUBG_UC_OFFERS if o["id"] == offer_id), None)
+    offer = _find_pubg_offer(offer_id)
     if not offer:
         return ConversationHandler.END
 
@@ -1630,7 +1692,7 @@ async def msg_pubg_player_id(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return PUBG_PLAYER_ID
 
     offer_id = context.user_data.get("pubg_offer_id")
-    offer = next((o for o in config.PUBG_UC_OFFERS if o["id"] == offer_id), None) if offer_id else None
+    offer = _find_pubg_offer(offer_id) if offer_id else None
     if not offer:
         await update.message.reply_text(
             "⚠️ انتهت الجلسة، ارجع للمتجر وابدأ من جديد.",
@@ -1661,7 +1723,7 @@ async def msg_pubg_player_id(update: Update, context: ContextTypes.DEFAULT_TYPE)
             f"(غير قابل للاسترجاع حتى لو ألغيت الشحن).\n\n"
             "اضغط تحقق ليطلع لك اسم اللاعب وتأكدلو قبل الشحن.",
             parse_mode=ParseMode.MARKDOWN,
-            reply_markup=kb.pubg_uc_verify(offer_id, verify_cost_syp),
+            reply_markup=(kb.pubg_uc2_verify if offer_id.startswith("uc_s2_") else kb.pubg_uc_verify)(offer_id, verify_cost_syp),
         )
         return ConversationHandler.END
 
@@ -1672,7 +1734,7 @@ async def msg_pubg_player_id(update: Update, context: ContextTypes.DEFAULT_TYPE)
         f"💼 رصيدك: {user['balance']:.0f} ل.س\n\n"
         "⚠️ تأكد من Player ID كويس. بعد التأكيد ما فينا نستردّ الطلب.",
         parse_mode=ParseMode.MARKDOWN,
-        reply_markup=kb.pubg_uc_confirm(offer_id, config.get_offer_price(offer)),
+        reply_markup=(kb.pubg_uc2_confirm if offer_id.startswith("uc_s2_") else kb.pubg_uc_confirm)(offer_id, config.get_offer_price(offer)),
     )
     return ConversationHandler.END
 
@@ -1685,7 +1747,7 @@ async def cb_pubg_uc_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     offer_id = q.data.split(":", 1)[1]
-    offer = next((o for o in config.PUBG_UC_OFFERS if o["id"] == offer_id), None)
+    offer = _find_pubg_offer(offer_id)
     if not offer or not offer.get("verify"):
         return
 
@@ -1759,7 +1821,7 @@ async def cb_pubg_uc_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"💼 رصيدك: {user2['balance']:.0f} ل.س\n\n"
         "⚠️ تأكد من الاسم. بعد التأكيد ما فينا نستردّ الطلب.",
         parse_mode=ParseMode.MARKDOWN,
-        reply_markup=kb.pubg_uc_confirm(offer_id, offer_price),
+        reply_markup=(kb.pubg_uc2_confirm if offer_id.startswith("uc_s2_") else kb.pubg_uc_confirm)(offer_id, offer_price),
     )
 
 
@@ -1771,7 +1833,7 @@ async def cb_pubg_uc_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
 
     offer_id = q.data.split(":", 1)[1]
-    offer = next((o for o in config.PUBG_UC_OFFERS if o["id"] == offer_id), None)
+    offer = _find_pubg_offer(offer_id)
     if not offer:
         return
 
@@ -1974,7 +2036,7 @@ async def cb_freefire_section(update: Update, context: ContextTypes.DEFAULT_TYPE
             q,
             "💎 *جواهر فري فاير — شحن تلقائي مباشر*\n\n"
             "اختر الباقة، ثم ادخل Player ID وستصلك الجواهر على حسابك خلال ثوانٍ:",
-            reply_markup=kb.freefire_diamond_offers(),
+            reply_markup=kb.freefire_diamond_offers(currency=db.get_user_currency(update.effective_user.id)),
         )
     elif data == "ff:membership":
         await _send_fastcard_list(q, "fm")
@@ -2041,6 +2103,31 @@ async def msg_freefire_player_id(update: Update, context: ContextTypes.DEFAULT_T
 
     context.user_data["ff_player_id"] = text
     user = db.get_user(update.effective_user.id)
+
+    # عرض بدو تحقق من الاسم؟
+    if offer.get("verify") and not fastcard_web.is_enabled():
+        await update.message.reply_text(
+            "⚠️ خدمة التحقق من الاسم لهذا العرض غير متاحة حالياً. اختر عرضاً آخر أو تواصل مع الدعم.",
+            reply_markup=kb.back_to_main(),
+        )
+        return ConversationHandler.END
+
+    if offer.get("verify") and fastcard_web.is_enabled():
+        verify_cost_syp = round(config.FASTCARD_VERIFY_COST_USD * config.get_syp_per_usd())
+        await update.message.reply_text(
+            f"💎 *{offer['label']}*\n\n"
+            f"🎮 Player ID: `{text}`\n"
+            f"💰 سعر الشحن: {config.get_offer_price(offer)} ل.س\n"
+            f"💼 رصيدك: {user['balance']:.0f} ل.س\n\n"
+            f"⚠️ هاد العرض بدو *تحقق من اسم اللاعب* قبل الشراء.\n"
+            f"رح يخصم من رصيدك {verify_cost_syp:.0f} ل.س لقاء التحقق "
+            f"(غير قابل للاسترجاع حتى لو ألغيت الشحن).\n\n"
+            "اضغط تحقق ليطلع لك اسم اللاعب وتأكدلو قبل الشحن.",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb.freefire_verify(offer_id, verify_cost_syp),
+        )
+        return ConversationHandler.END
+
     await update.message.reply_text(
         f"💎 *{offer['label']}*\n\n"
         f"🎮 Player ID: `{text}`\n"
@@ -2051,6 +2138,90 @@ async def msg_freefire_player_id(update: Update, context: ContextTypes.DEFAULT_T
         reply_markup=kb.freefire_diamond_confirm(offer_id, config.get_offer_price(offer)),
     )
     return ConversationHandler.END
+
+
+async def cb_freefire_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """تحقق من اسم لاعب فري فاير عبر موقع فاست كارد قبل الشراء."""
+    q = update.callback_query
+    await q.answer("جاري التحقق...")
+    if await is_banned(update):
+        return
+
+    offer_id = q.data.split(":", 1)[1]
+    offer = next((o for o in config.FREEFIRE_DIAMOND_OFFERS if o["id"] == offer_id), None)
+    if not offer or not offer.get("verify"):
+        return
+
+    player_id = context.user_data.get("ff_player_id")
+    if not player_id:
+        await _safe_edit(q, "⚠️ انتهت الجلسة. اضغط /start وابدأ من جديد.", reply_markup=kb.back_to_main())
+        return
+
+    if not fastcard_web.is_enabled():
+        await _safe_edit(q, "⚠️ خدمة التحقق من الاسم غير مفعّلة حالياً. تواصل مع الدعم.", reply_markup=kb.back_to_main())
+        return
+
+    user_id = update.effective_user.id
+    user = db.get_user(user_id)
+    verify_cost_syp = round(config.FASTCARD_VERIFY_COST_USD * config.get_syp_per_usd())
+    offer_price = config.get_offer_price(offer)
+
+    if (user["balance"] or 0) < verify_cost_syp:
+        await _safe_edit(
+            q,
+            f"❌ رصيدك غير كافٍ للتحقق.\n\nالتكلفة: {verify_cost_syp:.0f} ل.س\nرصيدك: {user['balance']:.0f} ل.س",
+            reply_markup=kb.insufficient_balance(),
+        )
+        return
+
+    # نخصم تكلفة التحقق فوراً
+    db.update_balance(user_id, -verify_cost_syp)
+
+    await _safe_edit(
+        q,
+        f"⏳ جاري التحقق من Player ID: `{player_id}`...",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+    try:
+        verify_pid = int(offer.get("verify_product_id") or offer["product_id"])
+        resp = await asyncio.to_thread(fastcard_web.check_player, player_id, verify_pid)
+    except fastcard_web.FastcardWebError as e:
+        db.update_balance(user_id, verify_cost_syp)
+        logger.warning("fastcard_web.check_player (ff) error: %s", e)
+        await context.bot.send_message(
+            user_id,
+            f"❌ تعذّر التحقق من الاسم وتم استرجاع المبلغ.\nالسبب: {e.message}",
+            reply_markup=kb.back_to_main(),
+        )
+        return
+
+    if not resp.get("success"):
+        msg = str(resp.get("message") or "اللاعب غير موجود")
+        await context.bot.send_message(
+            user_id,
+            f"❌ *لم يتم العثور على اللاعب.*\n\nPlayer ID: `{player_id}`\nرسالة الموقع: {msg}\n\n"
+            "تأكد من الرقم وحاول مرة ثانية.",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=kb.back_to_main(),
+        )
+        return
+
+    name = fastcard_web.extract_player_name(resp) or "—"
+    context.user_data["ff_verified_name"] = name
+    user2 = db.get_user(user_id)
+    await context.bot.send_message(
+        user_id,
+        f"✅ *تم التحقق من الاسم بنجاح*\n\n"
+        f"🎮 Player ID: `{player_id}`\n"
+        f"👤 اسم اللاعب: *{name}*\n\n"
+        f"💎 العرض: {offer['label']}\n"
+        f"💰 السعر: {offer_price:.0f} ل.س\n"
+        f"💼 رصيدك: {user2['balance']:.0f} ل.س\n\n"
+        "⚠️ تأكد من الاسم. بعد التأكيد ما فينا نستردّ الطلب.",
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=kb.freefire_diamond_confirm(offer_id, offer_price),
+    )
 
 
 async def cb_freefire_diamond_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2105,13 +2276,39 @@ async def cb_freefire_diamond_confirm(update: Update, context: ContextTypes.DEFA
     )
 
     try:
-        result = await asyncio.to_thread(
-            fastcard.new_order,
-            offer["product_id"],
-            player_id=player_id,
-            order_uuid=api_uuid,
-        )
-    except fastcard.FastcardError as e:
+        # منتجات التحقق (verify) تُشحن عبر موقع FastCard (order-handler.php)
+        if offer.get("verify") and fastcard_web.is_enabled():
+            web_resp = await asyncio.to_thread(
+                fastcard_web.place_order,
+                offer["product_id"],
+                player_id=player_id,
+                quantity=1,
+            )
+            success = bool(web_resp.get("success"))
+            is_pending = bool(web_resp.get("pending"))
+            web_status = "accept" if success else ("processing" if is_pending else "reject")
+            web_oid = web_resp.get("order_id") or web_resp.get("id")
+            result = {
+                "order_id": str(web_oid or api_uuid),
+                "status": web_status,
+                "replay_api": [str(web_resp.get("message") or web_resp.get("data") or "")],
+                "order_uuid": api_uuid,
+            }
+            if web_oid:
+                try:
+                    db.update_order_api(order_id, api_order_id=str(web_oid))
+                except Exception:
+                    pass
+            if not success and not is_pending:
+                raise fastcard.FastcardError(str(web_resp.get("message") or "فشل الطلب عبر الموقع"))
+        else:
+            result = await asyncio.to_thread(
+                fastcard.new_order,
+                offer["product_id"],
+                player_id=player_id,
+                order_uuid=api_uuid,
+            )
+    except (fastcard.FastcardError, fastcard_web.FastcardWebError) as e:
         db.update_balance(user_id, config.get_offer_price(offer))
         db.update_order_api(order_id, status="rejected", api_response=str(e))
         logger.error(f"FF new_order failed: {e}")
@@ -2140,8 +2337,11 @@ async def cb_freefire_diamond_confirm(update: Update, context: ContextTypes.DEFA
     final_data = result
     db.update_order_api(order_id, api_order_id=api_order_id, api_response=config.sanitize_for_storage(result))
 
+    # طلب الموقع (verify) ما بيتابع عبر seller API
+    is_web_order = bool(offer.get("verify"))
+
     elapsed = 0
-    while elapsed < config.FASTCARD_POLL_TIMEOUT and final_status in ("processing", "wait", "pending", ""):
+    while not is_web_order and elapsed < config.FASTCARD_POLL_TIMEOUT and final_status in ("processing", "wait", "pending", ""):
         await asyncio.sleep(config.FASTCARD_POLL_INTERVAL)
         elapsed += config.FASTCARD_POLL_INTERVAL
         try:
@@ -4310,7 +4510,8 @@ def register_user_handlers(app):
 
     pubg_conv = ConversationHandler(
         entry_points=[
-            CommandHandler("start", cancel_conversation),CallbackQueryHandler(cb_pubg_uc_select, pattern=r"^pubg_uc:")],
+            CommandHandler("start", cancel_conversation),CallbackQueryHandler(cb_pubg_uc_select, pattern=r"^pubg_uc:"),
+            CallbackQueryHandler(cb_pubg_uc_select, pattern=r"^pubg_uc2:")],
         states={
             PUBG_PLAYER_ID: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, msg_pubg_player_id),
@@ -4331,6 +4532,8 @@ def register_user_handlers(app):
 
     app.add_handler(CallbackQueryHandler(cb_pubg_uc_confirm, pattern=r"^pubg_uc_confirm:"))
     app.add_handler(CallbackQueryHandler(cb_pubg_uc_verify, pattern=r"^pubg_uc_verify:"))
+    app.add_handler(CallbackQueryHandler(cb_pubg_uc_confirm, pattern=r"^pubg_uc2_confirm:"))
+    app.add_handler(CallbackQueryHandler(cb_pubg_uc_verify, pattern=r"^pubg_uc2_verify:"))
 
     freefire_conv = ConversationHandler(
         entry_points=[
@@ -4353,6 +4556,7 @@ def register_user_handlers(app):
     )
     app.add_handler(freefire_conv)
 
+    app.add_handler(CallbackQueryHandler(cb_freefire_verify, pattern=r"^ff_verify:"))
     app.add_handler(CallbackQueryHandler(cb_freefire_diamond_confirm, pattern=r"^ff_dia_confirm:"))
 
     # ===== Generic Fastcard auto-delivery (memberships + codes + custom-amount balance) =====
@@ -4457,6 +4661,7 @@ def register_user_handlers(app):
     app.add_handler(CallbackQueryHandler(cb_ludo_section, pattern=r"^lunav:"))
     app.add_handler(CallbackQueryHandler(cb_cards_section, pattern=r"^cards:"))
     app.add_handler(CallbackQueryHandler(cb_rating, pattern=r"^rate:"))
+    app.add_handler(CallbackQueryHandler(cb_toggle_currency, pattern=r"^toggle_currency$"))
     app.add_handler(CallbackQueryHandler(cb_main_menu, pattern=r"^menu:"))
 
     # Safety net — لو shamcash/syriatel ما اشتغل من ConversationHandler

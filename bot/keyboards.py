@@ -96,6 +96,15 @@ def loyalty_cancel() -> InlineKeyboardMarkup:
     ])
 
 
+def account_menu(currency: str = "SYP") -> InlineKeyboardMarkup:
+    """كيبورد صفحة حسابي مع زر تبديل العملة."""
+    cur_label = "💵 العملة: دولار ($)" if currency == "USD" else "💵 العملة: ليرة (ل.س)"
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(cur_label, callback_data="toggle_currency")],
+        [InlineKeyboardButton("🏠 الرئيسية", callback_data="menu:main")],
+    ])
+
+
 def back_to_main() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("⬅️ القائمة الرئيسية", callback_data="menu:main")],
@@ -459,18 +468,17 @@ def ludo_sections() -> InlineKeyboardMarkup:
 
 def pubg_sections() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("💎 شدات UC ⚡ أوتو فوري", callback_data="pubg:uc")],
+        [InlineKeyboardButton("💎 شدات UC — سيرفر 1 ⚡", callback_data="pubg:uc")],
+        [InlineKeyboardButton("💎 شدات UC — سيرفر 2 🤖", callback_data="pubg:uc2")],
         [InlineKeyboardButton("👑 عضويات ببجي 🏆", callback_data="pubg:membership")],
         [InlineKeyboardButton("🎟 أكواد شدات 🎁", callback_data="pubg:codes")],
         [InlineKeyboardButton("⬅️ رجوع للألعاب", callback_data="store:games")],
     ])
 
 
-def pubg_uc_offers(stock: dict = None) -> InlineKeyboardMarkup:
+def pubg_uc_s2_offers(stock: dict = None, currency: str = "SYP") -> InlineKeyboardMarkup:
     rows = []
-    for offer in config.PUBG_UC_OFFERS:
-        price = config.get_offer_price(offer)
-        # منتج غير متوفر → ❌ ولا يمكن شراؤه
+    for offer in config.PUBG_UC_S2_OFFERS:
         if not _is_offer_available(offer):
             rows.append([InlineKeyboardButton(
                 f"❌ {offer['label']} — غير متوفر",
@@ -478,7 +486,40 @@ def pubg_uc_offers(stock: dict = None) -> InlineKeyboardMarkup:
             )])
         else:
             rows.append([InlineKeyboardButton(
-                f"🎯 {offer['label']} — {price:,.0f} ل.س",
+                f"🤖 {offer['label']} — {config.format_offer_price(offer, currency)}",
+                callback_data=f"pubg_uc2:{offer['id']}"
+            )])
+    rows.append([InlineKeyboardButton("⬅️ رجوع", callback_data="store:pubg")])
+    return InlineKeyboardMarkup(rows)
+
+
+def pubg_uc2_confirm(offer_id: str, price: float) -> InlineKeyboardMarkup:
+    _rate = config.get_syp_per_usd()
+    _usd = f" (${price/_rate:,.2f})" if _rate else ""
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(f"✅ تأكيد الشراء — {price:,.0f} ل.س{_usd} 💰", callback_data=f"pubg_uc2_confirm:{offer_id}")],
+        [InlineKeyboardButton("❌ إلغاء", callback_data="pubg:uc2")],
+    ])
+
+
+def pubg_uc2_verify(offer_id: str, verify_cost_syp: float) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(f"🔎 تحقق من الاسم ({verify_cost_syp:.0f} ل.س)", callback_data=f"pubg_uc2_verify:{offer_id}")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="pubg:uc2")],
+    ])
+
+
+def pubg_uc_offers(stock: dict = None, currency: str = "SYP") -> InlineKeyboardMarkup:
+    rows = []
+    for offer in config.PUBG_UC_OFFERS:
+        if not _is_offer_available(offer):
+            rows.append([InlineKeyboardButton(
+                f"❌ {offer['label']} — غير متوفر",
+                callback_data="fcsold:pubg"
+            )])
+        else:
+            rows.append([InlineKeyboardButton(
+                f"🎯 {offer['label']} — {config.format_offer_price(offer, currency)}",
                 callback_data=f"pubg_uc:{offer['id']}"
             )])
     rows.append([InlineKeyboardButton("⬅️ رجوع", callback_data="store:pubg")])
@@ -487,7 +528,7 @@ def pubg_uc_offers(stock: dict = None) -> InlineKeyboardMarkup:
 
 def pubg_uc_confirm(offer_id: str, price: float) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton(f"✅ تأكيد الشراء — {price:,.0f} ل.س 💰", callback_data=f"pubg_uc_confirm:{offer_id}")],
+        [InlineKeyboardButton(f"✅ تأكيد الشراء — {price:,.0f} ل.س{(' ($' + format(price/config.get_syp_per_usd(), ',.2f') + ')') if config.get_syp_per_usd() else ''} 💰", callback_data=f"pubg_uc_confirm:{offer_id}")],
         [InlineKeyboardButton("❌ إلغاء", callback_data="pubg:uc")],
     ])
 
@@ -510,7 +551,7 @@ def freefire_sections() -> InlineKeyboardMarkup:
     ])
 
 
-def freefire_diamond_offers() -> InlineKeyboardMarkup:
+def freefire_diamond_offers(currency: str = "SYP") -> InlineKeyboardMarkup:
     rows = []
     for offer in config.FREEFIRE_DIAMOND_OFFERS:
         # منتج غير متوفر → ❌
@@ -521,7 +562,7 @@ def freefire_diamond_offers() -> InlineKeyboardMarkup:
             )])
         else:
             rows.append([InlineKeyboardButton(
-                f"💎 {offer['label']} - {config.get_offer_price(offer)} ل.س",
+                f"💎 {offer['label']} - {config.format_offer_price(offer, currency)}",
                 callback_data=f"ff_dia:{offer['id']}"
             )])
     rows.append([InlineKeyboardButton("⬅️ فري فاير", callback_data="store:freefire")])
@@ -530,12 +571,20 @@ def freefire_diamond_offers() -> InlineKeyboardMarkup:
 
 def freefire_diamond_confirm(offer_id: str, price: float) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton(f"✅ تأكيد الشراء ({price:.0f} ل.س)", callback_data=f"ff_dia_confirm:{offer_id}")],
+        [InlineKeyboardButton(f"✅ تأكيد الشراء ({price:,.0f} ل.س{(' / $' + format(price/config.get_syp_per_usd(), ',.2f')) if config.get_syp_per_usd() else ''})", callback_data=f"ff_dia_confirm:{offer_id}")],
         [InlineKeyboardButton("⬅️ رجوع", callback_data="ff:diamonds")],
     ])
 
 
-def fastcard_offers_list(prefix: str) -> InlineKeyboardMarkup:
+def freefire_verify(offer_id: str, verify_cost_syp: float) -> InlineKeyboardMarkup:
+    """زر التحقق من اسم لاعب فري فاير."""
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(f"🔎 تحقق من الاسم ({verify_cost_syp:.0f} ل.س)", callback_data=f"ff_verify:{offer_id}")],
+        [InlineKeyboardButton("⬅️ رجوع", callback_data="ff:diamonds")],
+    ])
+
+
+def fastcard_offers_list(prefix: str, currency: str = "SYP") -> InlineKeyboardMarkup:
     """قائمة عامة لأي قسم تلقائي عبر Fastcard. prefix من FASTCARD_CATEGORIES."""
     cat = config.FASTCARD_CATEGORIES.get(prefix)
     if not cat:
@@ -560,8 +609,7 @@ def fastcard_offers_list(prefix: str) -> InlineKeyboardMarkup:
             label = offer["label"] + " — " + str(per_unit_syp) + " ل.س/" + unit
             rows.append([InlineKeyboardButton(label, callback_data="fcqty:" + prefix + ":" + offer["id"])])
         else:
-            price_fmt = str(int(config.get_offer_price(offer))).replace(",", "،")
-            label = btn_emoji + " " + offer["label"] + " — " + price_fmt + " ل.س"
+            label = btn_emoji + " " + offer["label"] + " — " + config.format_offer_price(offer, currency).replace(",", "،")
             rows.append([InlineKeyboardButton(label, callback_data="fcbuy:" + prefix + ":" + offer["id"])])
     rows.append([InlineKeyboardButton("⬅️ رجوع", callback_data=cat["back_callback"])])
     return InlineKeyboardMarkup(rows)
@@ -570,7 +618,7 @@ def fastcard_offers_list(prefix: str) -> InlineKeyboardMarkup:
 def fastcard_confirm(prefix: str, offer_id: str, price: float) -> InlineKeyboardMarkup:
     cat = config.FASTCARD_CATEGORIES.get(prefix, {})
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton(f"✅ تأكيد الشراء ({price:,.0f} ل.س)".replace(",", "،"),
+        [InlineKeyboardButton((f"✅ تأكيد الشراء ({price:,.0f} ل.س" + ((" / $" + format(price/config.get_syp_per_usd(), ',.2f')) if config.get_syp_per_usd() else "") + ")").replace(",", "،"),
                               callback_data=f"fcconf:{prefix}:{offer_id}")],
         [InlineKeyboardButton("⬅️ رجوع", callback_data=f"fclist:{prefix}")],
     ])
@@ -605,7 +653,7 @@ def fcqty_confirm(prefix: str, offer_id: str, qty: int, total_price: int) -> Inl
     """تأكيد شراء كمية مخصصة."""
     return InlineKeyboardMarkup([
         [InlineKeyboardButton(
-            "✅ تأكيد — " + str(total_price) + " ل.س",
+            ("✅ تأكيد — " + format(total_price, ',') + " ل.س" + ((" / $" + format(total_price/config.get_syp_per_usd(), ',.2f')) if config.get_syp_per_usd() else "")).replace(",", "،"),
             callback_data="fcqtyconf:" + prefix + ":" + offer_id + ":" + str(qty)
         )],
         [InlineKeyboardButton("⬅️ رجوع", callback_data="fclist:" + prefix)],

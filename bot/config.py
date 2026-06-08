@@ -155,6 +155,26 @@ def get_offer_price(offer: dict) -> int:
     return round_up_to_500(cost_syp * (1 + get_profit_margin()))
 
 
+
+
+def format_offer_price(offer: dict, currency: str = "SYP") -> str:
+    """يرجّع السعر منسّق حسب العملة المختارة (SYP أو USD)."""
+    syp = get_offer_price(offer)
+    if currency == "USD":
+        rate = get_syp_per_usd()
+        usd = syp / rate if rate else 0
+        return f"${usd:,.2f}"
+    return f"{syp:,.0f} ل.س"
+
+
+def price_both(offer: dict) -> str:
+    """يرجّع السعرين معاً (لصفحات التأكيد)."""
+    syp = get_offer_price(offer)
+    rate = get_syp_per_usd()
+    usd = syp / rate if rate else 0
+    return f"{syp:,.0f} ل.س (${usd:,.2f})"
+
+
 # ===== خريطة كل أقسام المنتجات للوحة تعديل الأسعار =====
 # (مفتاح_القسم, اسم_القائمة_في_config, العنوان_للعرض)
 PRICE_EDIT_CATEGORIES = [
@@ -412,6 +432,15 @@ PUBG_UC_OFFERS = [
     {"id": "uc_1800", "label": "1800 شدة 🔒", "uc": 1800, "price": 365500, "product_id": 2835, "cost_usd": 22.1686, "manual_price": True, "verify": True, "verify_product_id": 2835},
     {"id": "uc_3850", "label": "3850 شدة 🔒", "uc": 3850, "price": 714000, "product_id": 2836, "cost_usd": 43.257, "manual_price": True, "verify": True, "verify_product_id": 2836},
     {"id": "uc_8100", "label": "8100 شدة 🔒", "uc": 8100, "price": 1402000, "product_id": 2837, "cost_usd": 84.95, "manual_price": True, "verify": True, "verify_product_id": 2837},
+]
+
+PUBG_UC_S2_OFFERS = [
+    {"id": "uc_s2_60", "label": "60 شدة روبوت 🔒", "uc": 60, "price": 15500, "product_id": 7175, "cost_usd": 0.857, "manual_price": True, "verify": True, "verify_product_id": 7175},
+    {"id": "uc_s2_325", "label": "325 شدة روبوت 🔒", "uc": 325, "price": 79500, "product_id": 7176, "cost_usd": 4.335, "manual_price": True, "verify": True, "verify_product_id": 7176},
+    {"id": "uc_s2_660", "label": "660 شدة روبوت 🔒", "uc": 660, "price": 158500, "product_id": 7177, "cost_usd": 8.671, "manual_price": True, "verify": True, "verify_product_id": 7177},
+    {"id": "uc_s2_1800", "label": "1800 شدة روبوت 🔒", "uc": 1800, "price": 400500, "product_id": 7178, "cost_usd": 21.881, "manual_price": True, "verify": True, "verify_product_id": 7178},
+    {"id": "uc_s2_3850", "label": "3850 شدة روبوت 🔒", "uc": 3850, "price": 794000, "product_id": 7179, "cost_usd": 43.4, "manual_price": True, "verify": True, "verify_product_id": 7179},
+    {"id": "uc_s2_8100", "label": "8100 شدة روبوت 🔒", "uc": 8100, "price": 1559000, "product_id": 7180, "cost_usd": 85.225, "manual_price": True, "verify": True, "verify_product_id": 7180},
 ]
 
 # عروض جواهر فري فاير — شحن تلقائي عبر Fastcard (سيرفر اوتو 1)

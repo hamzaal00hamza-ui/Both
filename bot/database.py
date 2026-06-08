@@ -30,6 +30,7 @@ def init_db():
             ("referrer_id", "INTEGER"),
             ("signup_bonus_paid", "INTEGER DEFAULT 0"),
             ("loyalty_points", "INTEGER DEFAULT 0"),
+            ("currency", "TEXT DEFAULT 'SYP'"),
         ):
             try:
                 cur.execute(f"ALTER TABLE users ADD COLUMN {col_def[0]} {col_def[1]}")
@@ -392,6 +393,28 @@ def get_user(user_id: int) -> Optional[Dict[str, Any]]:
         row = cur.fetchone()
         return dict(row) if row else None
 
+
+
+
+def get_user_currency(user_id: int) -> str:
+    """يرجّع عملة المستخدم المفضّلة: SYP أو USD."""
+    try:
+        u = get_user(user_id)
+        if u and u.get("currency") in ("SYP", "USD"):
+            return u["currency"]
+    except Exception:
+        pass
+    return "SYP"
+
+
+def set_user_currency(user_id: int, currency: str) -> None:
+    """يحفظ عملة المستخدم المفضّلة."""
+    if currency not in ("SYP", "USD"):
+        currency = "SYP"
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("UPDATE users SET currency = ? WHERE user_id = ?", (currency, user_id))
+        conn.commit()
 
 def set_banned(user_id: int, banned: bool):
     with get_conn() as conn:
