@@ -108,6 +108,9 @@ def _login(s: requests.Session) -> None:
     if r.status_code >= 500:
         raise FastcardWebError(f"web login server error {r.status_code}")
     body = (r.text or "").lower()
+    # logging للتشخيص: نشوف إذا login نجح
+    cookies_names = [c.name for c in s.cookies]
+    logger.info(f"_login: status={r.status_code} final_url={r.url} cookies={cookies_names}")
     if "login" in r.url.lower() and ("name=\"password\"" in body or "كلمة" in (r.text or "")):
         raise FastcardWebError("بيانات تسجيل الدخول إلى موقع فاست كارد غير صحيحة")
 
