@@ -1,3 +1,4 @@
+import os
 """
 Fastcard Website Client (لتحقق من اسم اللاعب)
 
@@ -15,6 +16,29 @@ import requests
 import re as _re2
 
 from . import config
+
+
+
+def _totp_now(secret: str) -> str:
+    """يولّد كود 2FA (TOTP) من الـ secret بدون مكتبات خارجية."""
+    import hmac, hashlib, struct, time, base64
+    secret = (secret or "").upper().replace(" ", "")
+    if not secret:
+        return ""
+    missing = len(secret) % 8
+    if missing:
+        secret += "=" * (8 - missing)
+    try:
+        key = base64.b32decode(secret)
+    except Exception:
+        return ""
+    counter = int(time.time()) // 30
+    msg = struct.pack(">Q", counter)
+    h = hmac.new(key, msg, hashlib.sha1).digest()
+    offset = h[-1] & 0x0F
+    code = struct.unpack(">I", h[offset:offset+4])[0] & 0x7FFFFFFF
+    return str(code % 1000000).zfill(6)
+
 
 logger = logging.getLogger(__name__)
 
@@ -108,9 +132,49 @@ def _login(s: requests.Session) -> None:
     if r.status_code >= 500:
         raise FastcardWebError(f"web login server error {r.status_code}")
     body = (r.text or "").lower()
-    # logging للتشخيص: نشوف إذا login نجح
     cookies_names = [c.name for c in s.cookies]
     logger.info(f"_login: status={r.status_code} final_url={r.url} cookies={cookies_names}")
+    
+    # لو وصلنا لصفحة المصادقة الثنائية (2FA / twofactor)
+    if "twofactor" in r.url.lower() or "two-factor" in r.url.lower() or "2fa" in r.url.lower():
+        secret = getattr(config, "FASTCARD_2FA_SECRET", "") or os.environ.get("FASTCARD_2FA_SECRET", "")
+        if not secret:
+            raise FastcardWebError("الحساب يتطلب 2FA لكن FASTCARD_2FA_SECRET غير موجود")
+        
+        code = _totp_now(secret)
+        logger.info(f"_login: 2FA required, generated code={code}")
+        
+        # نجيب CSRF token من صفحة twofactor
+        import re as _re
+        twofa_html = r.text or ""
+        csrf = ""
+        m = _re.search(r'name=["\']?_token["\']?\s+value=["\']([^"\']+)["\']', twofa_html)
+        if m:
+            csrf = m.group(1)
+        else:
+            m = _re.search(r'csrf[_-]?token["\']?\s*[:=]\s*["\']([a-zA-Z0-9]{20,})["\']', twofa_html, _re.I)
+            if m:
+                csrf = m.group(1)
+        
+        twofa_url = base + "/twofactor"
+        # نجرّب أسماء حقول شائعة للكود
+        for field in ("code", "otp", "two_factor_code", "token", "2fa_code", "authenticator_code", "pin"):
+            payload = {field: code}
+            if csrf:
+                payload["_token"] = csrf
+                payload["csrf_token"] = csrf
+            try:
+                r2 = s.post(twofa_url, data=payload, allow_redirects=True, timeout=20,
+                            headers={"X-Requested-With": "XMLHttpRequest", "Referer": twofa_url})
+            except Exception:
+                continue
+            # نجحنا لو خرجنا من صفحة twofactor
+            if "twofactor" not in r2.url.lower():
+                logger.info(f"_login: 2FA success with field '{field}' → {r2.url}")
+                return
+        logger.warning("_login: 2FA failed with all field names")
+        raise FastcardWebError("فشل إدخال رمز المصادقة الثنائية")
+    
     if "login" in r.url.lower() and ("name=\"password\"" in body or "كلمة" in (r.text or "")):
         raise FastcardWebError("بيانات تسجيل الدخول إلى موقع فاست كارد غير صحيحة")
 
