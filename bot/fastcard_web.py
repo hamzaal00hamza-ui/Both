@@ -48,13 +48,24 @@ def _get_csrf_token(s: requests.Session) -> str:
     """يجلب CSRF token من صفحة الموقع (من meta tag أو cookie)."""
     base = config.FASTCARD_WEB_BASE.rstrip("/")
     import re as _re
+    # نجرب صفحات فيها form التحقق (الببجي/فري فاير فيها الـ token)
+    pages = [
+        "/index?page=products&cat=440",  # ببجي
+        "/index?page=products",
+        "/index",
+    ]
     try:
-        r = s.get(base + "/index?page=products", timeout=15)
-        html = r.text or ""
-        # طريقة 0 (الأهم): window.PLAYER_CHECK_CSRF
-        m = _re.search(r'PLAYER_CHECK_CSRF\s*=\s*["\']([a-f0-9]{20,})["\']', html, _re.I)
-        if m:
-            return m.group(1)
+        for page in pages:
+            try:
+                r = s.get(base + page, timeout=15)
+            except Exception:
+                continue
+            html = r.text or ""
+            # طريقة 0 (الأهم): window.PLAYER_CHECK_CSRF
+            m = _re.search(r'PLAYER_CHECK_CSRF\s*=\s*["\']([a-f0-9]{20,})["\']', html, _re.I)
+            if m:
+                return m.group(1)
+        # html هي آخر صفحة جُلبت
         # طريقة 1: meta tag
         m = _re.search(r'<meta\s+name=["\']csrf-token["\']\s+content=["\']([^"\']+)["\']', html)
         if m:
