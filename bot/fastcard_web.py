@@ -44,6 +44,34 @@ def _new_session() -> requests.Session:
     return s
 
 
+def _get_csrf_token(s: requests.Session) -> str:
+    """يجلب CSRF token من صفحة الموقع (من meta tag أو cookie)."""
+    base = config.FASTCARD_WEB_BASE.rstrip("/")
+    import re as _re
+    try:
+        r = s.get(base + "/index?page=products", timeout=15)
+        html = r.text or ""
+        # طريقة 1: meta tag
+        m = _re.search(r'<meta\s+name=["\']csrf-token["\']\s+content=["\']([^"\']+)["\']', html)
+        if m:
+            return m.group(1)
+        # طريقة 2: csrf_token في JS
+        m = _re.search(r'csrf[_-]?token["\']?\s*[:=]\s*["\']([a-f0-9]{32,})["\']', html, _re.I)
+        if m:
+            return m.group(1)
+        # طريقة 3: input hidden
+        m = _re.search(r'name=["\']_token["\']\s+value=["\']([^"\']+)["\']', html)
+        if m:
+            return m.group(1)
+        # طريقة 4: من cookie
+        for c in s.cookies:
+            if "csrf" in c.name.lower() or "xsrf" in c.name.lower():
+                return c.value
+    except Exception as e:
+        logger.warning(f"_get_csrf_token failed: {e}")
+    return ""
+
+
 def _login(s: requests.Session) -> None:
     base = config.FASTCARD_WEB_BASE.rstrip("/")
     # نزور صفحة login لجلب PHPSESSID
@@ -92,12 +120,16 @@ def check_player(player_id: str, product_id: int) -> Dict[str, Any]:
 
     for attempt in (1, 2):
         s = _get_session(force_relogin=(attempt == 2))
+        # نجيب CSRF token (ضروري للـ endpoint الجديد)
+        csrf = _get_csrf_token(s)
         try:
-            # POST request (الـ endpoint بيوقع POST)
+            # POST request مع CSRF token
             r = s.post(url, data=payload, timeout=25,
                        headers={"X-Requested-With": "XMLHttpRequest",
                                 "Accept": "application/json",
-                                "Referer": base + "/"})
+                                "X-CSRF-TOKEN": csrf,
+                                "Origin": base,
+                                "Referer": base + "/index?page=products"})
         except Exception as e:
             if attempt == 2:
                 raise FastcardWebError(f"تعذّر الاتصال بالموقع: {e}")
