@@ -85,7 +85,7 @@ def check_player(player_id: str, product_id: int) -> Dict[str, Any]:
 
     # الرابط الجديد من التحديث
     base = config.FASTCARD_WEB_BASE.rstrip("/")
-    url = base + "/api/player-id-check.js"
+    url = base + "/_web/player-id-check.js"
     
     # الـ parameters الجديدة: user_id بدل player_id
     params = {"user_id": str(player_id), "product_id": int(product_id)}
