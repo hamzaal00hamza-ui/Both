@@ -983,18 +983,29 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
         orders_count = db.count_user_orders(update.effective_user.id)
         loyalty_pts = int(user.get("loyalty_points") or 0)
         username = user.get("username") or user.get("first_name") or "—"
+        _cur = db.get_user_currency(update.effective_user.id)
+        _rate = config.get_syp_per_usd()
+        _bal = user['balance'] or 0
+        _rech = user['total_recharged'] or 0
+        if _cur == "USD" and _rate:
+            _bal_disp = f"${_bal/_rate:,.2f}"
+            _rech_disp = f"${_rech/_rate:,.2f}"
+        else:
+            _bal_disp = f"{_bal:,.0f} ل.س".replace(",", "،")
+            _rech_disp = f"{_rech:,.0f} ل.س".replace(",", "،")
         await update.message.reply_text(
             "👤 *الملف الشخصي*\n"
             "━━━━━━━━━━━━━━━━━\n\n"
             f"🪪 الاسم: `{username}`\n"
             f"🆔 المعرّف: `{user['user_id']}`\n\n"
-            f"💰 الرصيد الحالي: *{user['balance']:,.0f} ل.س*\n".replace(",", "،") +
+            f"💰 الرصيد الحالي: *{_bal_disp}*\n"
             f"💎 نقاط الولاء: *{loyalty_pts:,}* نقطة\n".replace(",", "،") +
             f"🏅 المستوى: *{user['level']}*\n\n"
-            f"📊 إجمالي الشحن: *{user['total_recharged']:,.0f} ل.س*\n".replace(",", "،") +
+            f"📊 إجمالي الشحن: *{_rech_disp}*\n"
             f"📦 عدد الطلبات: *{orders_count}*\n"
-            "━━━━━━━━━━━━━━━━━",
-            reply_markup=kb.back_to_main(),
+            "━━━━━━━━━━━━━━━━━\n"
+            f"💵 عملة العرض: *{'دولار $' if _cur == 'USD' else 'ليرة سورية'}*",
+            reply_markup=kb.account_menu(_cur),
             parse_mode=ParseMode.MARKDOWN,
         )
 
