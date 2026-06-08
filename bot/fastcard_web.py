@@ -83,19 +83,19 @@ def check_player(player_id: str, product_id: int) -> Dict[str, Any]:
     if not is_enabled():
         raise FastcardWebError("تحقق الاسم غير مفعّل (مفاتيح الموقع ناقصة)")
 
-    # الرابط الجديد من التحديث
+    # الرابط الصح: /ajax/player-id-check
     base = config.FASTCARD_WEB_BASE.rstrip("/")
-    url = base + "/_web/player-id-check.js"
+    url = base + "/ajax/player-id-check"
     
     # الـ parameters الجديدة: user_id بدل player_id
-    params = {"user_id": str(player_id), "product_id": int(product_id)}
+    payload = {"user_id": str(player_id), "product_id": int(product_id)}
 
     for attempt in (1, 2):
         s = _get_session(force_relogin=(attempt == 2))
         try:
-            # جرّب GET أولاً (الأشهر)
-            r = s.get(url, params=params, timeout=25,
-                      headers={"X-Requested-With": "XMLHttpRequest"})
+            # POST request (الـ endpoint بيوقع POST)
+            r = s.post(url, data=payload, timeout=25,
+                       headers={"X-Requested-With": "XMLHttpRequest"})
         except Exception as e:
             if attempt == 2:
                 raise FastcardWebError(f"تعذّر الاتصال بالموقع: {e}")
