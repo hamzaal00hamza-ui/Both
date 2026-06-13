@@ -1,11 +1,13 @@
 """
 نقطة تشغيل البوت
 """
+import json
 import logging
 import os
 import sys
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse
 
 from telegram import BotCommand, BotCommandScopeChat, BotCommandScopeDefault, MenuButtonCommands
 from telegram.ext import Application
@@ -18,6 +20,23 @@ from .jobs import schedule_jobs
 
 class _HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        path = urlparse(self.path)
+        # نقطة التحقق من اسم اللاعب (يناديها الموقع) — معزولة بملف check_api
+        if path.path == "/api/check-player":
+            try:
+                from .check_api import handle_check_player
+                code, obj = handle_check_player(path.query)
+            except Exception as e:
+                logging.getLogger(__name__).warning(f"check-player route error: {e}")
+                code, obj = 200, {"ok": False, "soft": True, "msg": "تعذّر التحقق حالياً"}
+            body = json.dumps(obj, ensure_ascii=False).encode("utf-8")
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        # health check
         self.send_response(200)
         self.send_header("Content-Type", "text/plain; charset=utf-8")
         self.end_headers()
