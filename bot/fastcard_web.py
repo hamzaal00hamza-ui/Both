@@ -198,7 +198,8 @@ def check_player(player_id: str, product_id: int) -> Dict[str, Any]:
     url = base + "/ajax/player-id-check"
     
     # الـ parameters الجديدة: user_id بدل player_id
-    payload = {"user_id": str(player_id), "product_id": int(product_id)}
+    # نفس ترتيب الموقع الأصلي: product_id أولاً ثم user_id
+    payload = {"product_id": int(product_id), "user_id": str(player_id)}
 
     for attempt in (1, 2):
         s = _get_session(force_relogin=(attempt == 2))
@@ -206,13 +207,15 @@ def check_player(player_id: str, product_id: int) -> Dict[str, Any]:
         csrf = _get_csrf_token(s)
         logger.info(f"check_player CSRF token = '{csrf[:20]}...' (len={len(csrf)})")
         try:
-            # POST request مع CSRF token
+            # POST request مطابق لملف player-id-check.js الأصلي حرف بحرف
+            # المهم: X-CSRF-Token (مش X-CSRF-TOKEN) + الترتيب product_id ثم user_id
             r = s.post(url, data=payload, timeout=25,
-                       headers={"X-Requested-With": "XMLHttpRequest",
-                                "Accept": "application/json",
-                                "X-CSRF-TOKEN": csrf,
+                       headers={"Accept": "application/json",
+                                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                                "X-Requested-With": "XMLHttpRequest",
+                                "X-CSRF-Token": csrf,
                                 "Origin": base,
-                                "Referer": base + "/index?page=products"})
+                                "Referer": base + "/index?page=products&cat=440"})
         except Exception as e:
             if attempt == 2:
                 raise FastcardWebError(f"تعذّر الاتصال بالموقع: {e}")
