@@ -36,7 +36,7 @@ START_BANNER_URL = os.environ.get(
 )
 
 REFERRAL_SIGNUP_BONUS = 2000
-REFERRAL_COMMISSION_PERCENT = 8
+REFERRAL_COMMISSION_PERCENT = 5
 
 # نظام نقاط الولاء
 # كل طلب ناجح = 1% من قيمته نقاط (1 نقطة = 1 ل.س)
