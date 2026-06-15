@@ -55,6 +55,20 @@ def is_admin(update: Update) -> bool:
     return config.ADMIN_ID and update.effective_user.id == config.ADMIN_ID
 
 
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+ADMIN_AWAIT_PASSWORD = "admin_await_password"
+
+# يخزّن آخر وقت دخول ناجح لكل أدمن (جلسة مؤقتة)
+_admin_sessions = {}
+ADMIN_SESSION_TTL = 1800  # 30 دقيقة
+
+
+def _admin_session_valid(user_id: int) -> bool:
+    import time
+    ts = _admin_sessions.get(user_id)
+    return bool(ts and (time.time() - ts) < ADMIN_SESSION_TTL)
+
+
 async def cmd_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update):
         await update.message.reply_text("⛔ هذا الأمر للأدمن فقط.")
@@ -62,11 +76,60 @@ async def cmd_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not config.ADMIN_ID:
         await update.message.reply_text("⚠️ ADMIN_ID غير مضبوط في الإعدادات.")
         return
+
+    # لو ما في كلمة مرور مضبوطة، افتح اللوحة مباشرة (توافق رجعي)
+    if not ADMIN_PASSWORD:
+        await update.message.reply_text(
+            "🛠️ *لوحة الأدمن*\n\nاختر إجراءً:",
+            reply_markup=kb.admin_panel(),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return ConversationHandler.END
+
+    # لو الجلسة لسا صالحة، افتح اللوحة بدون كلمة مرور
+    import time
+    if _admin_session_valid(update.effective_user.id):
+        await update.message.reply_text(
+            "🛠️ *لوحة الأدمن*\n\nاختر إجراءً:",
+            reply_markup=kb.admin_panel(),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return ConversationHandler.END
+
+    # اطلب كلمة المرور
     await update.message.reply_text(
-        "🛠️ *لوحة الأدمن*\n\nاختر إجراءً:",
-        reply_markup=kb.admin_panel(),
+        "🔐 *لوحة الأدمن محمية*\n\nأدخل كلمة المرور للمتابعة:",
         parse_mode=ParseMode.MARKDOWN,
     )
+    return ADMIN_AWAIT_PASSWORD
+
+
+async def msg_admin_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """يتحقق من كلمة مرور الأدمن."""
+    if not is_admin(update):
+        return ConversationHandler.END
+    entered = (update.message.text or "").strip()
+
+    # نحذف رسالة كلمة المرور للأمان
+    try:
+        await update.message.delete()
+    except Exception:
+        pass
+
+    if entered == ADMIN_PASSWORD:
+        import time
+        _admin_sessions[update.effective_user.id] = time.time()
+        await update.message.reply_text(
+            "✅ تم التحقق بنجاح.\n\n🛠️ *لوحة الأدمن*\n\nاختر إجراءً:",
+            reply_markup=kb.admin_panel(),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return ConversationHandler.END
+    else:
+        await update.message.reply_text(
+            "❌ كلمة المرور غير صحيحة. اكتب /admin للمحاولة مرة أخرى.",
+        )
+        return ConversationHandler.END
 
 
 async def cb_admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2477,7 +2540,17 @@ async def cb_admin_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def register_admin_handlers(app):
-    app.add_handler(CommandHandler("admin", cmd_admin))
+    # /admin محمي بكلمة مرور (إذا ADMIN_PASSWORD مضبوط)
+    admin_login_conv = ConversationHandler(
+        entry_points=[CommandHandler("admin", cmd_admin)],
+        states={
+            ADMIN_AWAIT_PASSWORD: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, msg_admin_password),
+            ],
+        },
+        fallbacks=[CommandHandler("cancel", admin_cancel)],
+    )
+    app.add_handler(admin_login_conv)
     app.add_handler(CommandHandler("fcprod", cmd_fcprod))
     app.add_handler(CommandHandler("fcfind", cmd_fcfind))
     app.add_handler(CommandHandler("fcrefund", cmd_fcrefund))
