@@ -642,25 +642,33 @@ async def apply_referral_commission(bot, recharger_user_id: int, recharge_amount
 
 async def _build_referral_screen(user_id: int, bot) -> tuple:
     """يبني نص + كيبورد شاشة الإحالة."""
-    me = await bot.get_me()
-    bot_username = me.username or "bot"
-    link = f"https://t.me/{bot_username}?start=ref_{user_id}"
-    stats = db.get_referral_stats(user_id)
-    text = (
-        "👥 *دعوة الأصدقاء*\n\n"
-        f"🎁 كل صديق ينضم عن طريق رابطك يحصل على *{int(config.REFERRAL_SIGNUP_BONUS)} ل.س* مكافأة انضمام.\n"
-        f"💰 وأنت تحصل على مكافأة *{config.REFERRAL_COMMISSION_PERCENT}%* من كل عملية شحن يقوم بها — مدى الحياة!\n\n"
-        f"🔗 *رابط الدعوة الخاص بك:*\n`{link}`\n\n"
-        "📊 *إحصائياتك:*\n"
-        f"• عدد الأصدقاء المُحالين: *{stats['invited_count']}*\n"
-        f"• عدد عمليات المكافأة: *{stats['commission_orders']}*\n"
-        f"• إجمالي مكافآتك من الإحالات: *{int(stats['commission_total'])} ل.س*\n\n"
-        "📤 اضغط الزر بالأسفل لمشاركة الرابط مع أصدقائك."
-    )
-    share_text = (
-        f"🎮 انضم لبوت شحن الألعاب واحصل على {int(config.REFERRAL_SIGNUP_BONUS)} ل.س هدية! 🎁"
-    )
-    return text, kb.referral_menu(link, share_text)
+    try:
+        me = await bot.get_me()
+        bot_username = me.username or "bot"
+        link = f"https://t.me/{bot_username}?start=ref_{user_id}"
+        try:
+            stats = db.get_referral_stats(user_id)
+        except Exception as e:
+            logger.warning(f"get_referral_stats failed for {user_id}: {e}")
+            stats = {"invited_count": 0, "commission_total": 0, "commission_orders": 0}
+        text = (
+            "👥 *دعوة الأصدقاء*\n\n"
+            f"🎁 كل صديق ينضم عن طريق رابطك يحصل على *{int(config.REFERRAL_SIGNUP_BONUS)} ل.س* مكافأة انضمام.\n"
+            f"💰 وأنت تحصل على مكافأة *{config.REFERRAL_COMMISSION_PERCENT}%* من كل عملية شحن يقوم بها — مدى الحياة!\n\n"
+            f"🔗 *رابط الدعوة الخاص بك:*\n`{link}`\n\n"
+            "📊 *إحصائياتك:*\n"
+            f"• عدد الأصدقاء المُحالين: *{stats['invited_count']}*\n"
+            f"• عدد عمليات المكافأة: *{stats['commission_orders']}*\n"
+            f"• إجمالي مكافآتك من الإحالات: *{int(stats['commission_total'])} ل.س*\n\n"
+            "📤 اضغط الزر بالأسفل لمشاركة الرابط مع أصدقائك."
+        )
+        share_text = (
+            f"🎮 انضم لبوت شحن الألعاب واحصل على {int(config.REFERRAL_SIGNUP_BONUS)} ل.س هدية! 🎁"
+        )
+        return text, kb.referral_menu(link, share_text)
+    except Exception as e:
+        logger.error(f"_build_referral_screen failed for {user_id}: {e}")
+        return ("⚠️ تعذّر تحميل صفحة الإحالة حالياً، حاول بعد قليل.", kb.back_to_main())
 
 
 
