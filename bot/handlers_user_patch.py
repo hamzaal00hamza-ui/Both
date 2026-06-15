@@ -57,7 +57,7 @@ _REPLY_KB_TEXTS = {
     "🔥 الألعاب 🎮", "💫 التطبيقات 📱",
     "💳 بطاقات وأكواد 🃏", "⚡ الرشق 📈", "🌐 الأرقام 📲",
     "💰 شحن الرصيد ⚡", "📊 حسابي 👤",
-    "👑 نقاط الولاء 💎", "🎁 كود خصم 🎟", "💬 الدعم 📞",
+    "👑 نقاط الولاء 💎", "🎁 كود خصم 🎟", "💬 الدعم 📞", "👥 ادعُ صديقاً 🎁",
     "🎮 قسم الألعاب", "📱 قسم التطبيقات", "🃏 قسم البطاقات والأكواد",
     "📈 قسم الرشق", "📲 قسم الأرقام",
     "💎 نقاط الولاء", "🎟 كود الخصم",
@@ -1035,6 +1035,14 @@ async def cmd_reply_nav(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             loyalty_text,
             reply_markup=kb.loyalty_menu(can_redeem=can_redeem, suggested_redeem=pts if can_redeem else 0),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+
+    elif text in ["👥 ادعُ صديقاً 🎁", "🎁 ادعُ صديقاً 👥", "👥 دعوة الأصدقاء"]:
+        ref_text, ref_markup = await _build_referral_screen(update.effective_user.id, context.bot)
+        await update.message.reply_text(
+            ref_text,
+            reply_markup=ref_markup,
             parse_mode=ParseMode.MARKDOWN,
         )
 
