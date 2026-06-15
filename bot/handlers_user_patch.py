@@ -4452,7 +4452,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
-            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞|👥 ادعُ صديقاً 🎁)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
@@ -4485,7 +4485,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
-            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞|👥 ادعُ صديقاً 🎁)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
@@ -4525,7 +4525,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
-            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞|👥 ادعُ صديقاً 🎁)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
@@ -4550,7 +4550,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
-            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞|👥 ادعُ صديقاً 🎁)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
@@ -4576,7 +4576,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
-            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞|👥 ادعُ صديقاً 🎁)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
@@ -4612,7 +4612,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
-            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞|👥 ادعُ صديقاً 🎁)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
@@ -4638,7 +4638,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
-            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞|👥 ادعُ صديقاً 🎁)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
@@ -4661,7 +4661,7 @@ def register_user_handlers(app):
             ],
         },
         fallbacks=[
-            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞)$"), cancel_and_nav), 
+            MessageHandler(filters.TEXT & filters.Regex("^(🔥 الألعاب 🎮|💫 التطبيقات 📱|💳 بطاقات وأكواد 🃏|⚡ الرشق 📈|🌐 الأرقام 📲|💰 شحن الرصيد ⚡|📊 حسابي 👤|👑 نقاط الولاء 💎|🎁 كود خصم 🎟|💬 الدعم 📞|👥 ادعُ صديقاً 🎁)$"), cancel_and_nav), 
             CommandHandler("start", cancel_conversation),
             CallbackQueryHandler(cancel_conversation, pattern=r"^menu:main$"),
             CallbackQueryHandler(cancel_conversation, pattern=r"^(recharge:|fclist:|order:|game:|menu:|back:)"),
